@@ -1,12 +1,17 @@
 import express from "express";
 import mongoose from "mongoose";
+import { config } from "dotenv";
 import passport from "./config/passport.js";
 import morgan from "morgan";
 
 import userRoutes from "./routes/userRoutes.js";
 
+config();
+
+const DB_URL = process.env.DB_URL;
+
 mongoose
-  .connect("mongodb://localhost:27017/codeIt")
+  .connect(DB_URL || "mongodb://localhost:27017/codeIt")
   .then(() => {
     console.log("Connected to database");
   })

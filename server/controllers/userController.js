@@ -24,8 +24,10 @@ export const registerUser = async (req, res) => {
       bio,
     });
 
+    const JWT_SECRET = process.env.JWT_SECRET;
+
     const payload = { id: user.id, username: user.username };
-    const token = jwt.sign(payload, "lolsecret", {
+    const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: "1h",
     });
 
@@ -47,8 +49,10 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    const JWT_SECRET = process.env.JWT_SECRET;
+
     const payload = { id: user.id, username: user.username };
-    const token = jwt.sign(payload, "lolsecret", {
+    const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: "1h",
     });
 
