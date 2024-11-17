@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import { config } from "dotenv";
 import passport from "./config/passport.js";
 import morgan from "morgan";
@@ -21,6 +22,7 @@ mongoose
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 app.use(
