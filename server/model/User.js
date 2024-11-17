@@ -1,9 +1,130 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
+const UserSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: [3, "Username must be at least 3 characters long"],
+      maxlength: [30, "Username cannot exceed 30 characters"],
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      match: [/.+\@.+\..+/, "Please enter a valid email address"],
+    },
+    // TODO -> add this when you create approval system
+    role: {
+      type: String,
+      enum: ["user", "moderator", "admin"],
+      // default: "user",
+    },
+    profilePicture: {
+      type: String,
+      default: null,
+    },
+    questionsSolved: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Question",
+      },
+    ],
+    accountabilityPartner: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    rating: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    answerContributions: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Answer",
+      },
+    ],
+    questionContributions: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Question",
+      },
+    ],
+    bio: {
+      type: String,
+      maxlength: 500,
+    },
+    //TODO -> get data from other CP platforms?
+    socialLinks: {
+      github: {
+        type: String,
+        match: [
+          /https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9-_]+/,
+          "Enter a valid GitHub URL",
+        ],
+      },
+      leetcode: {
+        type: String,
+        match: [
+          /https?:\/\/(www\.)?leetcode\.com\/[a-zA-Z0-9-_]+/,
+          "Enter a valid LeetCode URL",
+        ],
+      },
+      codeforces: {
+        type: String,
+        match: [
+          /https?:\/\/(www\.)?codeforces\.com\/profile\/[a-zA-Z0-9-_]+/,
+          "Enter a valid Codeforces URL",
+        ],
+      },
+    },
+    statistics: {
+      totalSolved: { type: Number, default: 0 },
+      easyCount: { type: Number, default: 0 },
+      mediumCount: { type: Number, default: 0 },
+      hardCount: { type: Number, default: 0 },
+      streak: { type: Number, default: 0 },
+      lastSolveDate: { type: Date },
+    },
+    //TODO -> think of logic
+    achievements: [
+      {
+        type: {
+          type: String,
+          enum: [
+            "FirstSolve",
+            "Streak7Days",
+            "Streak30Days",
+            "Streak100Days",
+            "ContributorBronze",
+            "ContributorSilver",
+            "ContributorGold",
+          ],
+        },
+        earnedAt: { type: Date, default: Date.now },
+      },
+    ],
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", UserSchema);
 export default User;
