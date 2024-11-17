@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../model/User.js";
+import User from "../models/User.js";
 
 export const Register = async (req, res) => {
   try {
@@ -32,7 +32,7 @@ export const Login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const user = await User.findOne({ username }); 
+    const user = await User.findOne({ username });
 
     if (!user || user.password !== password) {
       return res.status(401).json({ message: "Invalid credentials" });

@@ -1,0 +1,283 @@
+import { faker } from "@faker-js/faker";
+import mongoose from "mongoose";
+import User from "./models/User.js";
+import Question from "./models/Question.js";
+import Example from "./models/Example.js";
+import Discussion from "./models/Discussion.js";
+import Answer from "./models/Answer.js";
+
+const MONGODB_URI = "mongodb://localhost:27017/codeIt";
+const NUM_USERS = 50;
+const NUM_QUESTIONS = 100;
+
+const TAGS = [
+  "Arrays",
+  "Linked List",
+  "Stack",
+  "Queue",
+  "Hashing",
+  "Heap",
+  "Binary Search",
+  "Sorting",
+  "Dynamic Programming",
+  "Backtracking",
+  "Recursion",
+  "Graph Theory",
+  "Tree",
+  "Binary Tree",
+  "Binary Search Tree",
+  "Greedy",
+  "Divide and Conquer",
+  "Sliding Window",
+  "Bit Manipulation",
+  "Math",
+  "Two Pointers",
+  "Strings",
+  "Trie",
+  "Union Find",
+  "Geometry",
+  "Game Theory",
+  "Segment Tree",
+  "Fenwick Tree",
+  "Memoization",
+  "Combinatorics",
+  "Breadth First Search",
+  "Depth First Search",
+  "Shortest Path",
+  "Topological Sort",
+  "Network Flow",
+  "Knapsack",
+  "Matrix",
+  "Prefix Sum",
+  "Kadane's Algorithm",
+  "Hash Map",
+  "Set",
+  "Probability",
+  "Modular Arithmetic",
+  "Bitmasking",
+  "Number Theory",
+  "Intervals",
+  "Monotonic Stack",
+  "Monotonic Queue",
+  "Z-Algorithm",
+  "KMP Algorithm",
+  "Minimum Spanning Tree",
+  "Maximum Flow",
+  "Eulerian Path",
+  "Cycle Detection",
+  "Strongly Connected Components",
+  "Disjoint Set",
+  "Probability and Statistics",
+  "String Matching",
+  "Pattern Searching",
+];
+
+const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+const getRandomElements = (arr, min, max) => {
+  const num = Math.floor(Math.random() * (max - min + 1)) + min;
+  const shuffled = [...arr].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, num);
+};
+
+async function seedUsers() {
+  const users = [];
+
+  for (let i = 0; i < NUM_USERS; i++) {
+    const user = new User({
+      username: faker.internet.username(),
+      password: faker.internet.password(),
+      email: faker.internet.email(),
+      profilePicture: faker.image.avatar(),
+      bio: faker.lorem.paragraph(),
+      rating: faker.number.int({ min: 0, max: 3000 }),
+      socialLinks: {
+        github: `https://github.com/${faker.internet.username()}`,
+        leetcode: `https://leetcode.com/${faker.internet.username()}`,
+        codeforces: `https://codeforces.com/profile/${faker.internet.username()}`,
+      },
+    });
+    users.push(user);
+  }
+
+  await User.insertMany(users);
+  return users;
+}
+
+async function seedQuestions(users) {
+  const questions = [];
+  const difficulties = ["Easy", "Medium", "Hard"];
+
+  for (let i = 0; i < NUM_QUESTIONS; i++) {
+    const difficulty = getRandomElement(difficulties);
+    const noOfSuccess = faker.number.int({ min: 0, max: 1000 });
+    const noOfFails = faker.number.int({ min: 0, max: 1000 });
+
+    const question = new Question({
+      title: `${faker.lorem.sentence()} Consider the following ${getRandomElement(
+        TAGS
+      )} problem: ${faker.lorem.paragraph()}`,
+      tags: getRandomElements(TAGS, 1, 4),
+      submittedBy: getRandomElement(users)._id,
+      difficulty,
+      noOfSuccess,
+      noOfFails,
+      likes: faker.number.int({ min: 0, max: 500 }),
+      dislikes: faker.number.int({ min: 0, max: 100 }),
+    });
+    questions.push(question);
+  }
+
+  await Question.insertMany(questions);
+  return questions;
+}
+
+async function seedExamples(questions, users) {
+  const examples = [];
+
+  for (const question of questions) {
+    const numExamples = faker.number.int({ min: 1, max: 3 });
+
+    for (let i = 0; i < numExamples; i++) {
+      const example = new Example({
+        input: `arr = [${faker.number.int()}, ${faker.number.int()}, ${faker.number.int()}]`,
+        output: faker.number.int().toString(),
+        explanation: faker.lorem.paragraph(),
+        question: question._id,
+        contributedBy: getRandomElement(users)._id,
+      });
+      examples.push(example);
+    }
+  }
+
+  await Example.insertMany(examples);
+  return examples;
+}
+
+async function seedAnswers(questions, users) {
+  const answers = [];
+  const solutionTypes = ["Brute Force", "Better", "Optimal"];
+
+  for (const question of questions) {
+    const answer = new Answer({
+      question: question._id,
+      solutions: solutionTypes.map((type) => ({
+        type,
+        heading: `${type} Solution - ${faker.helpers.arrayElement([
+          "Time: O(n)",
+          "Time: O(n²)",
+          "Time: O(log n)",
+        ])}`,
+        answer: `\`\`\`python\n# ${type} Solution\ndef solve(arr):\n    ${faker.lorem.lines(
+          5
+        )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
+        contributedBy: getRandomElement(users)._id,
+      })),
+    });
+    answers.push(answer);
+  }
+
+  await Answer.insertMany(answers);
+  return answers;
+}
+
+async function seedDiscussions(questions, users) {
+  const discussions = [];
+
+  for (const question of questions) {
+    const numDiscussions = faker.number.int({ min: 0, max: 5 });
+
+    for (let i = 0; i < numDiscussions; i++) {
+      const numReactions = faker.number.int({ min: 0, max: 10 });
+      const reactions = [];
+
+      for (let j = 0; j < numReactions; j++) {
+        reactions.push({
+          user: getRandomElement(users)._id,
+          type: getRandomElement(["like", "dislike"]),
+        });
+      }
+
+      const discussion = new Discussion({
+        comment: faker.lorem.paragraph(),
+        question: question._id,
+        user: getRandomElement(users)._id,
+        reactions,
+      });
+      discussions.push(discussion);
+    }
+  }
+
+  await Discussion.insertMany(discussions);
+  return discussions;
+}
+
+async function updateUserReferences(users, questions, answers) {
+  for (const user of users) {
+    const userQuestions = questions.filter(
+      (q) => q.submittedBy.toString() === user._id.toString()
+    );
+    const userAnswers = answers.filter((a) =>
+      a.solutions.some(
+        (s) => s.contributedBy.toString() === user._id.toString()
+      )
+    );
+
+    user.questionContributions = userQuestions.map((q) => q._id);
+    user.answerContributions = userAnswers.map((a) => a._id);
+    user.questionsSolved = getRandomElements(questions, 0, 50).map(
+      (q) => q._id
+    );
+
+    if (faker.number.int({ min: 0, max: 1 })) {
+      user.accountabilityPartner = getRandomElement(
+        users.filter((u) => u._id !== user._id)
+      )._id;
+    }
+
+    await user.save();
+  }
+}
+
+async function seedDatabase() {
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("Connected to MongoDB");
+
+    await Promise.all([
+      User.deleteMany({}),
+      Question.deleteMany({}),
+      Example.deleteMany({}),
+      Answer.deleteMany({}),
+      Discussion.deleteMany({}),
+    ]);
+    console.log("Cleared existing data");
+
+    console.log("Seeding users...");
+    const users = await seedUsers();
+
+    console.log("Seeding questions...");
+    const questions = await seedQuestions(users);
+
+    console.log("Seeding examples...");
+    await seedExamples(questions, users);
+
+    console.log("Seeding answers...");
+    const answers = await seedAnswers(questions, users);
+
+    console.log("Seeding discussions...");
+    await seedDiscussions(questions, users);
+
+    console.log("Updating user references...");
+    await updateUserReferences(users, questions, answers);
+
+    console.log("Database seeded successfully!");
+  } catch (error) {
+    console.error("Error seeding database:", error);
+  } finally {
+    await mongoose.disconnect();
+    console.log("Disconnected from MongoDB");
+  }
+}
+
+seedDatabase();
