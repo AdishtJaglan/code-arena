@@ -22,7 +22,7 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms")
 );
 
-app.use("/auth", userRoutes);
+app.use("/user", userRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });
