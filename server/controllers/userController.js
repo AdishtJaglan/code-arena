@@ -5,7 +5,7 @@ import Answer from "../models/Answer.js";
 
 export const registerUser = async (req, res) => {
   try {
-    const { username, password, email, bio } = req.body;
+    const { username, password, email } = req.body;
 
     if (!username || !password || !email) {
       return res.status(400).json({ message: "Invalid request" });
@@ -17,12 +17,7 @@ export const registerUser = async (req, res) => {
       return res.status(409).json({ message: "User already exists" });
     }
 
-    const user = await User.create({
-      username,
-      password,
-      email,
-      bio,
-    });
+    const user = await User.create(req.body);
 
     const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -197,5 +192,24 @@ export const getContributions = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Error getting contributed questions.", error });
+  }
+};
+
+export const getUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email })
+      .select("username profilePicture rating bio _id")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ message: "User does not exist" });
+    }
+
+    return res.status(200).json({ message: "User fetched.", user });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Unable to get user by email.", error });
   }
 };

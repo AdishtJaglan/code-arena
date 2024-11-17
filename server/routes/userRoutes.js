@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAllUser,
   getContributions,
+  getUserByEmail,
   getUserById,
   getUserQuestionsSolved,
   loginUser,
@@ -17,5 +18,6 @@ router.get("/data/:id", isAuthenticated, getUserById);
 router.get("/solved/:id", isAuthenticated, getUserQuestionsSolved);
 router.get("/contributions/:id", isAuthenticated, getContributions);
 router.get("/all", isAuthenticated, getAllUser);
+router.post("/email", getUserByEmail);
 
 export default router;

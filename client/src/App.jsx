@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import ProblemSet from "./pages/ProblemSet";
 import ProblemDetails from "./pages/ProblemDetails";
+import Register from "./pages/Register";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -14,6 +15,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/problems" element={<ProblemSet />} />
         <Route path="/problems/:id" element={<ProblemDetails />} />
+        <Route path="/register" element={<Register />}></Route>
+        <Route path="*" element={<Home />} />
       </Routes>
     </Router>
   );
