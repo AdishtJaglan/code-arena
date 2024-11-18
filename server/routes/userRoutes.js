@@ -17,7 +17,7 @@ router.post("/login", loginUser);
 router.get("/data/:id", isAuthenticated, getUserById);
 router.get("/solved/:id", isAuthenticated, getUserQuestionsSolved);
 router.get("/contributions/:id", isAuthenticated, getContributions);
-router.get("/all", isAuthenticated, getAllUser);
+router.get("/all", getAllUser);
 router.post("/email", getUserByEmail);
 
 export default router;

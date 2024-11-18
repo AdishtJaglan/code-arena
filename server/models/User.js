@@ -42,6 +42,12 @@ const UserSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    accountabilityPartnerRequest: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "AccountabilityPartnerRequest",
+      },
+    ],
     rating: {
       type: Number,
       default: 0,

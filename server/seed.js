@@ -5,10 +5,11 @@ import Question from "./models/Question.js";
 import Example from "./models/Example.js";
 import Discussion from "./models/Discussion.js";
 import Answer from "./models/Answer.js";
+import AccountabilityPartnerRequest from "./models/AccountabilityPartnerRequest.js";
 
 const MONGODB_URI = "mongodb://localhost:27017/codeIt";
-const NUM_USERS = 50;
-const NUM_QUESTIONS = 100;
+const NUM_USERS = 200;
+const NUM_QUESTIONS = 1000;
 
 const TAGS = [
   "Arrays",
@@ -80,6 +81,26 @@ const getRandomElements = (arr, min, max) => {
   return shuffled.slice(0, num);
 };
 
+function generateAchievements() {
+  const possibleAchievements = [
+    "FirstSolve",
+    "Streak7Days",
+    "Streak30Days",
+    "Streak100Days",
+    "ContributorBronze",
+    "ContributorSilver",
+    "ContributorGold",
+  ];
+
+  const numAchievements = faker.number.int({ min: 0, max: 4 });
+  return getRandomElements(possibleAchievements, 0, numAchievements).map(
+    (type) => ({
+      type,
+      earnedAt: faker.date.recent(),
+    })
+  );
+}
+
 async function seedUsers() {
   const users = [];
 
@@ -88,6 +109,7 @@ async function seedUsers() {
       username: faker.internet.username(),
       password: faker.internet.password(),
       email: faker.internet.email(),
+      role: faker.helpers.arrayElement(["user", "moderator", "admin"]),
       profilePicture: faker.image.avatar(),
       bio: faker.lorem.paragraph(),
       rating: faker.number.int({ min: 0, max: 3000 }),
@@ -96,6 +118,15 @@ async function seedUsers() {
         leetcode: `https://leetcode.com/${faker.internet.username()}`,
         codeforces: `https://codeforces.com/profile/${faker.internet.username()}`,
       },
+      statistics: {
+        totalSolved: faker.number.int({ min: 0, max: 500 }),
+        easyCount: faker.number.int({ min: 0, max: 200 }),
+        mediumCount: faker.number.int({ min: 0, max: 150 }),
+        hardCount: faker.number.int({ min: 0, max: 50 }),
+        streak: faker.number.int({ min: 0, max: 100 }),
+        lastSolveDate: faker.date.recent(),
+      },
+      achievements: generateAchievements(),
     });
     users.push(user);
   }
@@ -117,6 +148,7 @@ async function seedQuestions(users) {
       title: `${faker.lorem.sentence()} Consider the following ${getRandomElement(
         TAGS
       )} problem: ${faker.lorem.paragraph()}`,
+      constraints: faker.lorem.sentences(),
       tags: getRandomElements(TAGS, 1, 4),
       submittedBy: getRandomElement(users)._id,
       difficulty,
@@ -229,14 +261,78 @@ async function updateUserReferences(users, questions, answers) {
       (q) => q._id
     );
 
-    if (faker.number.int({ min: 0, max: 1 })) {
-      user.accountabilityPartner = getRandomElement(
-        users.filter((u) => u._id !== user._id)
-      )._id;
+    if (faker.number.int({ min: 1, max: 10 }) <= 3) {
+      const potentialReceivers = users.filter(
+        (u) => u._id.toString() !== user._id.toString()
+      );
+
+      const selectedReceivers = getRandomElements(
+        potentialReceivers,
+        1,
+        Math.min(3, potentialReceivers.length)
+      );
+
+      for (const receiver of selectedReceivers) {
+        const request = new AccountabilityPartnerRequest({
+          sender: user._id,
+          receiver: receiver._id,
+          status: faker.helpers.arrayElement([
+            "Pending",
+            "Accepted",
+            "Rejected",
+          ]),
+        });
+
+        if (request.status === "Accepted") {
+          user.accountabilityPartner = receiver._id;
+          receiver.accountabilityPartner = user._id;
+          await receiver.save();
+        }
+
+        await request.save();
+
+        user.accountabilityPartnerRequest.push(request._id);
+      }
     }
 
     await user.save();
   }
+}
+
+async function seedAccountabilityPartnerRequests(users) {
+  const requests = [];
+  const numRequests = Math.floor(NUM_USERS * 1);
+
+  for (let i = 0; i < numRequests; i++) {
+    const sender = getRandomElement(users);
+    const receiver = getRandomElement(
+      users.filter((u) => u._id.toString() !== sender._id.toString())
+    );
+
+    const existingRequest = await AccountabilityPartnerRequest.findOne({
+      sender: sender._id,
+      receiver: receiver._id,
+    });
+
+    if (!existingRequest) {
+      const request = new AccountabilityPartnerRequest({
+        sender: sender._id,
+        receiver: receiver._id,
+        status: faker.helpers.arrayElement(["Pending", "Accepted", "Rejected"]),
+      });
+      requests.push(request);
+
+      if (request.status === "Accepted") {
+        sender.accountabilityPartner = receiver._id;
+        receiver.accountabilityPartner = sender._id;
+        await sender.save();
+        await receiver.save();
+      }
+    }
+  }
+
+  await AccountabilityPartnerRequest.insertMany(requests);
+  return requests;
 }
 
 async function seedDatabase() {
@@ -250,23 +346,22 @@ async function seedDatabase() {
       Example.deleteMany({}),
       Answer.deleteMany({}),
       Discussion.deleteMany({}),
+      AccountabilityPartnerRequest.deleteMany({}),
     ]);
     console.log("Cleared existing data");
 
-    console.log("Seeding users...");
     const users = await seedUsers();
+    console.log(`Seeded ${users.length} users`);
 
-    console.log("Seeding questions...");
     const questions = await seedQuestions(users);
+    console.log(`Seeded ${questions.length} questions`);
 
-    console.log("Seeding examples...");
     await seedExamples(questions, users);
-
-    console.log("Seeding answers...");
     const answers = await seedAnswers(questions, users);
-
-    console.log("Seeding discussions...");
     await seedDiscussions(questions, users);
+
+    const requests = await seedAccountabilityPartnerRequests(users);
+    console.log(`Seeded ${requests.length} accountability partner requests`);
 
     console.log("Updating user references...");
     await updateUserReferences(users, questions, answers);
