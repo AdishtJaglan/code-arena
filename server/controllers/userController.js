@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Question from "../models/Question.js";
 import Answer from "../models/Answer.js";
+import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -211,5 +212,62 @@ export const getUserByEmail = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to get user by email.", error });
+  }
+};
+
+export const sendAccountabilityPartnerRequest = async (req, res) => {
+  try {
+    const { senderId } = req.params;
+    const { receiverId } = req.body;
+
+    const sender = await User.findById(senderId).select(
+      "accountabilityPartnerRequest"
+    );
+    if (!sender) {
+      return res.status(404).json({ message: "Sender does not exist" });
+    }
+
+    const receiver = await User.findById(receiverId).select(
+      "accountabilityPartnerRequest"
+    );
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver does not exist." });
+    }
+
+    const existingRequest = await AccountabilityPartnerRequest.findOne({
+      sender: senderId,
+      receiver: receiverId,
+      status: "Pending",
+    });
+
+    if (existingRequest) {
+      return res
+        .status(400)
+        .json({ message: "A pending request already exists." });
+    }
+
+    const accountabilityPartnerRequestObject =
+      await AccountabilityPartnerRequest.create({
+        sender: senderId,
+        receiver: receiverId,
+      });
+
+    sender.accountabilityPartnerRequest.push(
+      accountabilityPartnerRequestObject._id
+    );
+    receiver.accountabilityPartnerRequest.push(
+      accountabilityPartnerRequestObject._id
+    );
+
+    await Promise.all([sender.save(), receiver.save()]);
+
+    return res.status(200).json({
+      message: "Request sent successfully.",
+      sender,
+      receiver,
+      sentRequest: accountabilityPartnerRequestObject,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error sending request.", error });
   }
 };

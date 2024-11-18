@@ -6,6 +6,7 @@ import passport from "./config/passport.js";
 import morgan from "morgan";
 
 import userRoutes from "./routes/userRoutes.js";
+import accountabilityPartnerRequestRoutes from "./routes/accountabilityPartnerRequestRoutes.js";
 
 config();
 
@@ -30,6 +31,7 @@ app.use(
 );
 
 app.use("/user", userRoutes);
+app.use("/partner", accountabilityPartnerRequestRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });
