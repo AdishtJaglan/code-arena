@@ -4,30 +4,23 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AccountCircle,
-  Lock,
-  Email,
-  GitHub,
-  Code,
-  Description,
   NavigateNext,
   NavigateBefore,
-  Visibility,
-  VisibilityOff,
   PersonAdd,
   AccountBox,
   Link as LinkIcon,
-  CloudUpload,
-  LinkedIn,
-  CheckCircle,
-  Error as ErrorIcon,
   Close,
-  InfoOutlined,
 } from "@mui/icons-material";
+import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
 import { ToastContainer, toast } from "react-toastify";
+import { API_BASE_URL } from "../configs/env-config";
 import axios from "axios";
+import Button from "../components/Button";
+import StepDetails from "../components/register/StepDetails";
+import StepProfile from "../components/register/StepProfile";
+import StepConnections from "../components/register/StepConnections";
+import StepRequest from "../components/register/StepRequest";
 import "react-toastify/dist/ReactToastify.css";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const steps = [
   {
@@ -47,6 +40,12 @@ const steps = [
     title: "Connections",
     description: "Link your profiles",
     icon: <LinkIcon className="h-6 w-6" />,
+  },
+  {
+    id: 4,
+    title: "Send Request",
+    description: "Reach out to your parnter!",
+    icon: <ForwardToInboxIcon className="h-6 w-6" />,
   },
 ];
 
@@ -117,14 +116,14 @@ const PartnerInfoModal = ({ isOpen, onClose, partnerInfo }) => (
 
 const Timeline = ({ currentStep }) => {
   return (
-    <div className="hidden h-full flex-col space-y-8 p-8 lg:flex">
+    <div className="hidden h-full flex-col space-y-2 p-8 lg:flex">
       {steps.map((step, index) => (
         <div key={step.id} className="relative flex items-start">
           <div className="flex flex-col items-center">
             <motion.div
               initial={false}
               animate={{
-                scale: currentStep === step.id ? 1.2 : 1,
+                scale: currentStep === step.id ? 1.1 : 1,
               }}
               className={`z-10 mb-2 flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-300 ${
                 currentStep >= step.id
@@ -136,13 +135,17 @@ const Timeline = ({ currentStep }) => {
             </motion.div>
             {index !== steps.length - 1 && (
               <motion.div
-                initial={false}
+                initial={{ backgroundColor: "#1f2937" }}
                 animate={{
                   backgroundColor:
                     currentStep > step.id ? "#8b5cf6" : "#1f2937",
+                  height: currentStep > step.id ? "4rem" : "4rem",
                 }}
-                className="h-32 w-1 rounded-full"
-                transition={{ duration: 0.3 }}
+                className="w-1 rounded-full"
+                transition={{
+                  duration: 0.5,
+                  ease: "easeInOut",
+                }}
               />
             )}
           </div>
@@ -168,60 +171,13 @@ const Timeline = ({ currentStep }) => {
   );
 };
 
-const Input = ({ icon: Icon, label, error, ...props }) => (
-  <div className="relative">
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <Icon className="h-5 w-5 text-gray-400" />
-      </div>
-      <input
-        {...props}
-        className={`w-full rounded-lg border bg-gray-800 py-3 pl-10 pr-4 text-gray-100 placeholder-gray-400 transition-colors duration-200 ${
-          error
-            ? "border-red-500 focus:border-red-500"
-            : "border-gray-700 focus:border-violet-500"
-        } focus:outline-none focus:ring-1 focus:ring-violet-500`}
-      />
-      {label && (
-        <label className="absolute -top-2 left-2 bg-gray-900 px-1 text-xs text-gray-400">
-          {label}
-        </label>
-      )}
-    </div>
-    {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
-  </div>
-);
-
-const Button = ({
-  variant = "primary",
-  className = "",
-  children,
-  ...props
-}) => {
-  const baseStyles =
-    "px-6 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2";
-  const variants = {
-    primary:
-      "bg-violet-600 text-white hover:bg-violet-700 active:bg-violet-800",
-    secondary:
-      "border border-gray-700 text-gray-300 hover:bg-gray-800 active:bg-gray-700",
-  };
-
-  return (
-    <button
-      className={`${baseStyles} ${variants[variant]} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
-
 const Register = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [partnerInfo, setPartnerInfo] = useState(null);
+  const [newUserId, setNewUserId] = useState(null);
+  const [isRequestSent, setIsRequestSent] = useState(false);
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState({
     isVerifying: false,
@@ -280,9 +236,11 @@ const Register = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = async () => {
-    console.log("Form submitted:", formData);
+  const handleSkip = () => {
+    navigate("/home");
+  };
 
+  const handleSubmit = async () => {
     try {
       const body = {
         username: formData?.username,
@@ -301,8 +259,9 @@ const Register = () => {
 
       if (response.status === 201) {
         toast.success("User created successfully");
+        setNewUserId(response?.data?.user?._id);
         localStorage.setItem("accessToken", response.data.token);
-        navigate("/problems");
+        handleNext();
       }
 
       if (response.status === 409) {
@@ -343,7 +302,7 @@ const Register = () => {
         });
         setFormData((prev) => ({
           ...prev,
-          accountabilityPartner: response.data.user._id,
+          accountabilityPartner: response.data.user.username,
         }));
       }
 
@@ -367,6 +326,25 @@ const Register = () => {
     }
   };
 
+  const handlePartnerRequest = async () => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/user/request/${newUserId}`,
+        {
+          receiverId: partnerInfo?._id,
+        },
+      );
+
+      if (response.status === 200) {
+        toast.success("Request sent successfully.");
+        setIsRequestSent(true);
+      }
+    } catch (error) {
+      console.error("Unable to send request:" + error);
+      toast.error("Unable to send request at this time.");
+    }
+  };
+
   const slideVariants = {
     initial: { opacity: 0, y: 20 },
     animate: {
@@ -380,174 +358,35 @@ const Register = () => {
   const renderStepContent = () => {
     const content = {
       1: (
-        <motion.div className="space-y-6">
-          <Input
-            name="username"
-            label="Username"
-            value={formData.username}
-            onChange={handleInputChange}
-            icon={AccountCircle}
-            placeholder="Enter your username"
-            required
-          />
-          <div className="relative">
-            <Input
-              name="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleInputChange}
-              icon={Lock}
-              placeholder="Enter your password"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
-            >
-              {showPassword ? <VisibilityOff /> : <Visibility />}
-            </button>
-          </div>
-          <Input
-            name="email"
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            icon={Email}
-            placeholder="Enter your email"
-            required
-          />
-        </motion.div>
+        <StepDetails
+          formData={formData}
+          handleInputChange={handleInputChange}
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
+        />
       ),
       2: (
-        <motion.div className="space-y-6">
-          <div className="relative rounded-lg border border-dashed border-gray-700 p-6">
-            <input
-              type="file"
-              hidden
-              id="profile-picture"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-            <label
-              htmlFor="profile-picture"
-              className="flex cursor-pointer flex-col items-center gap-2"
-            >
-              <CloudUpload className="h-8 w-8 text-violet-500" />
-              <span className="text-sm text-gray-400">
-                {formData.profilePicture
-                  ? formData.profilePicture.name
-                  : "Upload Profile Picture"}
-              </span>
-            </label>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  name="accountabilityPartner"
-                  label="Accountability Partner Email"
-                  type="email"
-                  value={formData.accountabilityPartner}
-                  onChange={handleInputChange}
-                  icon={Email}
-                  placeholder="partner@example.com"
-                  error={verificationStatus.error}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleVerifyPartner}
-                  disabled={
-                    !formData.accountabilityPartner ||
-                    verificationStatus.isVerifying
-                  }
-                  className={`mt-0.5 flex items-center gap-2 rounded-lg px-12 font-medium transition-all duration-200 ${
-                    verificationStatus.isVerified
-                      ? "bg-green-500/10 text-green-500"
-                      : verificationStatus.error
-                        ? "bg-red-500/10 text-red-500"
-                        : "bg-violet-500/10 text-violet-500 hover:bg-violet-500/20"
-                  } ${(!formData.accountabilityPartner || verificationStatus.isVerifying) && "cursor-not-allowed opacity-50"}`}
-                >
-                  {verificationStatus.isVerifying ? (
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
-                  ) : verificationStatus.isVerified ? (
-                    <CheckCircle className="h-5 w-5" />
-                  ) : verificationStatus.error ? (
-                    <ErrorIcon className="h-5 w-5" />
-                  ) : (
-                    "Verify"
-                  )}
-                </button>
-                {verificationStatus.isVerified && partnerInfo && (
-                  <button
-                    type="button"
-                    onClick={() => setIsPartnerModalOpen(true)}
-                    className="mt-0.5 flex items-center justify-center rounded-lg bg-gray-800 px-3 text-gray-400 hover:bg-gray-700 hover:text-gray-300"
-                  >
-                    <InfoOutlined />
-                  </button>
-                )}
-              </div>
-            </div>
-            <AnimatePresence>
-              {verificationStatus.isVerified && (
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="text-sm text-green-500"
-                >
-                  Partner verified successfully!
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="relative">
-            <textarea
-              name="bio"
-              value={formData.bio}
-              onChange={handleInputChange}
-              placeholder="Tell us about yourself..."
-              className="min-h-[120px] w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-gray-100 placeholder-gray-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
-            />
-            <Description className="absolute right-3 top-3 text-gray-400" />
-          </div>
-        </motion.div>
+        <StepProfile
+          formData={formData}
+          handleFileChange={handleFileChange}
+          verificationStatus={verificationStatus}
+          handleVerifyPartner={handleVerifyPartner}
+          partnerInfo={partnerInfo}
+          setIsPartnerModalOpen={setIsPartnerModalOpen}
+          handleInputChange={handleInputChange}
+        />
       ),
       3: (
-        <motion.div className="space-y-6">
-          <Input
-            name="github"
-            label="GitHub Profile"
-            value={formData.github}
-            onChange={handleInputChange}
-            icon={GitHub}
-            placeholder="github.com/username"
-          />
-          <Input
-            name="codeforces"
-            label="Codeforces Profile"
-            value={formData.codeforces}
-            onChange={handleInputChange}
-            icon={Code}
-            placeholder="codeforces.com/profile/username"
-          />
-          <Input
-            name="leetcode"
-            label="LeetCode Profile"
-            value={formData.leetcode}
-            onChange={handleInputChange}
-            icon={LinkedIn}
-            placeholder="leetcode.com/username"
-          />
-        </motion.div>
+        <StepConnections
+          formData={formData}
+          handleInputChange={handleInputChange}
+        />
+      ),
+      4: (
+        <StepRequest
+          partnerData={partnerInfo}
+          onSendRequest={handlePartnerRequest}
+        />
       ),
     };
 
@@ -559,6 +398,7 @@ const Register = () => {
           initial="initial"
           animate="animate"
           exit="exit"
+          className="overflow-y-auto"
         >
           {content[currentStep]}
         </motion.div>
@@ -603,29 +443,39 @@ const Register = () => {
                 </motion.div>
               </div>
 
-              <form className="flex-1">{renderStepContent()}</form>
+              <div className="flex-1 overflow-y-auto">
+                {renderStepContent()}
+              </div>
 
               <div className="mt-8 flex items-center justify-between">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handlePrev}
-                  disabled={currentStep === 1}
-                  className={currentStep === 1 ? "opacity-50" : ""}
-                >
-                  <NavigateBefore />
-                  Previous
-                </Button>
+                {currentStep !== 4 && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handlePrev}
+                    disabled={currentStep === 1}
+                    className={currentStep === 1 ? "opacity-50" : ""}
+                  >
+                    <NavigateBefore />
+                    Previous
+                  </Button>
+                )}
 
-                {currentStep === steps.length ? (
+                {currentStep === 3 && (
                   <Button onClick={handleSubmit}>
                     Create Account
                     <NavigateNext />
                   </Button>
-                ) : (
+                )}
+                {currentStep < 3 && (
                   <Button type="button" onClick={handleNext}>
                     Continue
                     <NavigateNext />
+                  </Button>
+                )}
+                {currentStep === 4 && (
+                  <Button onClick={handleSkip}>
+                    {isRequestSent ? "Home" : "Skip"}
                   </Button>
                 )}
               </div>

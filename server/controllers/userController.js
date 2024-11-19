@@ -200,7 +200,7 @@ export const getUserByEmail = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email: email })
-      .select("username profilePicture rating bio _id")
+      .select("username profilePicture rating bio _id achievements statistics")
       .lean();
 
     if (!user) {
