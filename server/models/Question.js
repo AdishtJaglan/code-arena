@@ -90,24 +90,28 @@ const QuestionSchema = new mongoose.Schema(
       enum: ["draft", "published", "archived"],
       //   default: "draft",
     },
-    testCases: {
-      type: [
-        {
-          type: mongoose.Types.ObjectId,
-          ref: "TestCase",
+    testCases: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "TestCase",
+        validate: {
+          validator: function (v) {
+            return v.length <= 30;
+          },
+          message: "Maximum 30 test cases allowed",
         },
-      ],
-      validate: {
-        validator: function (v) {
-          return v.length >= 5;
-        },
-        message: "A question must have minimum of 5 test cases",
       },
-    },
+    ],
     examples: [
       {
         type: mongoose.Types.ObjectId,
         ref: "Example",
+        validate: {
+          validator: function (v) {
+            return v.length <= 3;
+          },
+          message: "Maximum 3 examples allowed",
+        },
       },
     ],
     answer: {

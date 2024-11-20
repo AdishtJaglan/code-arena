@@ -6,10 +6,11 @@ import Example from "./models/Example.js";
 import Discussion from "./models/Discussion.js";
 import Answer from "./models/Answer.js";
 import AccountabilityPartnerRequest from "./models/AccountabilityPartnerRequest.js";
+import TestCase from "./models/TestCase.js";
 
 const MONGODB_URI = "mongodb://localhost:27017/codeIt";
-const NUM_USERS = 200;
-const NUM_QUESTIONS = 1000;
+const NUM_USERS = 100;
+const NUM_QUESTIONS = 200;
 
 const TAGS = [
   "Arrays",
@@ -168,6 +169,9 @@ async function seedQuestions(users) {
       likes: faker.number.int({ min: 0, max: 500 }),
       dislikes: faker.number.int({ min: 0, max: 100 }),
       question_id: questionId,
+      examples: [],
+      testCases: [],
+      discussion: [],
     });
     questions.push(question);
   }
@@ -178,47 +182,81 @@ async function seedQuestions(users) {
 
 async function seedExamples(questions, users) {
   const examples = [];
+  const exampleIds = [];
 
   for (const question of questions) {
     const numExamples = faker.number.int({ min: 1, max: 3 });
 
     for (let i = 0; i < numExamples; i++) {
       const example = new Example({
-        input: `arr = [${faker.number.int()}, ${faker.number.int()}, ${faker.number.int()}]`,
+        input: `Input: [${faker.number.int()}, ${faker.number.int()}, ${faker.number.int()}]`,
         output: faker.number.int().toString(),
         explanation: faker.lorem.paragraph(),
         question: question._id,
         contributedBy: getRandomElement(users)._id,
       });
       examples.push(example);
+      exampleIds.push(example._id);
     }
   }
 
   await Example.insertMany(examples);
+
+  await Question.updateMany({}, { $set: { examples: exampleIds.slice(0, 3) } });
+
   return examples;
 }
 
 async function seedAnswers(questions, users) {
   const answers = [];
-  const solutionTypes = ["Brute Force", "Better", "Optimal"];
 
   for (const question of questions) {
     const answer = new Answer({
       question: question._id,
-      solutions: solutionTypes.map((type) => ({
-        type,
-        heading: `${type} Solution - ${faker.helpers.arrayElement([
-          "Time: O(n)",
-          "Time: O(n²)",
-          "Time: O(log n)",
-        ])}`,
-        answer: `\`\`\`python\n# ${type} Solution\ndef solve(arr):\n    ${faker.lorem.lines(
-          5
-        )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
-        contributedBy: getRandomElement(users)._id,
-      })),
+      solutions: [
+        {
+          type: "Brute Force",
+          heading: `Brute Force Solution - ${faker.helpers.arrayElement([
+            "Time: O(n)",
+            "Time: O(n²)",
+            "Time: O(log n)",
+          ])}`,
+          answer: `\`\`\`python\n# Brute Force Solution\ndef solve(arr):\n    ${faker.lorem.lines(
+            5
+          )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
+          contributedBy: getRandomElement(users)._id,
+        },
+        {
+          type: "Better",
+          heading: `Better Solution - ${faker.helpers.arrayElement([
+            "Time: O(n)",
+            "Time: O(n²)",
+            "Time: O(log n)",
+          ])}`,
+          answer: `\`\`\`python\n# Better Solution\ndef solve(arr):\n    ${faker.lorem.lines(
+            5
+          )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
+          contributedBy: getRandomElement(users)._id,
+        },
+        {
+          type: "Optimal",
+          heading: `Optimal Solution - ${faker.helpers.arrayElement([
+            "Time: O(n)",
+            "Time: O(n²)",
+            "Time: O(log n)",
+          ])}`,
+          answer: `\`\`\`python\n# Optimal Solution\ndef solve(arr):\n    ${faker.lorem.lines(
+            5
+          )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
+          contributedBy: getRandomElement(users)._id,
+        },
+      ],
     });
     answers.push(answer);
+
+    await Question.findByIdAndUpdate(question._id, {
+      answer: answer._id,
+    });
   }
 
   await Answer.insertMany(answers);
@@ -227,6 +265,7 @@ async function seedAnswers(questions, users) {
 
 async function seedDiscussions(questions, users) {
   const discussions = [];
+  const discussionIds = [];
 
   for (const question of questions) {
     const numDiscussions = faker.number.int({ min: 0, max: 5 });
@@ -249,11 +288,44 @@ async function seedDiscussions(questions, users) {
         reactions,
       });
       discussions.push(discussion);
+      discussionIds.push(discussion._id);
     }
   }
 
   await Discussion.insertMany(discussions);
+
+  await Question.updateMany({}, { $set: { discussion: discussionIds } });
+
   return discussions;
+}
+
+async function seedTestCases(questions) {
+  const testCases = [];
+  const testCaseIds = [];
+
+  for (const question of questions) {
+    const numTestCases = faker.number.int({ min: 5, max: 30 });
+
+    for (let i = 0; i < numTestCases; i++) {
+      const testCase = new TestCase({
+        input: `Input: [${faker.number.int()}, ${faker.number.int()}, ${faker.number.int()}]`,
+        output: faker.number.int().toString(),
+        isHidden: faker.datatype.boolean(),
+        question: question._id,
+      });
+      testCases.push(testCase);
+      testCaseIds.push(testCase._id);
+    }
+  }
+
+  await TestCase.insertMany(testCases);
+
+  await Question.updateMany(
+    {},
+    { $set: { testCases: testCaseIds.slice(0, 30) } }
+  );
+
+  return testCases;
 }
 
 async function updateUserReferences(users, questions, answers) {
@@ -368,9 +440,16 @@ async function seedDatabase() {
     const questions = await seedQuestions(users);
     console.log(`Seeded ${questions.length} questions`);
 
-    await seedExamples(questions, users);
+    const examples = await seedExamples(questions, users);
+    console.log(`Seeded ${examples.length} examples`);
+
+    const discussions = await seedDiscussions(questions, users);
+    console.log(`Seeded ${discussions.length} discussions`);
+
+    const testCases = await seedTestCases(questions);
+    console.log(`Seeded ${testCases.length} test cases`);
+
     const answers = await seedAnswers(questions, users);
-    await seedDiscussions(questions, users);
 
     const requests = await seedAccountabilityPartnerRequests(users);
     console.log(`Seeded ${requests.length} accountability partner requests`);

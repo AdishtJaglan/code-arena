@@ -80,7 +80,6 @@ export const getQuestionsByUser = async (req, res) => {
 export const getQuestionsByTag = async (req, res) => {
   try {
     const { tag } = req.query;
-    console.log(tag);
     const questions = await Question.find({ tags: { $in: tag } });
 
     if (!questions) {
