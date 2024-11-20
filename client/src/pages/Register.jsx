@@ -420,7 +420,7 @@ const Register = () => {
         pauseOnHover
         theme="dark"
       />
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 lg:p-8">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-violet-900 p-4 lg:p-8">
         <div className="flex w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 shadow-xl">
           <div className="w-80 border-r border-gray-800">
             <Timeline currentStep={currentStep} />
