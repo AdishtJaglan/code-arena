@@ -82,7 +82,6 @@ const QuestionSchema = new mongoose.Schema(
     // TODO -> think of logic
     memoryLimit: {
       type: Number,
-      required: true,
       default: 256,
     },
     // TODO -> add this when you create approval system
@@ -91,13 +90,20 @@ const QuestionSchema = new mongoose.Schema(
       enum: ["draft", "published", "archived"],
       //   default: "draft",
     },
-    testCases: [
-      {
-        input: String,
-        output: String,
-        isHidden: { type: Boolean, default: false },
+    testCases: {
+      type: [
+        {
+          type: mongoose.Types.ObjectId,
+          ref: "TestCase",
+        },
+      ],
+      validate: {
+        validator: function (v) {
+          return v.length >= 5;
+        },
+        message: "A question must have minimum of 5 test cases",
       },
-    ],
+    },
     examples: [
       {
         type: mongoose.Types.ObjectId,
@@ -161,6 +167,10 @@ const QuestionSchema = new mongoose.Schema(
           : 0;
       },
     },
+    question_id: {
+      type: String,
+      immutable: true,
+    },
   },
   { timestamps: true }
 );
@@ -173,6 +183,29 @@ QuestionSchema.pre("save", function (next) {
   } else {
     this.acceptanceRate = 0;
   }
+  next();
+});
+
+//! Middleware to generate unique question ids
+QuestionSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    let isUnique = false;
+
+    while (!isUnique) {
+      const randomId = Math.random().toString(36).substr(2, 9).toUpperCase();
+      const questionId = `Q-${randomId}`;
+
+      const existingQuestion = await mongoose.models.Question.findOne({
+        question_id: questionId,
+      });
+
+      if (!existingQuestion) {
+        this.question_id = questionId;
+        isUnique = true;
+      }
+    }
+  }
+
   next();
 });
 

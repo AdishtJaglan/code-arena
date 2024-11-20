@@ -7,10 +7,12 @@ import morgan from "morgan";
 
 import userRoutes from "./routes/userRoutes.js";
 import accountabilityPartnerRequestRoutes from "./routes/accountabilityPartnerRequestRoutes.js";
+import questionRoutes from "./routes/questionRoutes.js";
 
 config();
 
 const DB_URL = process.env.DB_URL;
+const PORT = process.env.PORT || 3000;
 
 mongoose
   .connect(DB_URL || "mongodb://localhost:27017/codeIt")
@@ -30,13 +32,14 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms")
 );
 
-app.use("/user", userRoutes);
-app.use("/partner", accountabilityPartnerRequestRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/partner", accountabilityPartnerRequestRoutes);
+app.use("/api/question", questionRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });
 });
 
-app.listen(3000, () => {
-  console.log("Listening on port 3000");
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
 });

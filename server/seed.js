@@ -138,9 +138,20 @@ async function seedUsers() {
 async function seedQuestions(users) {
   const questions = [];
   const difficulties = ["Easy", "Medium", "Hard"];
+  const usedIds = new Set();
 
   for (let i = 0; i < NUM_QUESTIONS; i++) {
     const difficulty = getRandomElement(difficulties);
+
+    let questionId;
+
+    do {
+      const randomId = Math.random().toString(36).substring(3, 8).toUpperCase();
+      questionId = `Q-${randomId}`;
+    } while (usedIds.has(questionId));
+
+    usedIds.add(questionId);
+
     const noOfSuccess = faker.number.int({ min: 0, max: 1000 });
     const noOfFails = faker.number.int({ min: 0, max: 1000 });
 
@@ -156,6 +167,7 @@ async function seedQuestions(users) {
       noOfFails,
       likes: faker.number.int({ min: 0, max: 500 }),
       dislikes: faker.number.int({ min: 0, max: 100 }),
+      question_id: questionId,
     });
     questions.push(question);
   }
