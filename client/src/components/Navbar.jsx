@@ -2,26 +2,45 @@ import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
-    <div className="flex justify-between bg-gradient-to-r from-indigo-700 to-purple-700 px-6 py-4 shadow-lg">
+    <div className="flex justify-between bg-gradient-to-r from-gray-900 via-gray-800 to-violet-900 px-6 py-4 shadow-2xl">
       <div className="flex items-center gap-6">
-        <p className="cursor-pointer text-gray-200 hover:text-white">Home</p>
-        <p className="cursor-pointer text-gray-200 hover:text-white">
+        <Link
+          to="/"
+          className="text-gray-300 transition-colors hover:text-violet-400"
+        >
+          Home
+        </Link>
+        <Link
+          to="/problems"
+          className="text-gray-300 transition-colors hover:text-violet-400"
+        >
           Problems
-        </p>
-        <p className="cursor-pointer text-gray-200 hover:text-white">
+        </Link>
+        <Link
+          to="/leaderboard"
+          className="text-gray-300 transition-colors hover:text-violet-400"
+        >
           Leaderboard
-        </p>
-        <p className="cursor-pointer text-gray-200 hover:text-white">Discuss</p>
+        </Link>
+        <Link
+          to="/discuss"
+          className="text-gray-300 transition-colors hover:text-violet-400"
+        >
+          Discuss
+        </Link>
       </div>
 
       <div className="flex items-center justify-end gap-6">
         <Link
           to="/login"
-          className="rounded-lg bg-orange-300 px-4 py-2 text-gray-800"
+          className="rounded-lg bg-violet-600 px-4 py-2 text-white transition-colors hover:bg-violet-700"
         >
           Login
         </Link>
-        <Link to="/register" className="rounded-lg bg-indigo-700 px-4 py-2">
+        <Link
+          to="/register"
+          className="rounded-lg border border-violet-500 px-4 py-2 text-violet-300 transition-colors hover:bg-violet-900/50"
+        >
           Register
         </Link>
       </div>
