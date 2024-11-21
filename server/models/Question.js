@@ -175,6 +175,16 @@ const QuestionSchema = new mongoose.Schema(
       type: String,
       immutable: true,
     },
+    isDraft: {
+      type: Boolean,
+      default: true,
+    },
+    percentageCompleted: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
   },
   { timestamps: true }
 );
@@ -210,6 +220,39 @@ QuestionSchema.pre("save", async function (next) {
     }
   }
 
+  next();
+});
+
+//! Middleware to update isDraft and percentageCompleted
+QuestionSchema.pre("save", function (next) {
+  const totalFields = 3;
+  let completedFields = 0;
+
+  if (this.testCases && this.testCases.length > 0) completedFields++;
+  if (this.examples && this.examples.length > 0) completedFields++;
+  if (this.answer) completedFields++;
+
+  this.percentageCompleted = (completedFields / totalFields) * 100;
+  this.isDraft = this.percentageCompleted < 100;
+
+  next();
+});
+
+//! Middleware for findOneAndUpdate or findByIdAndUpdate
+QuestionSchema.pre("findOneAndUpdate", async function (next) {
+  const update = this.getUpdate();
+  const totalFields = 3;
+  let completedFields = 0;
+
+  if (update.testCases && update.testCases.length > 0) completedFields++;
+  if (update.examples && update.examples.length > 0) completedFields++;
+  if (update.answer) completedFields++;
+
+  const percentageCompleted = (completedFields / totalFields) * 100;
+  update.percentageCompleted = percentageCompleted;
+  update.isDraft = percentageCompleted < 100;
+
+  this.setUpdate(update);
   next();
 });
 
