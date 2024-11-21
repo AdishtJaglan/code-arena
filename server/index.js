@@ -10,6 +10,7 @@ import accountabilityPartnerRequestRoutes from "./routes/accountabilityPartnerRe
 import questionRoutes from "./routes/questionRoutes.js";
 import exampleRoutes from "./routes/exampleRoutes.js";
 import testCaseRoutes from "./routes/testCaseRoutes.js";
+import answerRoutes from "./routes/answerRoutes.js";
 
 config();
 
@@ -39,6 +40,7 @@ app.use("/api/partner", accountabilityPartnerRequestRoutes);
 app.use("/api/question", questionRoutes);
 app.use("/api/example", exampleRoutes);
 app.use("/api/test-case", testCaseRoutes);
+app.use("/api/answer", answerRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });
