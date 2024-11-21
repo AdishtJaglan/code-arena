@@ -9,6 +9,7 @@ import userRoutes from "./routes/userRoutes.js";
 import accountabilityPartnerRequestRoutes from "./routes/accountabilityPartnerRequestRoutes.js";
 import questionRoutes from "./routes/questionRoutes.js";
 import exampleRoutes from "./routes/exampleRoutes.js";
+import testCaseRoutes from "./routes/testCaseRoutes.js";
 
 config();
 
@@ -37,6 +38,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/partner", accountabilityPartnerRequestRoutes);
 app.use("/api/question", questionRoutes);
 app.use("/api/example", exampleRoutes);
+app.use("/api/test-case", testCaseRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });
