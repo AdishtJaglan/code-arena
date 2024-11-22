@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createQuestion,
   getAllQuestions,
+  getCompleteQuestions,
   getNoOfQuestionForEachTag,
   getQuestionbyId,
   getQuestionsByTag,
@@ -16,5 +17,6 @@ router.get("/data/:id", getQuestionbyId);
 router.get("/contribution/:id", getQuestionsByUser);
 router.get("/tag", getQuestionsByTag);
 router.get("/count-tags", getNoOfQuestionForEachTag);
+router.get("/complete-question", getCompleteQuestions);
 
 export default router;

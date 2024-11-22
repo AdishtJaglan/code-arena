@@ -149,3 +149,29 @@ export const getQuestionbyId = async (req, res) => {
     return res.status(500).json({ message: "Unable to get question.", error });
   }
 };
+
+export const getCompleteQuestions = async (req, res) => {
+  try {
+    const questions = await Question.find({
+      testCases: { $exists: true, $ne: [] },
+      examples: { $exists: true, $ne: [] },
+      answer: { $exists: true, $ne: null },
+    }).lean();
+
+    if (!questions || questions.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Not able to find any complete questions." });
+    }
+
+    return res.status(200).json({
+      message: "Fetched complete questions successfully.",
+      count: questions.length,
+      questions: questions,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Unable to fetch list of complete questions.", error });
+  }
+};
