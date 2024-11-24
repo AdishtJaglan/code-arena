@@ -1,6 +1,7 @@
 //! things you would like to implement
 //TODO -> create custom libraries of questions
 //TODO -> liked questions
+//TODO -> security deposit thingy on achieving goals
 
 import express from "express";
 import mongoose from "mongoose";
@@ -15,6 +16,7 @@ import questionRoutes from "./routes/questionRoutes.js";
 import exampleRoutes from "./routes/exampleRoutes.js";
 import testCaseRoutes from "./routes/testCaseRoutes.js";
 import answerRoutes from "./routes/answerRoutes.js";
+import discussionRoutes from "./routes/discussionRoutes.js";
 
 config();
 
@@ -45,6 +47,7 @@ app.use("/api/question", questionRoutes);
 app.use("/api/example", exampleRoutes);
 app.use("/api/test-case", testCaseRoutes);
 app.use("/api/answer", answerRoutes);
+app.use("/api/discussion", discussionRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });

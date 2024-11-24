@@ -1,22 +1,12 @@
 import mongoose from "mongoose";
 
-const ReactionSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  type: {
-    type: String,
-    enum: ["like", "dislike"],
-    required: true,
-  },
-});
-
 const DiscussionSchema = new mongoose.Schema(
   {
     comment: {
       type: String,
+      trim: true,
+      minLength: [1, "Comment cannot be empty"],
+      maxLength: [2000, "Comment is too long"],
       required: true,
     },
     question: {
@@ -29,23 +19,36 @@ const DiscussionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    reactions: [ReactionSchema],
-    createdAt: {
-      type: Date,
-      default: Date.now,
+    reactions: {
+      likes: [
+        {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      dislikes: [
+        {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+      ],
     },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
+    parentDiscussion: {
+      type: mongoose.Types.ObjectId,
+      ref: "Discussion",
+      default: null,
+    },
+    isEdited: {
+      type: Boolean,
+      default: false,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
-
-DiscussionSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
 
 const Discussion = mongoose.model("Discussion", DiscussionSchema);
 export default Discussion;

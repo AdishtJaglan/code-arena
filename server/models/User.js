@@ -119,6 +119,12 @@ const UserSchema = new mongoose.Schema(
         earnedAt: { type: Date, default: Date.now },
       },
     ],
+    comments: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Discussion",
+      },
+    ],
     createdAt: {
       type: Date,
       default: Date.now,

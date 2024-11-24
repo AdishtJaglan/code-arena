@@ -268,27 +268,72 @@ async function seedDiscussions(questions, users) {
   const discussionIds = [];
 
   for (const question of questions) {
-    const numDiscussions = faker.number.int({ min: 0, max: 5 });
+    const numParentDiscussions = faker.number.int({ min: 0, max: 5 });
 
-    for (let i = 0; i < numDiscussions; i++) {
-      const numReactions = faker.number.int({ min: 0, max: 10 });
-      const reactions = [];
+    for (let i = 0; i < numParentDiscussions; i++) {
+      const numLikes = faker.number.int({ min: 0, max: 7 });
+      const numDislikes = faker.number.int({ min: 0, max: 3 });
 
-      for (let j = 0; j < numReactions; j++) {
-        reactions.push({
-          user: getRandomElement(users)._id,
-          type: getRandomElement(["like", "dislike"]),
-        });
-      }
+      const likeUsers = getRandomElements(users, 0, numLikes).map((u) => u._id);
+      const remainingUsers = users.filter((u) => !likeUsers.includes(u._id));
+      const dislikeUsers = getRandomElements(
+        remainingUsers,
+        0,
+        numDislikes
+      ).map((u) => u._id);
 
-      const discussion = new Discussion({
+      const parentDiscussion = new Discussion({
         comment: faker.lorem.paragraph(),
         question: question._id,
         user: getRandomElement(users)._id,
-        reactions,
+        reactions: {
+          likes: likeUsers,
+          dislikes: dislikeUsers,
+        },
+        parentDiscussion: null,
+        isEdited: faker.datatype.boolean(0.1),
       });
-      discussions.push(discussion);
-      discussionIds.push(discussion._id);
+
+      discussions.push(parentDiscussion);
+      discussionIds.push(parentDiscussion._id);
+
+      const numReplies = faker.number.int({ min: 0, max: 3 });
+
+      for (let j = 0; j < numReplies; j++) {
+        const numReplyLikes = faker.number.int({ min: 0, max: 5 });
+        const numReplyDislikes = faker.number.int({ min: 0, max: 2 });
+
+        const replyLikeUsers = getRandomElements(users, 0, numReplyLikes).map(
+          (u) => u._id
+        );
+        const remainingUsersForReply = users.filter(
+          (u) => !replyLikeUsers.includes(u._id)
+        );
+        const replyDislikeUsers = getRandomElements(
+          remainingUsersForReply,
+          0,
+          numReplyDislikes
+        ).map((u) => u._id);
+
+        const reply = new Discussion({
+          comment: faker.lorem.paragraph(),
+          question: question._id,
+          user: getRandomElement(users)._id,
+          reactions: {
+            likes: replyLikeUsers,
+            dislikes: replyDislikeUsers,
+          },
+          reactionCounts: {
+            likes: replyLikeUsers.length,
+            dislikes: replyDislikeUsers.length,
+          },
+          parentDiscussion: parentDiscussion._id,
+          isEdited: faker.datatype.boolean(0.1),
+        });
+
+        discussions.push(reply);
+        discussionIds.push(reply._id);
+      }
     }
   }
 
@@ -328,7 +373,7 @@ async function seedTestCases(questions) {
   return testCases;
 }
 
-async function updateUserReferences(users, questions, answers) {
+async function updateUserReferences(users, questions, answers, discussions) {
   for (const user of users) {
     const userQuestions = questions.filter(
       (q) => q.submittedBy.toString() === user._id.toString()
@@ -339,11 +384,16 @@ async function updateUserReferences(users, questions, answers) {
       )
     );
 
+    const userDiscussions = discussions.filter(
+      (d) => d.user.toString() === user._id.toString()
+    );
+
     user.questionContributions = userQuestions.map((q) => q._id);
     user.answerContributions = userAnswers.map((a) => a._id);
     user.questionsSolved = getRandomElements(questions, 0, 50).map(
       (q) => q._id
     );
+    user.comments = userDiscussions.map((d) => d._id);
 
     if (faker.number.int({ min: 1, max: 10 }) <= 3) {
       const potentialReceivers = users.filter(
@@ -455,7 +505,7 @@ async function seedDatabase() {
     console.log(`Seeded ${requests.length} accountability partner requests`);
 
     console.log("Updating user references...");
-    await updateUserReferences(users, questions, answers);
+    await updateUserReferences(users, questions, answers, discussions);
 
     console.log("Database seeded successfully!");
   } catch (error) {
