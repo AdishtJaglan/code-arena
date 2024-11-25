@@ -22,15 +22,12 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   const user = await User.create(req.body);
 
-  const JWT_SECRET = process.env.JWT_SECRET;
-
-  const payload = { id: user.id, username: user.username };
-  const token = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "1h",
-  });
+  const accessToken = await user.generateAccessToken();
+  const refreshToken = await user.generateRefreshToken();
 
   return ApiResponse.Created("User created successfully.", {
-    token,
+    accessToken,
+    refreshToken,
     user,
   }).send(res);
 });
@@ -39,19 +36,18 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
 
   const user = await User.findOne({ username });
+  console.log(user);
 
-  if (!user || user.password !== password) {
+  if (!user || !(await user.isPasswordMatching(password))) {
     throw new ApiError.Unauthorized("Invalid credentials");
   }
 
-  const JWT_SECRET = process.env.JWT_SECRET;
+  const accessToken = await user.generateAccessToken();
+  const refreshToken = await user.generateRefreshToken();
 
-  const payload = { id: user.id, username: user.username };
-  const token = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "1h",
-  });
-
-  return ApiResponse.Ok("Login successful", { token }).send(res);
+  return ApiResponse.Ok("Login successful", { accessToken, refreshToken }).send(
+    res
+  );
 });
 
 export const getAllUser = asyncHandler(async (req, res) => {

@@ -1,0 +1,21 @@
+import { config } from "dotenv";
+
+config();
+
+const {
+  DB_URL,
+  PORT = 3000,
+  ACCESS_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRY,
+} = process.env;
+
+export const ENV = {
+  DB_URL,
+  PORT,
+  ACCESS_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRY,
+};

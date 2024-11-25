@@ -6,9 +6,10 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import { config } from "dotenv";
 import passport from "./config/passport.js";
 import morgan from "morgan";
+
+import { ENV } from "./config/env-config.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import accountabilityPartnerRequestRoutes from "./routes/accountabilityPartnerRequestRoutes.js";
@@ -18,13 +19,8 @@ import testCaseRoutes from "./routes/testCaseRoutes.js";
 import answerRoutes from "./routes/answerRoutes.js";
 import discussionRoutes from "./routes/discussionRoutes.js";
 
-config();
-
-const DB_URL = process.env.DB_URL;
-const PORT = process.env.PORT || 3000;
-
 mongoose
-  .connect(DB_URL || "mongodb://localhost:27017/codeIt")
+  .connect(ENV.DB_URL || "mongodb://localhost:27017/codeIt")
   .then(() => {
     console.log("Connected to database");
   })
@@ -53,6 +49,6 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+app.listen(ENV.PORT, () => {
+  console.log(`Listening on port ${ENV.PORT}`);
 });
