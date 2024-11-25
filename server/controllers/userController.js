@@ -4,18 +4,19 @@ import Question from "../models/Question.js";
 import Answer from "../models/Answer.js";
 import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/apiError.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { username, password, email } = req.body;
 
   if (!username || !password || !email) {
-    return res.status(400).json({ message: "Invalid request" });
+    throw new ApiError.BadRequest("Invalid request");
   }
 
   const check = await User.findOne({ email });
 
   if (check) {
-    return res.status(409).json({ message: "User already exists" });
+    throw new ApiError(409, "User already exists.");
   }
 
   const user = await User.create(req.body);
@@ -38,7 +39,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ username });
 
   if (!user || user.password !== password) {
-    return res.status(401).json({ message: "Invalid credentials" });
+    throw new ApiError.Unauthorized("Invalid credentials");
   }
 
   const JWT_SECRET = process.env.JWT_SECRET;
@@ -55,7 +56,7 @@ export const getAllUser = asyncHandler(async (req, res) => {
   const users = await User.find({});
 
   if (!users) {
-    return res.status(404).json({ message: "No users found." });
+    throw new ApiError.NotFound("No users found.");
   }
 
   return res.status(200).json({ message: "Users fetched.", users });
@@ -66,7 +67,7 @@ export const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(id);
 
   if (!user) {
-    return res.status(404).json({ message: "User not found." });
+    throw new ApiError.NotFound("User not found.");
   }
 
   return res.status(200).json({ message: "User fetched.", user });
@@ -78,10 +79,7 @@ export const getUserQuestionsSolved = asyncHandler(async (req, res) => {
 
   const validDifficulties = ["Easy", "Medium", "Hard"];
   if (difficulty && !validDifficulties.includes(difficulty)) {
-    return res.status(400).json({
-      message: "Invalid difficulty level",
-      error: { details: "Difficulty must be one of: Easy, Medium, Hard" },
-    });
+    throw new ApiError.BadRequest("Invalid difficulty level");
   }
 
   const populateOptions = {
@@ -96,7 +94,7 @@ export const getUserQuestionsSolved = asyncHandler(async (req, res) => {
     .lean();
 
   if (!user) {
-    return res.status(404).json({ message: "Error finding user." });
+    throw new ApiError.NotFound("Error finding user.");
   }
 
   const filteredQuestions = user.questionsSolved.filter((q) => q !== null);
@@ -117,10 +115,7 @@ export const getContributions = asyncHandler(async (req, res) => {
 
   const validTypes = ["questions", "answers"];
   if (type && !validTypes.includes(type)) {
-    return res.status(400).json({
-      message: "Invalid contribution type",
-      error: { details: "Type must be either 'questions' or 'answers'" },
-    });
+    throw new ApiError.BadRequest("Invalid contribution type");
   }
 
   let selectFields = [];
@@ -142,9 +137,7 @@ export const getContributions = asyncHandler(async (req, res) => {
     .lean();
 
   if (!user) {
-    return res.status(404).json({
-      message: "No user found.",
-    });
+    throw new ApiError.NotFound("No user found.");
   }
 
   const responseData = {};
@@ -176,7 +169,7 @@ export const getUserByEmail = asyncHandler(async (req, res) => {
     .lean();
 
   if (!user) {
-    return res.status(404).json({ message: "User does not exist" });
+    throw new ApiError.NotFound("User does not exist.");
   }
 
   return res.status(200).json({ message: "User fetched.", user });
@@ -187,18 +180,22 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
     const { senderId } = req.params;
     const { receiverId } = req.body;
 
+    if (!receiverId) {
+      throw new ApiError.BadRequest("Receiver ID mandatory.");
+    }
+
     const sender = await User.findById(senderId).select(
       "accountabilityPartnerRequest"
     );
     if (!sender) {
-      return res.status(404).json({ message: "Sender does not exist" });
+      throw new ApiError.NotFound("Sender does not exist.");
     }
 
     const receiver = await User.findById(receiverId).select(
       "accountabilityPartnerRequest"
     );
     if (!receiver) {
-      return res.status(404).json({ message: "Receiver does not exist." });
+      throw new ApiError.NotFound("Receiver does not exist.");
     }
 
     const existingRequest = await AccountabilityPartnerRequest.findOne({
@@ -208,9 +205,7 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
     });
 
     if (existingRequest) {
-      return res
-        .status(400)
-        .json({ message: "A pending request already exists." });
+      throw new ApiError.BadRequest("A pending request already exists.");
     }
 
     const accountabilityPartnerRequestObject =

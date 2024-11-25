@@ -2,14 +2,13 @@ import Discussion from "../models/Discussion.js";
 import Question from "../models/Question.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/apiError.js";
 
 export const createDiscussions = asyncHandler(async (req, res) => {
   const { question, user, comment } = req.body;
 
   if (!question || !user || !comment) {
-    return res
-      .status(400)
-      .json({ message: "Invalid request, all fields mandatory." });
+    throw new ApiError.BadRequest("Invalid request, all fields mandatory.");
   }
 
   const [userCheck, questionCheck] = await Promise.all([
@@ -18,11 +17,11 @@ export const createDiscussions = asyncHandler(async (req, res) => {
   ]);
 
   if (!userCheck) {
-    return res.status(404).json({ message: "User not found." });
+    throw new ApiError.NotFound("User not found.");
   }
 
   if (!questionCheck) {
-    return res.status(404).json({ message: "Question not found." });
+    throw new ApiError.NotFound("Question not found.");
   }
 
   const discussion = await Discussion.create(req.body);
@@ -42,24 +41,22 @@ export const createDiscussions = asyncHandler(async (req, res) => {
 
 export const replyToDiscussion = asyncHandler(async (req, res) => {
   const { discussionId } = req.params;
-  const discussionCheck = await Discussion.exists({ _id: discussionId });
-
-  if (!discussionCheck) {
-    return res.status(404).json({ message: "Discussion does not exist." });
-  }
-
   const { question, user, comment } = req.body;
 
   if (!question || !user || !comment) {
-    return res
-      .status(400)
-      .json({ message: "Invalid request, all fields mandatory." });
+    throw new ApiError.BadRequest("Invalid request, all fields mandatory.");
+  }
+
+  const discussionCheck = await Discussion.exists({ _id: discussionId });
+
+  if (!discussionCheck) {
+    throw new ApiError.NotFound("Discussion does not exist.");
   }
 
   const userCheck = await User.exists({ _id: user });
 
   if (!userCheck) {
-    return res.status(404).json({ message: "User not found." });
+    throw new ApiError.NotFound("User not found.");
   }
 
   const body = {
@@ -88,7 +85,7 @@ export const getAllDiscussions = asyncHandler(async (req, res) => {
   const discussions = await Discussion.find({}).lean();
 
   if (!discussions) {
-    return res.status(404).json({ message: "No discussions found." });
+    throw new ApiError.NotFound("No discussions found.");
   }
 
   return res.status(200).json({
@@ -103,7 +100,7 @@ export const getDiscussionsByQuestion = asyncHandler(async (req, res) => {
   const question = await Question.exists({ _id: questionId });
 
   if (!question) {
-    return res.status(404).json({ message: "Question does not exist." });
+    throw new ApiError.NotFound("Question does not exist.");
   }
 
   const questions = await Discussion.find({
@@ -112,9 +109,7 @@ export const getDiscussionsByQuestion = asyncHandler(async (req, res) => {
   }).lean();
 
   if (!questions || questions.length === 0) {
-    return res
-      .status(404)
-      .json({ message: "No discussions for this question." });
+    throw new ApiError.NotFound("No discussions for this question.");
   }
 
   return res.status(200).json({
@@ -137,6 +132,10 @@ export const getDiscussionsWithReactionCount = asyncHandler(
       .lean()
       .exec();
 
+    if (!discussions) {
+      throw new ApiError.NotFound("No discussions found.");
+    }
+
     const formattedDiscussions = discussions.map((discussion) => ({
       ...discussion,
       reactionCounts: {
@@ -158,13 +157,13 @@ export const getUsersDiscussion = asyncHandler(async (req, res) => {
   const userCheck = await User.exists({ _id: userId });
 
   if (!userCheck) {
-    return res.status(404).json({ message: "User not found." });
+    throw new ApiError.NotFound("User not found.");
   }
 
   const discussion = await Discussion.find({ user: userId }).lean();
 
   if (!discussion) {
-    return res.status(404).json({ message: "No comments by this user." });
+    throw new ApiError.NotFound("No comments by this user.");
   }
 
   return res.status(200).json({
@@ -179,7 +178,7 @@ export const getReplyToDiscussion = asyncHandler(async (req, res) => {
   const discussionCheck = await Discussion.exists({ _id: discussionId });
 
   if (!discussionCheck) {
-    return res.status(404).json({ message: "Discussion not found." });
+    throw new ApiError.NotFound("Discussion not found.");
   }
 
   const replies = await Discussion.find({
@@ -187,7 +186,7 @@ export const getReplyToDiscussion = asyncHandler(async (req, res) => {
   }).lean();
 
   if (!replies) {
-    return res.status(404).json({ message: "No replies for this question." });
+    throw new ApiError.NotFound("No replies for this question.");
   }
 
   return res.status(200).json({
@@ -201,13 +200,14 @@ export const reactToDiscussion = asyncHandler(async (req, res) => {
   const { discussionId, userId } = req.body;
   const { like } = req.query;
 
+  if (!discussion || !userId) {
+    throw new ApiError.BadRequest("Discussion ID and user ID are mandatory.");
+  }
+
   const discussion = await Discussion.findById(discussionId);
 
   if (!discussion) {
-    return res.status(404).json({
-      success: false,
-      message: "Discussion not found",
-    });
+    throw new ApiError.NotFound("Discussion not found");
   }
 
   const isLike = like === "true";

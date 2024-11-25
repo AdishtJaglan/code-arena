@@ -1,6 +1,7 @@
 import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/apiError.js";
 
 export const handleStatusUpdate = asyncHandler(async (req, res) => {
   const { accepterId } = req.params;
@@ -8,13 +9,11 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
   const { status } = req.query;
 
   if (status !== "Accepted" && status !== "Rejected") {
-    return res
-      .status(400)
-      .json({ message: "You can only Reject and Accept a request." });
+    throw ApiError.BadRequest("You can only Reject and Accept a request.");
   }
 
   if (accepterId === accepteeId) {
-    return res.status(400).json({ message: "Cannot accept your own request." });
+    throw ApiError.BadRequest("Cannot accept your own request.");
   }
 
   const acceptee = await User.findById(accepteeId).select(
@@ -22,7 +21,7 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
   );
 
   if (!acceptee) {
-    return res.status(404).json({ message: "Acceptee not found." });
+    throw new ApiError.NotFound("Acceptee not found.");
   }
 
   const accepter = await User.findById(accepterId).select(
@@ -30,7 +29,7 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
   );
 
   if (!accepter) {
-    return res.status(404).json({ message: "Accepter not found." });
+    throw ApiError.NotFound("Accepter not found.");
   }
 
   const accountabilityPartnerRequestObject =
@@ -41,7 +40,7 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
     });
 
   if (!accountabilityPartnerRequestObject) {
-    return res.status(404).json({ message: "No pending request was found." });
+    throw ApiError.NotFound("No pending request was found.");
   }
 
   accountabilityPartnerRequestObject.status = status;
