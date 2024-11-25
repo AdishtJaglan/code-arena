@@ -2,6 +2,7 @@ import Question from "../models/Question.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 export const createQuestion = asyncHandler(async (req, res) => {
   const { userId } = req.params;
@@ -27,9 +28,7 @@ export const createQuestion = asyncHandler(async (req, res) => {
 
   const question = await Question.create(body);
 
-  return res
-    .status(201)
-    .json({ message: "Created question successfully.", question });
+  return ApiResponse.Created("Created question successfully.", { question });
 });
 
 export const getAllQuestions = asyncHandler(async (req, res) => {
@@ -39,7 +38,7 @@ export const getAllQuestions = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No questions were found.");
   }
 
-  return res.status(200).json({ message: "Fetched questions.", questions });
+  return ApiResponse.Ok("Fetched questions.", { questions }).send(res);
 });
 
 export const getQuestionsByUser = asyncHandler(async (req, res) => {
@@ -50,9 +49,9 @@ export const getQuestionsByUser = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No questions created by the user.");
   }
 
-  return res
-    .status(200)
-    .json({ message: "Fetched contributed questions.", questions });
+  return ApiResponse.Ok("Fetched contributed questions.", { questions }).send(
+    res
+  );
 });
 
 export const getQuestionsByTag = asyncHandler(async (req, res) => {
@@ -63,9 +62,9 @@ export const getQuestionsByTag = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No questions found for given tag.");
   }
 
-  return res
-    .status(200)
-    .json({ message: "Fetched question with given tag.", questions });
+  return ApiResponse.Ok("Fetched question with given tag.", { questions }).send(
+    res
+  );
 });
 
 export const getNoOfQuestionForEachTag = asyncHandler(async (req, res) => {
@@ -90,11 +89,10 @@ export const getNoOfQuestionForEachTag = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("Question with tags were not found.");
   }
 
-  return res.status(200).json({
-    message: "Tag count found.",
+  return ApiResponse.Ok("Tag count found.", {
     noOfTags: result.length,
     counts: result,
-  });
+  }).send(res);
 });
 
 export const getQuestionbyId = asyncHandler(async (req, res) => {
@@ -105,7 +103,7 @@ export const getQuestionbyId = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("Question not found.");
   }
 
-  return res.status(200).json({ message: "Fetched question.", question });
+  return ApiResponse.Ok("Fetched question.", { question }).send(res);
 });
 
 export const getCompleteQuestions = asyncHandler(async (req, res) => {
@@ -119,9 +117,8 @@ export const getCompleteQuestions = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("Not able to find any complete questions.");
   }
 
-  return res.status(200).json({
-    message: "Fetched complete questions successfully.",
+  return ApiResponse.Ok("Fetched complete questions successfully.", {
     count: questions.length,
     questions: questions,
-  });
+  }).send(res);
 });

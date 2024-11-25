@@ -2,6 +2,7 @@ import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 export const handleStatusUpdate = asyncHandler(async (req, res) => {
   const { accepterId } = req.params;
@@ -55,9 +56,8 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
     ...(status === "Accepted" ? [accepter.save(), acceptee.save()] : []),
   ]);
 
-  return res.status(200).json({
-    message: `${status} partner request successfully.`,
+  return ApiResponse.Ok(`${status} partner request successfully.`, {
     partnerRequest: accountabilityPartnerRequestObject,
     ...(status === "Accepted" ? { accepter, acceptee } : {}),
-  });
+  }).send(res);
 });

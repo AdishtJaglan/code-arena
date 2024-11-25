@@ -5,6 +5,7 @@ import Answer from "../models/Answer.js";
 import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { username, password, email } = req.body;
@@ -28,9 +29,10 @@ export const registerUser = asyncHandler(async (req, res) => {
     expiresIn: "1h",
   });
 
-  return res
-    .status(201)
-    .json({ message: "User created successfully.", token, user });
+  return ApiResponse.Created("User created successfully.", {
+    token,
+    user,
+  }).send(res);
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
@@ -49,7 +51,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     expiresIn: "1h",
   });
 
-  res.json({ message: "Login successful", token });
+  return ApiResponse.Ok("Login successful", { token }).send(res);
 });
 
 export const getAllUser = asyncHandler(async (req, res) => {
@@ -59,7 +61,7 @@ export const getAllUser = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No users found.");
   }
 
-  return res.status(200).json({ message: "Users fetched.", users });
+  return ApiResponse.Ok("Users fetched.", { users }).send(res);
 });
 
 export const getUserById = asyncHandler(async (req, res) => {
@@ -70,7 +72,7 @@ export const getUserById = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("User not found.");
   }
 
-  return res.status(200).json({ message: "User fetched.", user });
+  return ApiResponse.Ok("User fetched.", { user }).send(res);
 });
 
 export const getUserQuestionsSolved = asyncHandler(async (req, res) => {
@@ -99,14 +101,14 @@ export const getUserQuestionsSolved = asyncHandler(async (req, res) => {
 
   const filteredQuestions = user.questionsSolved.filter((q) => q !== null);
 
-  return res.status(200).json({
-    message: `Fetched ${difficulty || "all"} difficulty solved questions.`,
-    data: {
+  return ApiResponse.Ok(
+    `Fetched ${difficulty || "all"} difficulty solved questions.`,
+    {
       totalQuestions: filteredQuestions.length,
       difficulty: difficulty || "all",
       questions: filteredQuestions,
-    },
-  });
+    }
+  ).send(res);
 });
 
 export const getContributions = asyncHandler(async (req, res) => {
@@ -156,10 +158,9 @@ export const getContributions = asyncHandler(async (req, res) => {
     };
   }
 
-  return res.status(200).json({
-    message: `Fetched ${type || "all"} contributions`,
+  return ApiResponse.Ok(`Fetched ${type || "all"} contributions`, {
     data: responseData,
-  });
+  }).send(res);
 });
 
 export const getUserByEmail = asyncHandler(async (req, res) => {
@@ -172,7 +173,7 @@ export const getUserByEmail = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("User does not exist.");
   }
 
-  return res.status(200).json({ message: "User fetched.", user });
+  return ApiResponse.Ok("User fetched.", { user }).send(res);
 });
 
 export const sendAccountabilityPartnerRequest = asyncHandler(
@@ -223,11 +224,10 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
 
     await Promise.all([sender.save(), receiver.save()]);
 
-    return res.status(200).json({
-      message: "Request sent successfully.",
+    return ApiResponse.Ok("Request sent successfully.", {
       sender,
       receiver,
       sentRequest: accountabilityPartnerRequestObject,
-    });
+    }).send(res);
   }
 );

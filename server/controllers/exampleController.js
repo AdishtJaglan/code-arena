@@ -3,6 +3,7 @@ import Question from "../models/Question.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 export const createExample = asyncHandler(async (req, res) => {
   const { input, output, contributedBy, question } = req.body;
@@ -37,9 +38,9 @@ export const createExample = asyncHandler(async (req, res) => {
     { $push: { examples: example._id } }
   );
 
-  return res
-    .status(201)
-    .json({ message: "Created example successfully.", example });
+  return ApiResponse.Created("Created example successfully.", { example }).send(
+    res
+  );
 });
 
 export const getAllExamples = asyncHandler(async (req, res) => {
@@ -49,11 +50,10 @@ export const getAllExamples = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No examples found.");
   }
 
-  return res.status(200).json({
-    message: "Fetched examples.",
+  return ApiResponse.Ok("Fetched examples.", {
     exampleCount: examples.length,
     examples,
-  });
+  }).send(res);
 });
 
 export const getExamplesByQuestions = asyncHandler(async (req, res) => {
@@ -70,7 +70,8 @@ export const getExamplesByQuestions = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No examples for this question.");
   }
 
-  return res
-    .status(200)
-    .json({ message: "Fetched examples for the question.", examples });
+  return ApiResponse.Ok("Fetched examples for the question.", {
+    count: examples.length,
+    examples,
+  }).send(res);
 });

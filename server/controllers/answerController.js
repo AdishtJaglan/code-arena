@@ -3,6 +3,7 @@ import Question from "../models/Question.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 export const createAnswer = asyncHandler(async (req, res) => {
   const { solutions, question } = req.body;
@@ -47,9 +48,9 @@ export const createAnswer = asyncHandler(async (req, res) => {
   questionCheck.answer = answer._id;
   await questionCheck.save();
 
-  return res
-    .status(201)
-    .json({ message: "Successfully created answer.", answer });
+  return ApiResponse.Created("Successfully created answer.", { answer }).send(
+    res
+  );
 });
 
 export const getAllAnswers = asyncHandler(async (req, res) => {
@@ -59,11 +60,10 @@ export const getAllAnswers = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("Unable to find any answers.");
   }
 
-  return res.status(200).json({
-    message: "Fetched all answers.",
+  return ApiResponse.Ok("Fetched all answers", {
     count: answers.length,
     answers,
-  });
+  }).send(res);
 });
 
 export const getAnswersForAQuestion = asyncHandler(async (req, res) => {
@@ -85,7 +85,7 @@ export const getAnswersForAQuestion = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No answers for this question.");
   }
 
-  return res
-    .status(200)
-    .json({ message: "Fetched answer for this question.", answer });
+  return ApiResponse.Ok("Fetched answer for this question.", { answer }).send(
+    res
+  );
 });

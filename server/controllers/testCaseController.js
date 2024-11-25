@@ -2,6 +2,7 @@ import TestCase from "../models/TestCase.js";
 import Question from "../models/Question.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 export const createBulkTestCases = asyncHandler(async (req, res) => {
   const { testCases, question } = req.body;
@@ -46,11 +47,10 @@ export const createBulkTestCases = asyncHandler(async (req, res) => {
     { $push: { testCases: newTestCaseIds } }
   );
 
-  return res.status(201).json({
-    message: "Test cases created successfully.",
+  return ApiResponse.Created("Test cases created successfully.", {
     count: newTestCases.length,
     testCases: newTestCases,
-  });
+  }).send(res);
 });
 
 export const createTestCase = asyncHandler(async (req, res) => {
@@ -80,9 +80,9 @@ export const createTestCase = asyncHandler(async (req, res) => {
     { $push: { testCases: testCase } }
   );
 
-  return res
-    .status(201)
-    .json({ message: "Created test case successfully.", testCase });
+  return ApiResponse.Created("Created test case successfully.", {
+    testCase,
+  }).send(res);
 });
 
 export const getAllTestCases = asyncHandler(async (req, res) => {
@@ -92,11 +92,10 @@ export const getAllTestCases = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No test cases found.");
   }
 
-  return res.status(200).json({
-    message: "Fetched test cases.",
+  return ApiResponse.Ok("Fetched test cases.", {
     count: testCases.length,
     testCases,
-  });
+  }).send(res);
 });
 
 export const getTestCasesByQuestion = asyncHandler(async (req, res) => {
@@ -113,9 +112,8 @@ export const getTestCasesByQuestion = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("This question does not have any test cases.");
   }
 
-  return res.status(200).json({
-    message: "Fetched test cases.",
+  return ApiResponse.Ok("Fetched test cases.", {
     count: testCases.length,
     testCases,
-  });
+  }).send(res);
 });

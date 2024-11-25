@@ -3,6 +3,7 @@ import Question from "../models/Question.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 export const createDiscussions = asyncHandler(async (req, res) => {
   const { question, user, comment } = req.body;
@@ -34,9 +35,9 @@ export const createDiscussions = asyncHandler(async (req, res) => {
     User.updateOne({ _id: user }, { $push: { comments: discussion._id } }),
   ]);
 
-  return res
-    .status(201)
-    .json({ message: "Created discussion successfully.", discussion });
+  return ApiResponse.Created("Created discussion successfully.", {
+    discussion,
+  }).send(res);
 });
 
 export const replyToDiscussion = asyncHandler(async (req, res) => {
@@ -76,9 +77,9 @@ export const replyToDiscussion = asyncHandler(async (req, res) => {
     User.updateOne({ _id: user }, { $push: { comments: discussion._id } }),
   ]);
 
-  return res
-    .status(201)
-    .json({ message: "Replied to discussion successfully.", discussion });
+  return ApiResponse.Created("Replied to discussion successfully.", {
+    discussion,
+  }).send(res);
 });
 
 export const getAllDiscussions = asyncHandler(async (req, res) => {
@@ -88,11 +89,10 @@ export const getAllDiscussions = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No discussions found.");
   }
 
-  return res.status(200).json({
-    message: "Fetched all discussions.",
+  return ApiResponse.Ok("Fetched all discussions.", {
     count: discussions.length,
     discussions,
-  });
+  }).send(res);
 });
 
 export const getDiscussionsByQuestion = asyncHandler(async (req, res) => {
@@ -112,11 +112,10 @@ export const getDiscussionsByQuestion = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No discussions for this question.");
   }
 
-  return res.status(200).json({
-    message: "Fetched discussions for the question.",
+  return ApiResponse.Ok("Fetched discussions for the question.", {
     count: questions.length,
     questions,
-  });
+  }).send(res);
 });
 
 export const getDiscussionsWithReactionCount = asyncHandler(
@@ -144,11 +143,10 @@ export const getDiscussionsWithReactionCount = asyncHandler(
       },
     }));
 
-    return res.status(200).json({
-      message: "Fetched all discussions for given question.",
+    return ApiResponse.Ok("Fetched all discussions for given question.", {
       count: formattedDiscussions.length,
       discussions: formattedDiscussions,
-    });
+    }).send(res);
   }
 );
 
@@ -166,11 +164,10 @@ export const getUsersDiscussion = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No comments by this user.");
   }
 
-  return res.status(200).json({
-    message: "Fetched comments made by user.",
+  return ApiResponse.Ok("Fetched comments made by user.", {
     count: discussion.length,
     discussion,
-  });
+  }).send(res);
 });
 
 export const getReplyToDiscussion = asyncHandler(async (req, res) => {
@@ -189,11 +186,10 @@ export const getReplyToDiscussion = asyncHandler(async (req, res) => {
     throw new ApiError.NotFound("No replies for this question.");
   }
 
-  return res.status(200).json({
-    message: "Fetched replies for the discussion.",
+  return ApiResponse.Ok("Fetched replies for the discussion.", {
     count: replies.length,
     replies,
-  });
+  }).send(res);
 });
 
 export const reactToDiscussion = asyncHandler(async (req, res) => {
@@ -223,12 +219,7 @@ export const reactToDiscussion = asyncHandler(async (req, res) => {
       $pull: { "reactions.likes": userId },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "Like removed",
-      action: "removed",
-      reactionType: "like",
-    });
+    return ApiResponse.Ok("Like removed").send(res);
   }
 
   if (!isLike && hasDisliked) {
@@ -236,12 +227,7 @@ export const reactToDiscussion = asyncHandler(async (req, res) => {
       $pull: { "reactions.dislikes": userId },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "Dislike removed",
-      action: "removed",
-      reactionType: "dislike",
-    });
+    return ApiResponse.Ok("Dislike removed").send(res);
   }
 
   const updatedDiscussion = await Discussion.findByIdAndUpdate(
@@ -258,11 +244,9 @@ export const reactToDiscussion = asyncHandler(async (req, res) => {
     dislikes: updatedDiscussion.reactions.dislikes.length,
   };
 
-  return res.status(200).json({
-    success: true,
-    message: `${isLike ? "Like" : "Dislike"} added`,
+  return ApiResponse.Ok(`${isLike ? "Like" : "Dislike"} added`, {
     action: "added",
     reactionType: isLike ? "like" : "dislike",
     reactionCounts,
-  });
+  }).send(res);
 });
