@@ -65,7 +65,7 @@ const PartnerInfoModal = ({ isOpen, onClose, partnerInfo }) => (
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-xl"
+          className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-xl border border-gray-800 bg-gray-800 p-6 shadow-xl"
         >
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ const Timeline = ({ currentStep }) => {
               className={`z-10 mb-2 flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-300 ${
                 currentStep >= step.id
                   ? "bg-violet-600 text-white"
-                  : "bg-gray-800 text-gray-400"
+                  : "bg-gray-700/30 text-gray-400"
               }`}
             >
               {step.icon}
@@ -259,8 +259,9 @@ const Register = () => {
 
       if (response.status === 201) {
         toast.success("User created successfully");
-        setNewUserId(response?.data?.user?._id);
-        localStorage.setItem("accessToken", response.data.token);
+        setNewUserId(response?.data?.data?.user?._id);
+        localStorage.setItem("accessToken", response.data?.data?.accessToken);
+        localStorage.setItem("refreshToken", response.data?.data?.refreshToken);
         handleNext();
       }
 
@@ -294,7 +295,7 @@ const Register = () => {
 
       if (response.status === 200) {
         toast.success("Partner verified!");
-        setPartnerInfo(response.data.user);
+        setPartnerInfo(response.data.data.user);
         setVerificationStatus({
           isVerifying: false,
           isVerified: true,
@@ -302,7 +303,7 @@ const Register = () => {
         });
         setFormData((prev) => ({
           ...prev,
-          accountabilityPartner: response.data.user.username,
+          accountabilityPartner: response.data.data.user.username,
         }));
       }
 
@@ -421,8 +422,8 @@ const Register = () => {
         theme="dark"
       />
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-violet-900 p-4 lg:p-8">
-        <div className="flex w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 shadow-xl">
-          <div className="w-80 border-r border-gray-800">
+        <div className="flex w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-700/50 bg-gray-800/60 shadow-xl">
+          <div className="w-80 border-r border-gray-700/50">
             <Timeline currentStep={currentStep} />
           </div>
 

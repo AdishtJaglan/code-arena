@@ -24,7 +24,7 @@ const StepRequest = ({ partnerData, onSendRequest }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center space-y-4 rounded-lg bg-gray-900/50 p-6 text-center"
+      className="flex flex-col items-center justify-center space-y-4 rounded-lg bg-gray-700/50 p-6 text-center"
     >
       <div className="rounded-full bg-gray-800 p-4">
         <X className="h-12 w-12 text-violet-500" />
