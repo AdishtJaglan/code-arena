@@ -15,7 +15,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center space-x-2">
           <MessageCircleCode className="h-8 w-8 text-indigo-500" />
-          <span className="text-2xl font-bold text-white">CodeArena</span>
+          <span className="text-2xl font-bold text-white">Code Arena</span>
         </Link>
 
         <div className="flex items-center space-x-6">
