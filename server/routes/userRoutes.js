@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAllUser,
   getContributions,
+  getLeaderBoardRankings,
   getUserByEmail,
   getUserById,
   getUserQuestionsSolved,
@@ -21,5 +22,6 @@ router.get("/contributions/:id", isAuthenticated, getContributions);
 router.get("/all", getAllUser);
 router.post("/email", getUserByEmail);
 router.post("/request/:senderId", sendAccountabilityPartnerRequest);
+router.get("/leaderboard", getLeaderBoardRankings);
 
 export default router;

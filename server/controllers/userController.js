@@ -227,3 +227,26 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
     }).send(res);
   }
 );
+
+export const getLeaderBoardRankings = asyncHandler(async (req, res) => {
+  const page = parseInt(req?.query?.page) || 1;
+  const limit = parseInt(req?.query?.limit) || 20;
+
+  const skip = (page - 1) * limit;
+
+  const users = await User.find({})
+    .select("rating username profilePicture questionsSolved bio")
+    .sort({ rating: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  if (!users) {
+    throw new ApiError.NotFound("Leaderboard ranking not found.");
+  }
+
+  return ApiResponse.Ok("Fetched leaderboard rankings.", {
+    count: users.length,
+    users,
+  }).send(res);
+});
