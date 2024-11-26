@@ -5,6 +5,7 @@ import {
   getCompleteQuestions,
   getNoOfQuestionForEachTag,
   getQuestionbyId,
+  getQuestionByQuestionId,
   getQuestionsByTag,
   getQuestionsByUser,
 } from "../controllers/questionController.js";
@@ -18,5 +19,6 @@ router.get("/contribution/:id", getQuestionsByUser);
 router.get("/tag", getQuestionsByTag);
 router.get("/count-tags", getNoOfQuestionForEachTag);
 router.get("/complete-question", getCompleteQuestions);
+router.get("/complete-question/:question_id", getQuestionByQuestionId);
 
 export default router;

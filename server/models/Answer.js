@@ -14,6 +14,10 @@ const SolutionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  explanation: {
+    type: String,
+    required: true,
+  },
   contributedBy: {
     type: mongoose.Types.ObjectId,
     ref: "User",

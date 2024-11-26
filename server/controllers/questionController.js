@@ -1,5 +1,6 @@
 import Question from "../models/Question.js";
 import User from "../models/User.js";
+import Example from "../models/Example.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
@@ -144,4 +145,40 @@ export const getCompleteQuestions = asyncHandler(async (req, res) => {
     hasPrevPage,
     questions: questions,
   }).send(res);
+});
+
+export const getQuestionByQuestionId = asyncHandler(async (req, res) => {
+  const { question_id } = req.params;
+
+  if (!question_id) {
+    throw ApiError.BadRequest("Question ID is mandatory.");
+  }
+
+  const question = await Question.findOne({ question_id: question_id })
+    .select("-discussion")
+    .populate({
+      path: "submittedBy",
+      select: "username profilePicture rating bio",
+    })
+    .populate({
+      path: "answer",
+      populate: {
+        path: "solutions.contributedBy",
+        select: "username profilePicture bio rating",
+      },
+    })
+    .populate({
+      path: "testCases",
+      match: { isHidden: false },
+    })
+    .populate("examples")
+    .lean();
+
+  if (!question) {
+    throw ApiError.NotFound("No question found for this quesiton ID.");
+  }
+
+  return ApiResponse.Ok("Question fetched successfully.", { question }).send(
+    res
+  );
 });

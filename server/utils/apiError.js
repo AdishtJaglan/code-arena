@@ -20,35 +20,19 @@ class ApiError extends Error {
   }
 
   static BadRequest(message = "Bad Request", errors = []) {
-    return new ApiError({
-      statusCode: 400,
-      message,
-      errors,
-    });
+    return new ApiError(400, message, errors);
   }
 
   static Unauthorized(message = "Unauthorized", errors = []) {
-    return new ApiError({
-      statusCode: 401,
-      message,
-      errors,
-    });
+    return new ApiError(401, message, errors);
   }
 
   static Forbidden(message = "Forbidden", errors = []) {
-    return new ApiError({
-      statusCode: 403,
-      message,
-      errors,
-    });
+    return new ApiError(403, message, errors);
   }
 
   static NotFound(message = "Resource not found", errors = []) {
-    return new ApiError({
-      statusCode: 404,
-      message,
-      errors,
-    });
+    return new ApiError(404, message, errors);
   }
 
   toJSON() {

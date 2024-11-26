@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../configs/env-config.js";
 import axios from "axios";
 import {
@@ -50,6 +51,7 @@ const DifficultyBadge = ({ difficulty }) => {
 };
 
 const ProblemSet = () => {
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [pageNo, setPageNo] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -89,6 +91,10 @@ const ProblemSet = () => {
 
     getAllQuestions();
   }, [pageNo, filters]);
+
+  const solveProblemClick = (id) => {
+    navigate(`/problems/${id}`);
+  };
 
   const FilterSidebar = () => (
     <div className="fixed h-full w-1/5 rounded-xl border border-gray-800/50 bg-gray-900/50 p-4 backdrop-blur-sm">
@@ -229,6 +235,7 @@ const ProblemSet = () => {
                 {questions.map((question) => (
                   <Card
                     key={question._id}
+                    onClick={() => solveProblemClick(question.question_id)}
                     className="group cursor-pointer border-gray-800/50 bg-gray-900/50 backdrop-blur-sm transition-all hover:border-indigo-600/50 hover:shadow-2xl"
                   >
                     <CardContent className="p-6">

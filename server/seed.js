@@ -223,7 +223,8 @@ async function seedAnswers(questions, users) {
           ])}`,
           answer: `\`\`\`python\n# Brute Force Solution\ndef solve(arr):\n    ${faker.lorem.lines(
             5
-          )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
+          )}\n\`\`\`\n\n${faker.lorem.paragraphs(1)}`,
+          explanation: faker.lorem.paragraph(4),
           contributedBy: getRandomElement(users)._id,
         },
         {
@@ -235,7 +236,8 @@ async function seedAnswers(questions, users) {
           ])}`,
           answer: `\`\`\`python\n# Better Solution\ndef solve(arr):\n    ${faker.lorem.lines(
             5
-          )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
+          )}\n\`\`\`\n\n${faker.lorem.paragraphs(1)}`,
+          explanation: faker.lorem.paragraph(4),
           contributedBy: getRandomElement(users)._id,
         },
         {
@@ -247,7 +249,8 @@ async function seedAnswers(questions, users) {
           ])}`,
           answer: `\`\`\`python\n# Optimal Solution\ndef solve(arr):\n    ${faker.lorem.lines(
             5
-          )}\n\`\`\`\n\n${faker.lorem.paragraphs(2)}`,
+          )}\n\`\`\`\n\n${faker.lorem.paragraphs(1)}`,
+          explanation: faker.lorem.paragraph(4),
           contributedBy: getRandomElement(users)._id,
         },
       ],
