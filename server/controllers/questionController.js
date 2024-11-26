@@ -107,18 +107,41 @@ export const getQuestionbyId = asyncHandler(async (req, res) => {
 });
 
 export const getCompleteQuestions = asyncHandler(async (req, res) => {
-  const questions = await Question.find({
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
+  const skip = (page - 1) * limit;
+
+  const questionsQuery = Question.find({
     testCases: { $exists: true, $ne: [] },
     examples: { $exists: true, $ne: [] },
     answer: { $exists: true, $ne: null },
   }).lean();
 
+  const [questions, totalQuestions] = await Promise.all([
+    questionsQuery.skip(skip).limit(limit),
+    Question.countDocuments({
+      testCases: { $exists: true, $ne: [] },
+      examples: { $exists: true, $ne: [] },
+      answer: { $exists: true, $ne: null },
+    }),
+  ]);
+
   if (!questions || questions.length === 0) {
     throw new ApiError.NotFound("Not able to find any complete questions.");
   }
 
+  const totalPages = Math.ceil(totalQuestions / limit);
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
   return ApiResponse.Ok("Fetched complete questions successfully.", {
     count: questions.length,
+    totalQuestions,
+    currentPage: page,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
     questions: questions,
   }).send(res);
 });

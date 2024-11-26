@@ -157,9 +157,9 @@ async function seedQuestions(users) {
     const noOfFails = faker.number.int({ min: 0, max: 1000 });
 
     const question = new Question({
-      title: `${faker.lorem.sentence()} Consider the following ${getRandomElement(
+      title: `Consider the following ${getRandomElement(
         TAGS
-      )} problem: ${faker.lorem.paragraph()}`,
+      )} problem: ${faker.lorem.sentence()} `,
       constraints: faker.lorem.sentences(),
       tags: getRandomElements(TAGS, 1, 4),
       submittedBy: getRandomElement(users)._id,
