@@ -234,19 +234,22 @@ export const getLeaderBoardRankings = asyncHandler(async (req, res) => {
 
   const skip = (page - 1) * limit;
 
-  const users = await User.find({})
-    .select("rating username profilePicture questionsSolved bio")
-    .sort({ rating: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  const [userCount, users] = await Promise.all([
+    User.countDocuments(),
+    User.find({})
+      .select("rating username profilePicture questionsSolved bio")
+      .sort({ rating: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+  ]);
 
   if (!users) {
     throw new ApiError.NotFound("Leaderboard ranking not found.");
   }
 
   return ApiResponse.Ok("Fetched leaderboard rankings.", {
-    count: users.length,
+    count: userCount,
     users,
   }).send(res);
 });
