@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "../configs/env-config.js";
@@ -8,10 +7,14 @@ import {
   Filter,
   Code2Icon,
   ArrowUpRightIcon,
-  TagIcon,
   TrendingUpIcon,
+  StarIcon,
+  CheckCircle2Icon,
+  XCircleIcon,
+  TagIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -19,6 +22,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import Navbar from "@/components/Navbar.jsx";
 
 const DifficultyBadge = ({ difficulty }) => {
   const difficultyColors = {
@@ -78,7 +91,7 @@ const ProblemSet = () => {
   }, [pageNo, filters]);
 
   const FilterSidebar = () => (
-    <div className="w-64 rounded-xl border border-gray-800/50 bg-gray-900/50 p-4 backdrop-blur-sm">
+    <div className="fixed h-full w-1/5 rounded-xl border border-gray-800/50 bg-gray-900/50 p-4 backdrop-blur-sm">
       <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-200">
         <Filter className="mr-2" /> Filters
       </h3>
@@ -143,9 +156,69 @@ const ProblemSet = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950 text-gray-200">
-      <div className="flex">
-        <FilterSidebar />
-        <div className="flex-1 p-8">
+      <div className="flex gap-3">
+        <div className="min-h-screen w-1/5">
+          <FilterSidebar />
+        </div>
+
+        <div className="w-4/5 flex-1 space-y-6">
+          <Navbar />
+          <div className="mt-3 grid grid-cols-3 gap-4">
+            <div className="group relative overflow-hidden rounded-xl border border-gray-800/50 bg-gray-900 p-5">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-900/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <div className="mb-2 flex items-center space-x-3">
+                    <StarIcon className="h-5 w-5 text-indigo-500 opacity-70 transition-opacity group-hover:opacity-100" />
+                    <span className="text-sm font-medium text-gray-400 transition-colors group-hover:text-gray-200">
+                      Total Problems
+                    </span>
+                  </div>
+                  <p className="text-3xl font-bold text-gray-100 transition-colors group-hover:text-indigo-400">
+                    {totalQuestions}
+                  </p>
+                </div>
+                <StarIcon className="absolute right-0 top-1/2 h-16 w-16 -translate-y-1/2 text-gray-800 opacity-20 transition-opacity group-hover:opacity-30" />
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-xl border border-gray-800/50 bg-gray-900 p-5">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-green-900/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <div className="mb-2 flex items-center space-x-3">
+                    <CheckCircle2Icon className="h-5 w-5 text-green-500 opacity-70 transition-opacity group-hover:opacity-100" />
+                    <span className="text-sm font-medium text-gray-400 transition-colors group-hover:text-gray-200">
+                      Solved
+                    </span>
+                  </div>
+                  <p className="text-3xl font-bold text-gray-100 transition-colors group-hover:text-green-400">
+                    0
+                  </p>
+                </div>
+                <CheckCircle2Icon className="absolute right-0 top-1/2 h-16 w-16 -translate-y-1/2 text-gray-800 opacity-20 transition-opacity group-hover:opacity-30" />
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-xl border border-gray-800/50 bg-gray-900 p-5">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-red-900/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <div className="mb-2 flex items-center space-x-3">
+                    <XCircleIcon className="h-5 w-5 text-red-500 opacity-70 transition-opacity group-hover:opacity-100" />
+                    <span className="text-sm font-medium text-gray-400 transition-colors group-hover:text-gray-200">
+                      Unsolved
+                    </span>
+                  </div>
+                  <p className="text-3xl font-bold text-gray-100 transition-colors group-hover:text-red-400">
+                    {totalQuestions}
+                  </p>
+                </div>
+                <XCircleIcon className="absolute right-0 top-1/2 h-16 w-16 -translate-y-1/2 text-gray-800 opacity-20 transition-opacity group-hover:opacity-30" />
+              </div>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="flex h-64 items-center justify-center">
               <div className="h-16 w-16 animate-spin rounded-full border-t-4 border-indigo-500"></div>
@@ -154,11 +227,11 @@ const ProblemSet = () => {
             <>
               <div className="space-y-4">
                 {questions.map((question) => (
-                  <div
+                  <Card
                     key={question._id}
-                    className="group relative cursor-pointer overflow-hidden rounded-xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-sm transition-all hover:border-indigo-600/50 hover:shadow-2xl"
+                    className="group cursor-pointer border-gray-800/50 bg-gray-900/50 backdrop-blur-sm transition-all hover:border-indigo-600/50 hover:shadow-2xl"
                   >
-                    <div className="p-6">
+                    <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <Code2Icon className="text-indigo-400" />
@@ -170,8 +243,10 @@ const ProblemSet = () => {
                           <DifficultyBadge difficulty={question.difficulty} />
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger>
-                                <ArrowUpRightIcon className="text-gray-500 hover:text-indigo-400" />
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <ArrowUpRightIcon className="text-gray-500 hover:text-indigo-400" />
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent>Solve Problem</TooltipContent>
                             </Tooltip>
@@ -200,20 +275,44 @@ const ProblemSet = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 transition-all group-hover:opacity-100"></div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
 
               {questions.length > 0 && (
-                <div className="mt-8 flex items-center justify-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    {/* Pagination logic remains the same */}
-                  </div>
-                  <div className="text-gray-400">
-                    Page {pageNo} of {totalPages} • {totalQuestions} problems
-                  </div>
+                <div className="flex items-center justify-center py-8">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={() => setPageNo(Math.max(1, pageNo - 1))}
+                          disabled={pageNo === 1}
+                        />
+                      </PaginationItem>
+                      {[...Array(totalPages)].map((_, index) => (
+                        <PaginationItem key={index}>
+                          <PaginationLink
+                            href="#"
+                            isActive={pageNo === index + 1}
+                            onClick={() => setPageNo(index + 1)}
+                          >
+                            {index + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={() =>
+                            setPageNo(Math.min(totalPages, pageNo + 1))
+                          }
+                          disabled={pageNo === totalPages}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
 
