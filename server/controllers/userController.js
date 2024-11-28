@@ -11,13 +11,13 @@ export const registerUser = asyncHandler(async (req, res) => {
   const { username, password, email } = req.body;
 
   if (!username || !password || !email) {
-    throw new ApiError.BadRequest("Invalid request");
+    throw ApiError.BadRequest("Invalid request");
   }
 
   const check = await User.findOne({ email });
 
   if (check) {
-    throw new ApiError(409, "User already exists.");
+    throw ApiError(409, "User already exists.");
   }
 
   const user = await User.create(req.body);
@@ -39,7 +39,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   console.log(user);
 
   if (!user || !(await user.isPasswordMatching(password))) {
-    throw new ApiError.Unauthorized("Invalid credentials");
+    throw ApiError.Unauthorized("Invalid credentials");
   }
 
   const accessToken = await user.generateAccessToken();
@@ -54,7 +54,7 @@ export const getAllUser = asyncHandler(async (req, res) => {
   const users = await User.find({});
 
   if (!users) {
-    throw new ApiError.NotFound("No users found.");
+    throw ApiError.NotFound("No users found.");
   }
 
   return ApiResponse.Ok("Users fetched.", { users }).send(res);
@@ -65,7 +65,7 @@ export const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(id);
 
   if (!user) {
-    throw new ApiError.NotFound("User not found.");
+    throw ApiError.NotFound("User not found.");
   }
 
   return ApiResponse.Ok("User fetched.", { user }).send(res);
@@ -77,7 +77,7 @@ export const getUserQuestionsSolved = asyncHandler(async (req, res) => {
 
   const validDifficulties = ["Easy", "Medium", "Hard"];
   if (difficulty && !validDifficulties.includes(difficulty)) {
-    throw new ApiError.BadRequest("Invalid difficulty level");
+    throw ApiError.BadRequest("Invalid difficulty level");
   }
 
   const populateOptions = {
@@ -92,7 +92,7 @@ export const getUserQuestionsSolved = asyncHandler(async (req, res) => {
     .lean();
 
   if (!user) {
-    throw new ApiError.NotFound("Error finding user.");
+    throw ApiError.NotFound("Error finding user.");
   }
 
   const filteredQuestions = user.questionsSolved.filter((q) => q !== null);
@@ -113,7 +113,7 @@ export const getContributions = asyncHandler(async (req, res) => {
 
   const validTypes = ["questions", "answers"];
   if (type && !validTypes.includes(type)) {
-    throw new ApiError.BadRequest("Invalid contribution type");
+    throw ApiError.BadRequest("Invalid contribution type");
   }
 
   let selectFields = [];
@@ -135,7 +135,7 @@ export const getContributions = asyncHandler(async (req, res) => {
     .lean();
 
   if (!user) {
-    throw new ApiError.NotFound("No user found.");
+    throw ApiError.NotFound("No user found.");
   }
 
   const responseData = {};
@@ -166,7 +166,7 @@ export const getUserByEmail = asyncHandler(async (req, res) => {
     .lean();
 
   if (!user) {
-    throw new ApiError.NotFound("User does not exist.");
+    throw ApiError.NotFound("User does not exist.");
   }
 
   return ApiResponse.Ok("User fetched.", { user }).send(res);
@@ -178,21 +178,21 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
     const { receiverId } = req.body;
 
     if (!receiverId) {
-      throw new ApiError.BadRequest("Receiver ID mandatory.");
+      throw ApiError.BadRequest("Receiver ID mandatory.");
     }
 
     const sender = await User.findById(senderId).select(
       "accountabilityPartnerRequest"
     );
     if (!sender) {
-      throw new ApiError.NotFound("Sender does not exist.");
+      throw ApiError.NotFound("Sender does not exist.");
     }
 
     const receiver = await User.findById(receiverId).select(
       "accountabilityPartnerRequest"
     );
     if (!receiver) {
-      throw new ApiError.NotFound("Receiver does not exist.");
+      throw ApiError.NotFound("Receiver does not exist.");
     }
 
     const existingRequest = await AccountabilityPartnerRequest.findOne({
@@ -202,7 +202,7 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
     });
 
     if (existingRequest) {
-      throw new ApiError.BadRequest("A pending request already exists.");
+      throw ApiError.BadRequest("A pending request already exists.");
     }
 
     const accountabilityPartnerRequestObject =
@@ -245,7 +245,7 @@ export const getLeaderBoardRankings = asyncHandler(async (req, res) => {
   ]);
 
   if (!users) {
-    throw new ApiError.NotFound("Leaderboard ranking not found.");
+    throw ApiError.NotFound("Leaderboard ranking not found.");
   }
 
   return ApiResponse.Ok("Fetched leaderboard rankings.", {

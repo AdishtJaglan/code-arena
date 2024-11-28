@@ -22,7 +22,7 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
   );
 
   if (!acceptee) {
-    throw new ApiError.NotFound("Acceptee not found.");
+    throw ApiError.NotFound("Acceptee not found.");
   }
 
   const accepter = await User.findById(accepterId).select(

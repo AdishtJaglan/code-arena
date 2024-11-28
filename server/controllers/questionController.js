@@ -10,13 +10,13 @@ export const createQuestion = asyncHandler(async (req, res) => {
   const { title, constraints, tags, difficulty } = req.body;
 
   if (!title || !constraints || !tags || !difficulty) {
-    throw new ApiError.BadRequest("All fields mandatory.");
+    throw ApiError.BadRequest("All fields mandatory.");
   }
 
   const user = await User.exists({ _id: userId });
 
   if (!user) {
-    throw new ApiError.NotFound("User does not exist.");
+    throw ApiError.NotFound("User does not exist.");
   }
 
   const body = {
@@ -36,7 +36,7 @@ export const getAllQuestions = asyncHandler(async (req, res) => {
   const questions = await Question.find({});
 
   if (!questions) {
-    throw new ApiError.NotFound("No questions were found.");
+    throw ApiError.NotFound("No questions were found.");
   }
 
   return ApiResponse.Ok("Fetched questions.", { questions }).send(res);
@@ -47,7 +47,7 @@ export const getQuestionsByUser = asyncHandler(async (req, res) => {
   const questions = await Question.find({ submittedBy: id });
 
   if (!questions) {
-    throw new ApiError.NotFound("No questions created by the user.");
+    throw ApiError.NotFound("No questions created by the user.");
   }
 
   return ApiResponse.Ok("Fetched contributed questions.", { questions }).send(
@@ -60,7 +60,7 @@ export const getQuestionsByTag = asyncHandler(async (req, res) => {
   const questions = await Question.find({ tags: { $in: tag } });
 
   if (!questions) {
-    throw new ApiError.NotFound("No questions found for given tag.");
+    throw ApiError.NotFound("No questions found for given tag.");
   }
 
   return ApiResponse.Ok("Fetched question with given tag.", { questions }).send(
@@ -87,7 +87,7 @@ export const getNoOfQuestionForEachTag = asyncHandler(async (req, res) => {
   ]);
 
   if (!result) {
-    throw new ApiError.NotFound("Question with tags were not found.");
+    throw ApiError.NotFound("Question with tags were not found.");
   }
 
   return ApiResponse.Ok("Tag count found.", {
@@ -101,7 +101,7 @@ export const getQuestionbyId = asyncHandler(async (req, res) => {
   const question = await Question.findById(id);
 
   if (!question) {
-    throw new ApiError.NotFound("Question not found.");
+    throw ApiError.NotFound("Question not found.");
   }
 
   return ApiResponse.Ok("Fetched question.", { question }).send(res);
@@ -129,7 +129,7 @@ export const getCompleteQuestions = asyncHandler(async (req, res) => {
   ]);
 
   if (!questions || questions.length === 0) {
-    throw new ApiError.NotFound("Not able to find any complete questions.");
+    throw ApiError.NotFound("Not able to find any complete questions.");
   }
 
   const totalPages = Math.ceil(totalQuestions / limit);

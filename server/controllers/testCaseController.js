@@ -8,11 +8,11 @@ export const createBulkTestCases = asyncHandler(async (req, res) => {
   const { testCases, question } = req.body;
 
   if (!testCases || !Array.isArray(testCases) || testCases.length === 0) {
-    throw new ApiError.BadRequest("An array of test cases is required.");
+    throw ApiError.BadRequest("An array of test cases is required.");
   }
 
   if (!question) {
-    throw new ApiError.BadRequest("A question ID is mandatory.");
+    throw ApiError.BadRequest("A question ID is mandatory.");
   }
 
   const questionCheck = await Question.findById(question)
@@ -20,11 +20,11 @@ export const createBulkTestCases = asyncHandler(async (req, res) => {
     .lean();
 
   if (!questionCheck) {
-    throw new ApiError.NotFound("Question not found.");
+    throw ApiError.NotFound("Question not found.");
   }
 
   if (questionCheck.testCases.length + testCases.length >= 30) {
-    throw new ApiError.BadRequest("Maximum 30 test cases allowed.");
+    throw ApiError.BadRequest("Maximum 30 test cases allowed.");
   }
 
   const invalidTestCases = testCases.find(
@@ -32,7 +32,7 @@ export const createBulkTestCases = asyncHandler(async (req, res) => {
   );
 
   if (invalidTestCases) {
-    throw new ApiError.BadRequest(
+    throw ApiError.BadRequest(
       "Each test case must have an input, output and hidden flag."
     );
   }
@@ -57,7 +57,7 @@ export const createTestCase = asyncHandler(async (req, res) => {
   const { input, output, isHidden, question } = req.body;
 
   if (!input || !output || !isHidden || !question) {
-    throw new ApiError.BadRequest("All fiels are mandatory.");
+    throw ApiError.BadRequest("All fiels are mandatory.");
   }
 
   const questionCheck = await Question.findById(question)
@@ -65,13 +65,11 @@ export const createTestCase = asyncHandler(async (req, res) => {
     .lean();
 
   if (!questionCheck) {
-    throw new ApiError.NotFound("Question not found.");
+    throw ApiError.NotFound("Question not found.");
   }
 
   if (questionCheck.testCases.length >= 30) {
-    throw new ApiError.BadRequest(
-      "Maximum 30 test cases allowed per question."
-    );
+    throw ApiError.BadRequest("Maximum 30 test cases allowed per question.");
   }
 
   const testCase = await TestCase.create(req.body);
@@ -89,7 +87,7 @@ export const getAllTestCases = asyncHandler(async (req, res) => {
   const testCases = await TestCase.find({}).lean();
 
   if (!testCases) {
-    throw new ApiError.NotFound("No test cases found.");
+    throw ApiError.NotFound("No test cases found.");
   }
 
   return ApiResponse.Ok("Fetched test cases.", {
@@ -103,13 +101,13 @@ export const getTestCasesByQuestion = asyncHandler(async (req, res) => {
   const question = await Question.exists({ _id: questionId });
 
   if (!question) {
-    throw new ApiError.NotFound("Question does not exist.");
+    throw ApiError.NotFound("Question does not exist.");
   }
 
   const testCases = await TestCase.find({ question: questionId }).lean();
 
   if (!testCases) {
-    throw new ApiError.NotFound("This question does not have any test cases.");
+    throw ApiError.NotFound("This question does not have any test cases.");
   }
 
   return ApiResponse.Ok("Fetched test cases.", {
