@@ -7,6 +7,7 @@ import Discussion from "./models/Discussion.js";
 import Answer from "./models/Answer.js";
 import AccountabilityPartnerRequest from "./models/AccountabilityPartnerRequest.js";
 import TestCase from "./models/TestCase.js";
+import Submission from "./models/Submission.js";
 
 const MONGODB_URI = "mongodb://localhost:27017/codeIt";
 const NUM_USERS = 100;
@@ -376,7 +377,13 @@ async function seedTestCases(questions) {
   return testCases;
 }
 
-async function updateUserReferences(users, questions, answers, discussions) {
+async function updateUserReferences(
+  users,
+  questions,
+  answers,
+  discussions,
+  submissions
+) {
   for (const user of users) {
     const userQuestions = questions.filter(
       (q) => q.submittedBy.toString() === user._id.toString()
@@ -432,6 +439,10 @@ async function updateUserReferences(users, questions, answers, discussions) {
       }
     }
 
+    user.submissions = submissions
+      .filter((s) => s.submittedBy.toString() === user._id.toString())
+      .map((s) => s._id);
+
     await user.save();
   }
 }
@@ -472,6 +483,48 @@ async function seedAccountabilityPartnerRequests(users) {
   return requests;
 }
 
+async function seedSubmissions(questions, users) {
+  const submissions = [];
+  const submissionIds = [];
+
+  const submissionStatuses = ["Accepted", "Attempted", "Partially Solved"];
+  const programmingLanguages = [
+    { id: 71, name: "Python" },
+    { id: 63, name: "JavaScript" },
+    { id: 62, name: "Java" },
+    { id: 54, name: "C++" },
+    { id: 50, name: "C" },
+  ];
+
+  for (const question of questions) {
+    const numSubmissions = faker.number.int({ min: 10, max: 50 });
+
+    for (let i = 0; i < numSubmissions; i++) {
+      const language = getRandomElement(programmingLanguages);
+      const submission = new Submission({
+        sourceCode: `
+# Sample ${language.name} submission for ${question.title}
+def solution(arr):
+    ${faker.lorem.lines(5)}
+    return result
+`,
+        language: language.name,
+        languageId: language.id,
+        status: getRandomElement(submissionStatuses),
+        isSolved: faker.datatype.boolean(0.3),
+        question: question._id,
+        submittedBy: getRandomElement(users)._id,
+      });
+
+      submissions.push(submission);
+      submissionIds.push(submission._id);
+    }
+  }
+
+  await Submission.insertMany(submissions);
+  return submissions;
+}
+
 async function seedDatabase() {
   try {
     await mongoose.connect(MONGODB_URI);
@@ -504,11 +557,20 @@ async function seedDatabase() {
 
     const answers = await seedAnswers(questions, users);
 
+    const submissions = await seedSubmissions(questions, users);
+    console.log(`Seeded ${submissions.length} submissions`);
+
     const requests = await seedAccountabilityPartnerRequests(users);
     console.log(`Seeded ${requests.length} accountability partner requests`);
 
     console.log("Updating user references...");
-    await updateUserReferences(users, questions, answers, discussions);
+    await updateUserReferences(
+      users,
+      questions,
+      answers,
+      discussions,
+      submissions
+    );
 
     console.log("Database seeded successfully!");
   } catch (error) {

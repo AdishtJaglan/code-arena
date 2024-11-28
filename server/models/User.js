@@ -40,6 +40,12 @@ const UserSchema = new mongoose.Schema(
         ref: "Question",
       },
     ],
+    submissions: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Submission",
+      },
+    ],
     accountabilityPartner: {
       type: mongoose.Types.ObjectId,
       ref: "User",
