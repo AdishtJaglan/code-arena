@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Question from "../models/Question.js";
 import Answer from "../models/Answer.js";
@@ -6,6 +5,7 @@ import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
+import uploadImageToCloudinary from "../utils/cloudinary.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { username, password, email } = req.body;
@@ -14,13 +14,36 @@ export const registerUser = asyncHandler(async (req, res) => {
     throw ApiError.BadRequest("Invalid request");
   }
 
-  const check = await User.findOne({ email });
-
+  const check = await User.findOne({ $or: [{ email }, { username }] });
   if (check) {
-    throw ApiError(409, "User already exists.");
+    throw new ApiError(409, "User already exists.");
   }
 
-  const user = await User.create(req.body);
+  let profilePictureUrl = null;
+  if (
+    req.files &&
+    req.files.profilePicture &&
+    req.files.profilePicture.length > 0
+  ) {
+    try {
+      const imageUploadResult = await uploadImageToCloudinary(
+        req.files.profilePicture[0].path
+      );
+
+      if (imageUploadResult && imageUploadResult.secure_url) {
+        profilePictureUrl = imageUploadResult.secure_url;
+      }
+    } catch (uploadError) {
+      console.error("Profile picture upload failed:", uploadError);
+    }
+  }
+
+  const userData = {
+    ...req.body,
+    ...(profilePictureUrl && { profilePicture: profilePictureUrl }),
+  };
+
+  const user = await User.create(userData);
 
   const accessToken = await user.generateAccessToken();
   const refreshToken = await user.generateRefreshToken();

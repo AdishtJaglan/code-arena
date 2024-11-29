@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import { ENV } from "../config/env-config";
+import { ENV } from "../config/env-config.js";
 import fs from "fs";
 
 cloudinary.config({
@@ -17,6 +17,7 @@ const uploadImageToCloudinary = async (filePath) => {
     });
 
     console.log("File uploading to cloudinary: " + response);
+    fs.unlinkSync(filePath);
 
     return response;
   } catch (error) {

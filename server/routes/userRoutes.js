@@ -11,10 +11,15 @@ import {
   sendAccountabilityPartnerRequest,
 } from "../controllers/userController.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
+import { upload } from "../middlewares/multer.js";
 
 const router = Router();
 
-router.post("/register", registerUser);
+router.post(
+  "/register",
+  upload.fields([{ name: "profilePicture", maxCount: 1 }]),
+  registerUser
+);
 router.post("/login", loginUser);
 router.get("/data/:id", getUserById);
 router.get("/solved/:id", isAuthenticated, getUserQuestionsSolved);
