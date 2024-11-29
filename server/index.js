@@ -11,7 +11,7 @@ import passport from "./config/passport.js";
 import morgan from "morgan";
 
 import { ENV } from "./config/env-config.js";
- 
+
 import userRoutes from "./routes/userRoutes.js";
 import accountabilityPartnerRequestRoutes from "./routes/accountabilityPartnerRequestRoutes.js";
 import questionRoutes from "./routes/questionRoutes.js";
@@ -19,6 +19,7 @@ import exampleRoutes from "./routes/exampleRoutes.js";
 import testCaseRoutes from "./routes/testCaseRoutes.js";
 import answerRoutes from "./routes/answerRoutes.js";
 import discussionRoutes from "./routes/discussionRoutes.js";
+import submissionRoutes from "./routes/submissionRoutes.js";
 
 mongoose
   .connect(ENV.DB_URL || "mongodb://localhost:27017/codeIt")
@@ -45,6 +46,7 @@ app.use("/api/example", exampleRoutes);
 app.use("/api/test-case", testCaseRoutes);
 app.use("/api/answer", answerRoutes);
 app.use("/api/discussion", discussionRoutes);
+app.use("/api/submission", submissionRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });

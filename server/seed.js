@@ -496,33 +496,65 @@ async function seedSubmissions(questions, users) {
     { id: 50, name: "C" },
   ];
 
-  for (const question of questions) {
-    const numSubmissions = faker.number.int({ min: 10, max: 50 });
+  const generateSubmissionDistribution = (questions) => {
+    const distributedSubmissions = [];
 
-    for (let i = 0; i < numSubmissions; i++) {
-      const language = getRandomElement(programmingLanguages);
-      const submission = new Submission({
-        sourceCode: `
+    questions.forEach((question) => {
+      const baseSubmissions = 30;
+
+      const generateDatePattern = (baseDate) => {
+        const patterns = [
+          (i) => new Date(baseDate.getTime() + i * 7 * 24 * 60 * 60 * 1000),
+          (i) =>
+            new Date(
+              baseDate.getTime() + Math.pow(i, 2) * 10 * 24 * 60 * 60 * 1000
+            ),
+          (i) =>
+            new Date(
+              baseDate.getTime() + Math.random() * 365 * 24 * 60 * 60 * 1000
+            ),
+        ];
+
+        return patterns[Math.floor(Math.random() * patterns.length)];
+      };
+
+      const baseDate = new Date();
+      baseDate.setFullYear(baseDate.getFullYear() - 1);
+      const datePatter = generateDatePattern(baseDate);
+
+      for (let i = 0; i < baseSubmissions; i++) {
+        const language = getRandomElement(programmingLanguages);
+
+        distributedSubmissions.push({
+          sourceCode: `
 # Sample ${language.name} submission for ${question.title}
 def solution(arr):
     ${faker.lorem.lines(5)}
     return result
 `,
-        language: language.name,
-        languageId: language.id,
-        status: getRandomElement(submissionStatuses),
-        isSolved: faker.datatype.boolean(0.3),
-        question: question._id,
-        submittedBy: getRandomElement(users)._id,
-      });
+          language: language.name,
+          languageId: language.id,
+          submissionDate: datePatter(i),
+          status: getRandomElement(submissionStatuses),
+          isSolved: faker.datatype.boolean(0.3),
+          question: question._id,
+          submittedBy: getRandomElement(users)._id,
+        });
+      }
+    });
 
-      submissions.push(submission);
-      submissionIds.push(submission._id);
-    }
-  }
+    return distributedSubmissions;
+  };
 
-  await Submission.insertMany(submissions);
-  return submissions;
+  const distributedSubmissions = generateSubmissionDistribution(questions);
+
+  const submissionsDocuments = distributedSubmissions.map(
+    (submission) => new Submission(submission)
+  );
+
+  await Submission.insertMany(submissionsDocuments);
+
+  return submissionsDocuments;
 }
 
 async function seedDatabase() {
