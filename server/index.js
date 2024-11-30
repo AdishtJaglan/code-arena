@@ -13,7 +13,7 @@ import morgan from "morgan";
 import { ENV } from "./config/env-config.js";
 
 import userRoutes from "./routes/userRoutes.js";
-import accountabilityPartnerRequestRoutes from "./routes/accountabilityPartnerRequestRoutes.js";
+import partnerRoutes from "./routes/partnerRoutes.js";
 import questionRoutes from "./routes/questionRoutes.js";
 import exampleRoutes from "./routes/exampleRoutes.js";
 import testCaseRoutes from "./routes/testCaseRoutes.js";
@@ -40,7 +40,7 @@ app.use(
 );
 
 app.use("/api/user", userRoutes);
-app.use("/api/partner", accountabilityPartnerRequestRoutes);
+app.use("/api/partner", partnerRoutes);
 app.use("/api/question", questionRoutes);
 app.use("/api/example", exampleRoutes);
 app.use("/api/test-case", testCaseRoutes);

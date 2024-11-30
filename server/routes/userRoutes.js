@@ -9,6 +9,7 @@ import {
   loginUser,
   registerUser,
   getLoggedInUserData,
+  getParnterData,
 } from "../controllers/userController.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import { upload } from "../middlewares/multer.js";
@@ -28,5 +29,6 @@ router.get("/contributions/:id", isAuthenticated, getContributions);
 router.get("/all", getAllUser);
 router.post("/email", getUserByEmail);
 router.get("/leaderboard", getLeaderBoardRankings);
+router.get("/partner", isAuthenticated, getParnterData);
 
 export default router;

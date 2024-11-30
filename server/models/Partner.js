@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const AccountabilityPartnerRequestSchema = new mongoose.Schema({
+const PartnerSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Types.ObjectId,
     ref: "User",
@@ -22,8 +22,5 @@ const AccountabilityPartnerRequestSchema = new mongoose.Schema({
   },
 });
 
-const AccountabilityPartnerRequest = mongoose.model(
-  "AccountabilityPartnerRequest",
-  AccountabilityPartnerRequestSchema
-);
-export default AccountabilityPartnerRequest;
+const Partner = mongoose.model("AccountabilityPartnerRequest", PartnerSchema);
+export default Partner;

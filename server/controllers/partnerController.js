@@ -1,4 +1,5 @@
-import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest.js";
+import mongoose from "mongoose";
+import Partner from "../models/Partner.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
@@ -8,6 +9,10 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
   async (req, res) => {
     const { _id: senderId } = req?.user;
     const { receiverId } = req.body;
+
+    if (new mongoose.Types.ObjectId(senderId).equals(receiverId)) {
+      throw ApiError.BadRequest("Cannot send request to yourself.");
+    }
 
     if (!receiverId) {
       throw ApiError.BadRequest("Receiver ID mandatory.");
@@ -31,7 +36,7 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
       throw ApiError.NotFound("Receiver does not exist.");
     }
 
-    const existingRequest = await AccountabilityPartnerRequest.findOne({
+    const existingRequest = await Partner.findOne({
       sender: senderId,
       receiver: receiverId,
       status: "Pending",
@@ -41,11 +46,10 @@ export const sendAccountabilityPartnerRequest = asyncHandler(
       throw ApiError.BadRequest("A pending request already exists.");
     }
 
-    const accountabilityPartnerRequestObject =
-      await AccountabilityPartnerRequest.create({
-        sender: senderId,
-        receiver: receiverId,
-      });
+    const accountabilityPartnerRequestObject = await Partner.create({
+      sender: senderId,
+      receiver: receiverId,
+    });
 
     sender.accountabilityPartnerRequest.push(
       accountabilityPartnerRequestObject._id
@@ -90,12 +94,11 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
     throw ApiError.NotFound("Accepter not found.");
   }
 
-  const accountabilityPartnerRequestObject =
-    await AccountabilityPartnerRequest.findOne({
-      receiver: accepterId,
-      sender: sender,
-      status: "Pending",
-    });
+  const accountabilityPartnerRequestObject = await Partner.findOne({
+    receiver: accepterId,
+    sender: sender,
+    status: "Pending",
+  });
 
   if (!accountabilityPartnerRequestObject) {
     throw ApiError.NotFound("No pending request was found.");
@@ -132,7 +135,7 @@ export const getPartnerRequests = asyncHandler(async (req, res) => {
     throw ApiError.NotFound("User not found.");
   }
 
-  const requests = await AccountabilityPartnerRequest.find({
+  const requests = await Partner.find({
     receiver: id,
     status: "Pending",
   })
@@ -150,5 +153,49 @@ export const getPartnerRequests = asyncHandler(async (req, res) => {
   return ApiResponse.Ok("Fetched requests.", {
     count: requests.length,
     requests: flattenedRequests,
+  }).send(res);
+});
+
+export const endPartnership = asyncHandler(async (req, res) => {
+  const { _id: userId } = req?.user;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw ApiError.NotFound("User not found.");
+  }
+
+  const partnerId = user.accountabilityPartner;
+  const partner = await User.findById(partnerId);
+
+  if (!partner) {
+    throw ApiError.NotFound("Partner does not exist.");
+  }
+
+  const partnerRequest = await Partner.findOne({
+    status: "Accepted",
+    $or: [
+      { sender: userId, receiver: partnerId },
+      { sender: partnerId, receiver: userId },
+    ],
+  });
+
+  if (!partnerRequest) {
+    throw ApiError.NotFound("Partner request not found.");
+  }
+
+  user.accountabilityPartner = null;
+  partner.accountabilityPartner = null;
+
+  await Promise.all([
+    user.save(),
+    partner.save(),
+    Partner.findByIdAndDelete(partnerRequest._id),
+  ]);
+
+  return ApiResponse.Ok("Fetched something...", {
+    partnerRequest,
+    user,
+    partner,
   }).send(res);
 });

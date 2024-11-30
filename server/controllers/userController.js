@@ -236,3 +236,30 @@ export const getLoggedInUserData = asyncHandler(async (req, res) => {
 
   return ApiResponse.Ok("Fetched user data.", { user }).send(res);
 });
+
+export const getParnterData = asyncHandler(async (req, res) => {
+  const { _id: id } = req?.user;
+
+  if (!id) {
+    throw ApiError.BadRequest("ID is mandatory.");
+  }
+
+  const userCheck = await User.exists({ _id: id });
+
+  if (!userCheck) {
+    throw ApiError.NotFound("User does not exist.");
+  }
+
+  const user = await User.findById(id)
+    .populate("accountabilityPartner")
+    .select("accountabilityPartner")
+    .lean();
+
+  if (!user) {
+    throw ApiError.NotFound("No accountability partner found.");
+  }
+
+  return ApiResponse.Ok("Fetched partner data.", {
+    partner: user.accountabilityPartner,
+  }).send(res);
+});

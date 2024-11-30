@@ -5,7 +5,7 @@ import Question from "./models/Question.js";
 import Example from "./models/Example.js";
 import Discussion from "./models/Discussion.js";
 import Answer from "./models/Answer.js";
-import AccountabilityPartnerRequest from "./models/AccountabilityPartnerRequest.js";
+import Partner from "./models/Partner.js";
 import TestCase from "./models/TestCase.js";
 import Submission from "./models/Submission.js";
 
@@ -119,14 +119,6 @@ async function seedUsers() {
         github: `https://github.com/${faker.internet.username()}`,
         leetcode: `https://leetcode.com/${faker.internet.username()}`,
         codeforces: `https://codeforces.com/profile/${faker.internet.username()}`,
-      },
-      statistics: {
-        totalSolved: faker.number.int({ min: 0, max: 500 }),
-        easyCount: faker.number.int({ min: 0, max: 200 }),
-        mediumCount: faker.number.int({ min: 0, max: 150 }),
-        hardCount: faker.number.int({ min: 0, max: 50 }),
-        streak: faker.number.int({ min: 0, max: 100 }),
-        lastSolveDate: faker.date.recent(),
       },
       achievements: generateAchievements(),
     });
@@ -417,8 +409,7 @@ async function updateUserReferences(
       );
 
       for (const receiver of selectedReceivers) {
-        const request = new AccountabilityPartnerRequest({
-          sender: user._id,
+        const request = new Partner({
           receiver: receiver._id,
           status: faker.helpers.arrayElement([
             "Pending",
@@ -457,14 +448,12 @@ async function seedAccountabilityPartnerRequests(users) {
       users.filter((u) => u._id.toString() !== sender._id.toString())
     );
 
-    const existingRequest = await AccountabilityPartnerRequest.findOne({
-      sender: sender._id,
+    const existingRequest = await Partner.findOne({
       receiver: receiver._id,
     });
 
     if (!existingRequest) {
-      const request = new AccountabilityPartnerRequest({
-        sender: sender._id,
+      const request = new Partner({
         receiver: receiver._id,
         status: faker.helpers.arrayElement(["Pending", "Accepted", "Rejected"]),
       });
@@ -479,8 +468,7 @@ async function seedAccountabilityPartnerRequests(users) {
     }
   }
 
-  await AccountabilityPartnerRequest.insertMany(requests);
-  return requests;
+  await Partner.insertMany(requests);
 }
 
 async function seedSubmissions(questions, users) {
@@ -568,7 +556,7 @@ async function seedDatabase() {
       Example.deleteMany({}),
       Answer.deleteMany({}),
       Discussion.deleteMany({}),
-      AccountabilityPartnerRequest.deleteMany({}),
+      Partner.deleteMany({}),
     ]);
     console.log("Cleared existing data");
 

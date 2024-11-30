@@ -1,7 +1,16 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unsafe-optional-chaining */
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   MessageCircleCode,
   Trophy,
@@ -13,6 +22,9 @@ import {
   Bell,
   CheckCircle,
   XCircle,
+  UserCheck,
+  UserX,
+  Star,
 } from "lucide-react";
 import { API_BASE_URL } from "@/configs/env-config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,10 +40,74 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 
+const EndPartnershipModal = ({ isOpen, onOpenChange }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleEndPartnerShip = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await axios.delete(`${API_BASE_URL}/partner/end`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        toast.success("Accountability partner removed successfully.");
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("Unable to end partnership: ", error);
+      toast.error("Failed to end partnership. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="border-red-900/50 bg-gray-900 sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-red-500">
+            End Accountability Partnership
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Are you absolutely sure you want to end your accountability
+            partnership? This action cannot be undone and will permanently
+            remove your current partner.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+            className="mr-2"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleEndPartnerShip}
+            disabled={isLoading}
+          >
+            {isLoading ? "Ending..." : "End Partnership"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Navbar = () => {
   const [userData, setUserData] = useState(null);
   const [partnerRequests, setPartnerRequests] = useState(null);
+  const [partnerData, setPartnerData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEndPartnershipModalOpen, setIsEndPartnershipModalOpen] =
+    useState(false);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -74,9 +150,25 @@ const Navbar = () => {
       }
     };
 
+    const getPartnerData = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await axios.get(`${API_BASE_URL}/user/partner`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setPartnerData(response?.data?.data?.partner);
+      } catch (error) {
+        console.error("Error fetching partner data: " + error);
+      }
+    };
+
     if (localStorage.getItem("accessToken")) {
       getUserData();
       getPartnerRequests();
+      getPartnerData();
     } else {
       setIsLoading(false);
     }
@@ -134,13 +226,15 @@ const Navbar = () => {
         theme="dark"
       />
       <nav className="sticky top-0 z-50 w-full border-b border-gray-800 bg-gray-950/90 backdrop-blur-md">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center space-x-2">
-            <MessageCircleCode className="h-8 w-8 text-indigo-500" />
-            <span className="text-2xl font-bold text-white">Code Arena</span>
-          </Link>
+        <div className="container mx-auto grid grid-cols-12 items-center px-4 py-3">
+          <div className="col-span-3 flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
+              <MessageCircleCode className="h-8 w-8 text-indigo-500" />
+              <span className="text-2xl font-bold text-white">Code Arena</span>
+            </Link>
+          </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="col-span-6 flex items-center justify-center space-x-6">
             {[
               { icon: Home, label: "Home", path: "/" },
               { icon: MessageCircleCode, label: "Problems", path: "/problems" },
@@ -159,7 +253,146 @@ const Navbar = () => {
             ))}
           </div>
 
-          <div className="flex items-center gap-3 space-x-4">
+          <div className="col-span-3 flex items-center justify-end space-x-4">
+            {partnerData ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="group flex cursor-pointer items-center space-x-3 rounded-lg p-2">
+                    <div className="relative">
+                      <UserCheck className="h-6 w-6 text-green-500 transition-transform group-hover:scale-110" />
+                      <span className="absolute -right-1 -top-1 h-2.5 w-2.5 animate-pulse rounded-full bg-green-500"></span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-green-400 transition-colors group-hover:text-green-500">
+                        Partner Active
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {partnerData.username}
+                      </span>
+                    </div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-80 space-y-2 bg-gray-900 p-2"
+                >
+                  <div className="flex items-center space-x-4 rounded-lg bg-gray-800 p-3">
+                    <Avatar className="h-12 w-12 border-2 border-green-500">
+                      <AvatarImage
+                        src={partnerData.profilePicture}
+                        alt={partnerData.username}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-green-900 text-green-300">
+                        {partnerData.username.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-md font-bold text-white">
+                          {partnerData.username}
+                        </h3>
+                        <span className="text-sm font-medium text-green-400">
+                          Rating: {partnerData.rating}
+                        </span>
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-xs text-gray-400">
+                        {partnerData.bio || "No bio available"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 rounded-lg bg-gray-800 p-3">
+                    {[
+                      {
+                        icon: Trophy,
+                        label: "Solved",
+                        value: partnerData.questionsSolved?.length || 0,
+                      },
+                      {
+                        icon: MessageCircleCode,
+                        label: "Contrib",
+                        value:
+                          (partnerData.questionContributions?.length || 0) +
+                          (partnerData.answerContributions?.length || 0),
+                      },
+                      {
+                        icon: Star,
+                        label: "Achieve",
+                        value: partnerData.achievements?.length || 0,
+                      },
+                    ].map((stat) => (
+                      <div
+                        key={stat.label}
+                        className="flex flex-col items-center rounded-md bg-gray-900 p-2"
+                      >
+                        <stat.icon className="mb-1 h-5 w-5 text-indigo-400" />
+                        <span className="text-sm font-semibold text-white">
+                          {stat.value}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {stat.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <DropdownMenuSeparator className="bg-gray-700" />
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <DropdownMenuItem
+                      asChild
+                      className="group relative col-span-1 flex cursor-pointer justify-center rounded-lg"
+                    >
+                      <Link to={`/partner/${partnerData._id}`}>
+                        <div className="flex flex-col items-center p-1">
+                          <User className="mb-1 h-6 w-6 text-blue-400 transition-transform group-hover:scale-110" />
+                        </div>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 transform">
+                          <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                            View Profile
+                          </span>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="group relative col-span-1 flex cursor-pointer justify-center rounded-lg">
+                      <div className="flex flex-col items-center p-1">
+                        <MessageCircle className="mb-1 h-6 w-6 text-green-400 transition-transform group-hover:scale-110" />
+                      </div>
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 transform">
+                        <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                          Start Challenge
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      className="group relative col-span-1 flex cursor-pointer justify-center rounded-lg"
+                      onClick={() => setIsEndPartnershipModalOpen(true)}
+                    >
+                      <div className="flex flex-col items-center p-1 text-red-400">
+                        <UserX className="mb-1 h-6 w-6 transition-transform group-hover:scale-110" />
+                      </div>
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 transform">
+                        <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-red-900 px-2 py-1 text-xs text-white opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                          End Partnership
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                to="/find-partner"
+                className="group flex items-center space-x-2 rounded-lg p-2 text-yellow-400 transition-all hover:bg-gray-800 hover:text-yellow-500"
+              >
+                <UserPlus className="h-5 w-5 transition-transform group-hover:scale-110" />
+                <span className="text-sm font-medium">Find Partner</span>
+              </Link>
+            )}
+
             {partnerRequests && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -297,6 +530,11 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+
+      <EndPartnershipModal
+        isOpen={isEndPartnershipModalOpen}
+        onOpenChange={setIsEndPartnershipModalOpen}
+      />
     </>
   );
 };

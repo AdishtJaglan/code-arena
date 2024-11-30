@@ -102,14 +102,6 @@ const UserSchema = new mongoose.Schema(
         ],
       },
     },
-    statistics: {
-      totalSolved: { type: Number, default: 0 },
-      easyCount: { type: Number, default: 0 },
-      mediumCount: { type: Number, default: 0 },
-      hardCount: { type: Number, default: 0 },
-      streak: { type: Number, default: 0 },
-      lastSolveDate: { type: Date },
-    },
     //TODO -> think of logic
     achievements: [
       {
