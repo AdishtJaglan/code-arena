@@ -1,7 +1,6 @@
 import User from "../models/User.js";
 import Question from "../models/Question.js";
 import Answer from "../models/Answer.js";
-import AccountabilityPartnerRequest from "../models/AccountabilityPartnerRequest.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
@@ -59,7 +58,6 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
 
   const user = await User.findOne({ username });
-  console.log(user);
 
   if (!user || !(await user.isPasswordMatching(password))) {
     throw ApiError.Unauthorized("Invalid credentials");
@@ -195,62 +193,6 @@ export const getUserByEmail = asyncHandler(async (req, res) => {
   return ApiResponse.Ok("User fetched.", { user }).send(res);
 });
 
-export const sendAccountabilityPartnerRequest = asyncHandler(
-  async (req, res) => {
-    const { senderId } = req.params;
-    const { receiverId } = req.body;
-
-    if (!receiverId) {
-      throw ApiError.BadRequest("Receiver ID mandatory.");
-    }
-
-    const sender = await User.findById(senderId).select(
-      "accountabilityPartnerRequest"
-    );
-    if (!sender) {
-      throw ApiError.NotFound("Sender does not exist.");
-    }
-
-    const receiver = await User.findById(receiverId).select(
-      "accountabilityPartnerRequest"
-    );
-    if (!receiver) {
-      throw ApiError.NotFound("Receiver does not exist.");
-    }
-
-    const existingRequest = await AccountabilityPartnerRequest.findOne({
-      sender: senderId,
-      receiver: receiverId,
-      status: "Pending",
-    });
-
-    if (existingRequest) {
-      throw ApiError.BadRequest("A pending request already exists.");
-    }
-
-    const accountabilityPartnerRequestObject =
-      await AccountabilityPartnerRequest.create({
-        sender: senderId,
-        receiver: receiverId,
-      });
-
-    sender.accountabilityPartnerRequest.push(
-      accountabilityPartnerRequestObject._id
-    );
-    receiver.accountabilityPartnerRequest.push(
-      accountabilityPartnerRequestObject._id
-    );
-
-    await Promise.all([sender.save(), receiver.save()]);
-
-    return ApiResponse.Ok("Request sent successfully.", {
-      sender,
-      receiver,
-      sentRequest: accountabilityPartnerRequestObject,
-    }).send(res);
-  }
-);
-
 export const getLeaderBoardRankings = asyncHandler(async (req, res) => {
   const page = parseInt(req?.query?.page) || 1;
   const limit = parseInt(req?.query?.limit) || 20;
@@ -275,4 +217,22 @@ export const getLeaderBoardRankings = asyncHandler(async (req, res) => {
     count: userCount,
     users,
   }).send(res);
+});
+
+export const getLoggedInUserData = asyncHandler(async (req, res) => {
+  const { _id: id } = req.user;
+
+  if (!id) {
+    throw ApiError.Unauthorized("Unauthorized");
+  }
+
+  const user = await User.findById(id)
+    .select("username email profilePicture rating")
+    .lean();
+
+  if (!user) {
+    throw ApiError.NotFound("User not found.");
+  }
+
+  return ApiResponse.Ok("Fetched user data.", { user }).send(res);
 });

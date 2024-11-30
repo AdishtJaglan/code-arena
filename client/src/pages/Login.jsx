@@ -34,7 +34,7 @@ const Login = () => {
 
       if (response.status === 200) {
         toast.success("Logged in successfully.");
-        localStorage.setItem("accessToken", response?.data?.token);
+        localStorage.setItem("accessToken", response?.data?.data?.accessToken);
         navigate("/home");
       }
     } catch (error) {

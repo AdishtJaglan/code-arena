@@ -242,20 +242,30 @@ const Register = () => {
 
   const handleSubmit = async () => {
     try {
-      const body = {
-        username: formData?.username,
-        email: formData?.email,
-        password: formData?.password,
-        profilePicture: formData?.profilePicture,
-        bio: formData?.bio,
-        socialLinks: {
-          github: formData?.github,
-          leetcode: formData?.leetcode,
-          codeforces: formData?.codeforces,
-        },
-      };
+      const formDataToSend = new FormData();
 
-      const response = await axios.post(`${API_BASE_URL}/user/register`, body);
+      formDataToSend.append("username", formData?.username);
+      formDataToSend.append("email", formData?.email);
+      formDataToSend.append("password", formData?.password);
+      formDataToSend.append("bio", formData?.bio);
+
+      formDataToSend.append("socialLinks[github]", formData?.github);
+      formDataToSend.append("socialLinks[leetcode]", formData?.leetcode);
+      formDataToSend.append("socialLinks[codeforces]", formData?.codeforces);
+
+      if (formData?.profilePicture) {
+        formDataToSend.append("profilePicture", formData.profilePicture);
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/user/register`,
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
       if (response.status === 201) {
         toast.success("User created successfully");
