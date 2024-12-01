@@ -10,6 +10,7 @@ import {
   registerUser,
   getLoggedInUserData,
   getParnterData,
+  getUserQuestionsSolvedAll,
 } from "../controllers/userController.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import { upload } from "../middlewares/multer.js";
@@ -30,5 +31,6 @@ router.get("/all", getAllUser);
 router.post("/email", getUserByEmail);
 router.get("/leaderboard", getLeaderBoardRankings);
 router.get("/partner", isAuthenticated, getParnterData);
+router.get("/questions-solved/:id", getUserQuestionsSolvedAll);
 
 export default router;

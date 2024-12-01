@@ -176,7 +176,6 @@ const Register = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [partnerInfo, setPartnerInfo] = useState(null);
-  const [newUserId, setNewUserId] = useState(null);
   const [isRequestSent, setIsRequestSent] = useState(false);
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState({
@@ -269,7 +268,6 @@ const Register = () => {
 
       if (response.status === 201) {
         toast.success("User created successfully");
-        setNewUserId(response?.data?.data?.user?._id);
         localStorage.setItem("accessToken", response.data?.data?.accessToken);
         localStorage.setItem("refreshToken", response.data?.data?.refreshToken);
         handleNext();
@@ -339,10 +337,16 @@ const Register = () => {
 
   const handlePartnerRequest = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
       const response = await axios.post(
-        `${API_BASE_URL}/user/request/${newUserId}`,
+        `${API_BASE_URL}/partner/request/`,
         {
           receiverId: partnerInfo?._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
 

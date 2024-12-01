@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Send, X, Info } from "lucide-react";
 import {
@@ -10,15 +10,16 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { API_BASE_URL } from "@/configs/env-config";
+import axios from "axios";
 
 const StepRequest = ({ partnerData, onSendRequest }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const problemSolvingData = [
+  const [problemSolvingData, setProblemSolvingData] = useState([
     { name: "Easy", solved: partnerData?.statistics?.easyCount || 0 },
     { name: "Medium", solved: partnerData?.statistics?.mediumCount || 0 },
     { name: "Hard", solved: partnerData?.statistics?.hardCount || 0 },
-  ];
+  ]);
 
   const SkippedStepContent = () => (
     <motion.div
@@ -38,6 +39,30 @@ const StepRequest = ({ partnerData, onSendRequest }) => {
       </p>
     </motion.div>
   );
+
+  useEffect(() => {
+    if (!partnerData?._id) return;
+
+    const renderPartnerQuestionData = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/user/questions-solved/${partnerData._id}`,
+        );
+
+        const { easy = 0, medium = 0, hard = 0 } = response?.data?.data || {};
+
+        setProblemSolvingData([
+          { name: "Easy", solved: easy },
+          { name: "Medium", solved: medium },
+          { name: "Hard", solved: hard },
+        ]);
+      } catch (error) {
+        console.error("Unable to fetch partner question data: " + error);
+      }
+    };
+
+    renderPartnerQuestionData();
+  }, [partnerData?._id]);
 
   const renderPartnerContent = () => (
     <>
