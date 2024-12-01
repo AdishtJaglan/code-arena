@@ -410,6 +410,7 @@ async function updateUserReferences(
 
       for (const receiver of selectedReceivers) {
         const request = new Partner({
+          sender: user._id,
           receiver: receiver._id,
           status: faker.helpers.arrayElement([
             "Pending",
@@ -454,6 +455,7 @@ async function seedAccountabilityPartnerRequests(users) {
 
     if (!existingRequest) {
       const request = new Partner({
+        sender: sender._id,
         receiver: receiver._id,
         status: faker.helpers.arrayElement(["Pending", "Accepted", "Rejected"]),
       });
@@ -469,6 +471,7 @@ async function seedAccountabilityPartnerRequests(users) {
   }
 
   await Partner.insertMany(requests);
+  return requests;
 }
 
 async function seedSubmissions(questions, users) {
