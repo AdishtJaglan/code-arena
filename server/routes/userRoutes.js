@@ -12,6 +12,8 @@ import {
   getParnterData,
   getUserQuestionsSolvedAll,
   getUserByUserId,
+  getPublicPartnerData,
+  getUserRank,
 } from "../controllers/userController.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import { upload } from "../middlewares/multer.js";
@@ -34,5 +36,7 @@ router.get("/leaderboard", getLeaderBoardRankings);
 router.get("/partner", isAuthenticated, getParnterData);
 router.get("/questions-solved/:id", getUserQuestionsSolvedAll);
 router.get("/user-data/:id", getUserByUserId);
+router.get("/partner/:id", getPublicPartnerData);
+router.get("/rank/:id", getUserRank);
 
 export default router;

@@ -1,35 +1,17 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  Github,
-  Linkedin,
-  Twitter,
-  Award,
-  TrendingUp,
-  CodeIcon,
-  Target,
-} from "lucide-react";
+import { MessageCircleCode, CheckCircle, Languages } from "lucide-react";
+import { TabsList, Tabs, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "@/configs/env-config";
 import axios from "axios";
+import D3Heatmap from "@/components/Heatmap";
+import Navbar from "@/components/Navbar";
 
 const Profile = () => {
+  const [activeTab, setActiveTab] = useState("solved");
   const { id } = useParams();
   const [userData, setUserData] = useState(null);
   const [userStats, setUserStats] = useState(null);
@@ -39,6 +21,9 @@ const Profile = () => {
   const [solvedQues, setSolvedQues] = useState(null);
   const [dayData, setDayData] = useState(null);
   const [heatmap, setHeatmap] = useState(null);
+  const [partnerData, setPartnerData] = useState(null);
+  const [userRank, setUserRank] = useState(null);
+  const [partnerRank, setPartnerRank] = useState(null);
 
   const fetchProfileData = async (id) => {
     try {
@@ -47,11 +32,13 @@ const Profile = () => {
         languageResponse,
         submissionResponse,
         heatMapResponse,
+        partnerResponse,
       ] = await Promise.all([
         axios.get(`${API_BASE_URL}/user/user-data/${id}`),
         axios.get(`${API_BASE_URL}/submission/preferred-language/${id}`),
         axios.get(`${API_BASE_URL}/submission/recent-questions/${id}`),
         axios.get(`${API_BASE_URL}/submission/heatmap/${id}`),
+        axios.get(`${API_BASE_URL}/user/partner/${id}`),
       ]);
 
       const {
@@ -70,6 +57,8 @@ const Profile = () => {
       const { acceptedSubmissions, allSubmissions } =
         submissionResponse?.data?.data || {};
 
+      const { partner } = partnerResponse?.data?.data || {};
+
       if (user) {
         setUserData(user);
         setUserStats({
@@ -80,11 +69,15 @@ const Profile = () => {
           totalSubmissions,
         });
       }
+
+      const questions = acceptedSubmissions.submissions.map((q) => q.question);
+
+      setSolvedQues(questions);
       setLanguageData(userLanguageData);
-      setSolvedQues(acceptedSubmissions);
       setSubmissions(allSubmissions);
       setDayData({ streaks, daysActive });
       setHeatmap(heatmapData);
+      setPartnerData(partner);
     } catch (error) {
       console.error("Error fetching profile data:", error);
     }
@@ -101,6 +94,16 @@ const Profile = () => {
     }
   };
 
+  const fetchRank = async (userId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/user/rank/${userId}`);
+
+      return response?.data?.data || {};
+    } catch (error) {
+      console.error("Error fetching user rank: " + error);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchProfileData(id);
@@ -113,153 +116,326 @@ const Profile = () => {
     }
   }, [userData?._id]);
 
+  useEffect(() => {
+    const fetchUserRank = async (id) => {
+      const data = await fetchRank(id);
+
+      setUserRank(data);
+    };
+
+    if (userData?.user_id) {
+      fetchUserRank(userData?.user_id);
+    }
+  }, [userData?.user_id]);
+
+  useEffect(() => {
+    const fetchPartnerRank = async (id) => {
+      const data = await fetchRank(id);
+
+      setPartnerRank(data);
+    };
+
+    if (partnerData?.user_id) {
+      fetchPartnerRank(partnerData?.user_id);
+    }
+  }, [partnerData?.user_id]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-8 text-white">
-      <div className="mx-auto max-w-6xl">
-        {userData !== null && userStats !== null && questionStats !== null && (
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950 text-gray-200">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid h-auto min-h-[85vh] grid-cols-8 gap-6">
+          {/* Profile Details */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="col-span-2 row-span-6 space-y-6 rounded-xl border border-gray-800 bg-gray-900/60 p-6"
+          >
+            {userData === null ? (
+              "loading..."
+            ) : (
+              <div className="text-center">
+                <Avatar className="mx-auto mb-4 h-24 w-24 border-2 border-indigo-500">
+                  <AvatarImage src={userData?.profilePicture} />
+                  <AvatarFallback>
+                    {userData?.username.substring(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <h2 className="text-xl font-bold text-white">
+                  {userData?.username}
+                </h2>
+                <p className="text-gray-400">@{userData?.username}</p>
+
+                <div className="mt-4 flex justify-center space-x-4">
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-indigo-500">
+                      {userData?.rating}
+                    </span>
+                    <p className="text-xs text-gray-400">Rating</p>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-green-500">
+                      {userRank?.rank}
+                    </span>
+                    <p className="text-xs text-gray-400">Rank</p>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-sm text-gray-300">
+                  {userData?.bio.substring(0, 50)}...
+                </p>
+
+                <Button className="mt-4 w-full bg-indigo-700 hover:bg-indigo-600">
+                  Edit Profile
+                </Button>
+              </div>
+            )}
+
+            {languageData === null ? (
+              "loading..."
+            ) : (
+              <div>
+                <h3 className="text-md mb-4 flex items-center font-semibold">
+                  <Languages className="mr-2 h-5 w-5 text-indigo-500" />
+                  Preferred Languages
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(languageData)
+                    .filter(([key]) => key !== "totalCount")
+                    .map(([language, count]) => (
+                      <div
+                        key={language}
+                        className="flex items-center justify-between"
+                      >
+                        <span>{language}</span>
+                        <span className="text-gray-400">{count} submitted</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {userStats === null ? (
+              "loading..."
+            ) : (
+              <div>
+                <h3 className="text-md mb-4 flex items-center font-semibold">
+                  <MessageCircleCode className="mr-2 h-5 w-5 text-green-500" />
+                  Contributions
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Total Questions</span>
+                    <span>{userStats?.contributedQuestions}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Answers Contributed</span>
+                    <span>{userStats?.contributedAnswers}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Questions Solved Visualization */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="grid gap-8 md:grid-cols-3"
+            className="col-span-3 row-span-2 flex items-center justify-center rounded-xl border border-gray-800 bg-gray-900/60 p-6"
           >
-            {/* Profile Overview */}
-            <Card className="border-gray-700 bg-gray-800/50 backdrop-blur-sm md:col-span-1">
-              <CardContent className="pt-6">
-                <div className="flex flex-col items-center">
-                  <motion.img
-                    src={userData.profilePicture}
-                    alt={`${userData.username}'s profile`}
-                    className="h-32 w-32 rounded-full border-4 border-gray-700 object-cover"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  />
-                  <h2 className="mt-4 text-2xl font-bold text-white">
-                    {userData.username}
-                  </h2>
-                  <Badge variant="secondary" className="mt-2">
-                    {userData.role}
-                  </Badge>
-                  <p className="mt-4 text-center text-gray-400">
-                    {userData.bio}
-                  </p>
-
-                  {/* Social Links */}
-                  <div className="mt-6 flex space-x-4">
-                    <TooltipProvider>
-                      {Object.entries(userData.socialLinks).map(
-                        ([platform, link]) => (
-                          <Tooltip key={platform}>
-                            <TooltipTrigger asChild>
-                              <a
-                                href={link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-400 transition-colors hover:text-white"
-                              >
-                                {platform === "github" && <Github />}
-                                {platform === "linkedin" && <Linkedin />}
-                                {platform === "twitter" && <Twitter />}
-                              </a>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {platform.charAt(0).toUpperCase() +
-                                platform.slice(1)}
-                            </TooltipContent>
-                          </Tooltip>
-                        ),
-                      )}
-                    </TooltipProvider>
+            {questionStats === null ? (
+              "loading..."
+            ) : (
+              <div className="grid grid-cols-3 gap-4">
+                {Object.entries(questionStats)
+                  .filter(([key]) => key !== "total")
+                  .map(([difficulty, count]) => (
+                    <div
+                      key={difficulty}
+                      className="transform rounded-lg bg-gray-800 p-4 text-center transition-all hover:scale-105"
+                    >
+                      <div
+                        className={`text-3xl font-bold ${
+                          difficulty === "easy"
+                            ? "text-green-500"
+                            : difficulty === "medium"
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                        } `}
+                      >
+                        {count}
+                      </div>
+                      <div className="text-sm capitalize text-gray-400">
+                        {difficulty} Questions
+                      </div>
+                    </div>
+                  ))}
+                <div className="col-span-3 rounded-lg bg-gray-800 p-4 text-center">
+                  <div className="text-3xl font-bold text-indigo-500">
+                    {questionStats.total}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    Total Questions Solved
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Stats and Achievements */}
-            <Card className="border-gray-700 bg-gray-800/50 backdrop-blur-sm md:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <TrendingUp className="mr-2" /> Performance Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2">
-                  {/* User Stats */}
-                  <div>
-                    <h3 className="mb-4 flex items-center text-lg font-semibold">
-                      <CodeIcon className="mr-2" /> Contribution Breakdown
-                    </h3>
-                    <div className="space-y-3">
-                      {[
-                        {
-                          icon: Award,
-                          label: "Contributed Answers",
-                          value: userStats.contributedAnswers,
-                        },
-                        {
-                          icon: Target,
-                          label: "Solved Questions",
-                          value: userStats.solvedQuestions,
-                        },
-                        {
-                          icon: CodeIcon,
-                          label: "Total Submissions",
-                          value: userStats.totalSubmissions,
-                        },
-                      ].map((stat, index) => (
-                        <motion.div
-                          key={stat.label}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.2 * index }}
-                          className="flex items-center rounded-lg bg-gray-700 p-3"
-                        >
-                          <stat.icon className="mr-3 text-blue-400" />
-                          <div>
-                            <div className="text-sm text-gray-400">
-                              {stat.label}
-                            </div>
-                            <div className="font-bold text-white">
-                              {stat.value}
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Problem Solving Chart */}
-                  <div>
-                    <h3 className="mb-4 flex items-center text-lg font-semibold">
-                      <Target className="mr-2" /> Problem Difficulty
-                    </h3>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={questionStats}>
-                          <XAxis dataKey="name" stroke="#888" />
-                          <YAxis stroke="#888" />
-                          <RechartsTooltip
-                            contentStyle={{
-                              background: "#333",
-                              border: "none",
-                              borderRadius: "8px",
-                            }}
-                          />
-                          <Bar
-                            dataKey="value"
-                            barSize={30}
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            )}
           </motion.div>
-        )}
+
+          {/* Accountability Partner */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="col-span-3 row-span-2 rounded-xl border border-gray-800 bg-gray-900/60 p-6"
+          >
+            {partnerData === null ? (
+              "loading..."
+            ) : (
+              <>
+                <div className="flex items-center space-x-4">
+                  <Avatar className="h-16 w-16 border-2 border-indigo-500">
+                    <AvatarImage src={partnerData?.profilePicture} />
+                    <AvatarFallback>
+                      {partnerData?.username.substring(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      {partnerData?.username}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      @{partnerData?.username}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-between">
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-indigo-500">
+                      {partnerData?.rating}
+                    </span>
+                    <p className="text-xs text-gray-400">Rating</p>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-green-500">
+                      {partnerRank?.rank}
+                    </span>
+                    <p className="text-xs text-gray-400">Rank</p>
+                  </div>
+                </div>
+                <p className="mt-4 text-center text-sm text-gray-300">
+                  {partnerData.bio.substr(0, 90)}...
+                </p>
+              </>
+            )}
+          </motion.div>
+
+          {/* Activity Heatmap */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="col-span-6 row-span-2 rounded-xl border border-gray-800 bg-gray-900/60 p-6"
+          >
+            {heatmap === null && dayData === null ? (
+              "loading..."
+            ) : (
+              <D3Heatmap data={heatmap} dayData={dayData} />
+            )}
+          </motion.div>
+
+          {/* Recent Activity */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="col-span-6 row-span-2 rounded-xl border border-gray-800 bg-gray-900/60 p-6"
+          >
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger
+                  value="solved"
+                  className="data-[state=active]:bg-indigo-700"
+                >
+                  Recently Solved
+                </TabsTrigger>
+                <TabsTrigger
+                  value="submissions"
+                  className="data-[state=active]:bg-indigo-700"
+                >
+                  Recent Submissions
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="solved">
+                {solvedQues === null ? (
+                  "loading..."
+                ) : (
+                  <div className="mt-4 space-y-2">
+                    {solvedQues.map((q, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded p-2 hover:bg-gray-700"
+                      >
+                        <div>
+                          <span className="font-semibold">
+                            {q.title.substr(0, 90)}...
+                          </span>
+                          <span
+                            className={`ml-2 rounded px-2 py-1 text-xs ${
+                              q.difficulty === "Hard"
+                                ? "bg-red-900 text-red-300"
+                                : q.difficulty === "Medium"
+                                  ? "bg-yellow-900 text-yellow-300"
+                                  : "bg-green-900 text-green-300"
+                            }`}
+                          >
+                            {q.difficulty}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-400">
+                            {q.likes}
+                          </span>
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="submissions">
+                <div className="mt-4 space-y-2">
+                  {submissions?.submissions?.map((submission, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded p-2 hover:bg-gray-700"
+                    >
+                      <div>
+                        <span className="font-semibold">
+                          {submission?.question?.title}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-400">
+                          {submission.language}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-400">
+                          {submission.question.likes}
+                        </span>
+                        <span
+                          className={`rounded px-2 py-1 text-xs ${
+                            submission.isSolved === true
+                              ? "bg-green-900 text-green-300"
+                              : "bg-red-900 text-red-300"
+                          }`}
+                        >
+                          {submission.question.difficulty}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

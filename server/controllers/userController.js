@@ -348,3 +348,41 @@ export const getUserByUserId = asyncHandler(async (req, res) => {
     user,
   }).send(res);
 });
+
+export const getPublicPartnerData = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findOne({ user_id: id })
+    .populate({
+      path: "accountabilityPartner",
+      select:
+        "username profilePicture rating bio socialLinks user_id -_id questionsSolved",
+    })
+    .select("accountabilityPartner")
+    .lean();
+
+  if (!user) {
+    throw ApiError.NotFound("User not found.");
+  }
+
+  return ApiResponse.Ok("Partner data fetched.", {
+    partner: user?.accountabilityPartner,
+  }).send(res);
+});
+
+export const getUserRank = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findOne({ user_id: id }).lean();
+
+  if (!user) {
+    throw ApiError.NotFound("User not found.");
+  }
+
+  const users = await User.find().sort({ rating: -1 });
+  const rank = users.findIndex((u) => u.user_id.toString() == id) + 1;
+
+  return ApiResponse.Ok("Fetched users rank.", {
+    username: user.username,
+    rating: user.rating,
+    rank,
+  }).send(res);
+});
