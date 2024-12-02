@@ -325,3 +325,26 @@ export const getUserQuestionsSolvedAll = asyncHandler(async (req, res) => {
 
   return ApiResponse.Ok("Fetched user questions data.", result).send(res);
 });
+
+export const getUserByUserId = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw ApiError.BadRequest("User ID mandatory.");
+  }
+
+  const user = await User.findOne({ user_id: id }).lean();
+
+  if (!user) {
+    throw ApiError.NotFound("User does not exist.");
+  }
+
+  return ApiResponse.Ok("User fetched successfully.", {
+    totalComments: user.comments.length,
+    totalSubmissions: user.submissions.length,
+    contributedAnswers: user.answerContributions.length,
+    contributedQuestions: user.questionContributions.length,
+    solvedQuestion: user.questionsSolved.length,
+    user,
+  }).send(res);
+});

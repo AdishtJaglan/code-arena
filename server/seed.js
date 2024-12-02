@@ -105,8 +105,18 @@ function generateAchievements() {
 
 async function seedUsers() {
   const users = [];
+  const usedIds = new Set();
 
   for (let i = 0; i < NUM_USERS; i++) {
+    let user_id;
+
+    do {
+      const randomId = Math.random().toString(36).substr(2, 9).toUpperCase();
+      user_id = `U-${randomId}`;
+    } while (usedIds.has(user_id));
+
+    usedIds.add(user_id);
+
     const user = new User({
       username: faker.internet.username(),
       password: faker.internet.password(),
@@ -121,6 +131,7 @@ async function seedUsers() {
         codeforces: `https://codeforces.com/profile/${faker.internet.username()}`,
       },
       achievements: generateAchievements(),
+      user_id: user_id,
     });
     users.push(user);
   }

@@ -126,6 +126,10 @@ const UserSchema = new mongoose.Schema(
         ref: "Discussion",
       },
     ],
+    user_id: {
+      type: String,
+      immutable: true,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -177,6 +181,28 @@ UserSchema.methods.generateRefreshToken = async function () {
     }
   );
 };
+
+UserSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    let isUnique = false;
+
+    while (!isUnique) {
+      const randomId = Math.random().toString(36).substr(2, 9).toUpperCase();
+      const userId = `Q-${randomId}`;
+
+      const existingUser = await mongoose.models.User.findOne({
+        user_id: userId,
+      });
+
+      if (!existingUser) {
+        this.user_id = userId;
+        isUnique = true;
+      }
+    }
+  }
+
+  next();
+});
 
 const User = mongoose.model("User", UserSchema);
 export default User;
