@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   createSubmission,
   getAllSubmissions,
+  getPreferredLanguage,
+  getRecentlySolvedQues,
   getSubmission,
   getUserHeatMapData,
   getUsersSubmissions,
@@ -15,5 +17,7 @@ router.get("/all", getAllSubmissions);
 router.get("/data/:id", getSubmission);
 router.get("/user/:userId", getUsersSubmissions);
 router.get("/heatmap/:userId", getUserHeatMapData);
+router.get("/preferred-language/:id", getPreferredLanguage);
+router.get("/recent-questions/:id", getRecentlySolvedQues);
 
 export default router;

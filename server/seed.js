@@ -496,6 +496,8 @@ async function seedSubmissions(questions, users) {
     { id: 62, name: "Java" },
     { id: 54, name: "C++" },
     { id: 50, name: "C" },
+    { id: 74, name: "Rust" },
+    { id: 60, name: "Go" },
   ];
 
   const generateSubmissionDistribution = (questions) => {

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+const LANGUAGES = ["C++", "C", "JavaScript", "Java", "Python", "Go", "Rust"];
+
 const SubmissionSchema = new mongoose.Schema(
   {
     sourceCode: {
@@ -8,6 +10,7 @@ const SubmissionSchema = new mongoose.Schema(
     },
     language: {
       type: String,
+      enum: LANGUAGES,
       required: true,
     },
     languageId: {

@@ -168,7 +168,9 @@ export const getUserHeatMapData = asyncHandler(async (req, res) => {
     throw ApiError.BadRequest("User ID is required.");
   }
 
-  const userCheck = await User.exists({ _id: userId });
+  const userCheck = await User.findOne({ user_id: userId })
+    .select("_id")
+    .lean();
 
   if (!userCheck) {
     throw ApiError.NotFound("User does not exist.");
@@ -181,7 +183,7 @@ export const getUserHeatMapData = asyncHandler(async (req, res) => {
   const heatmapData = await Submission.aggregate([
     {
       $match: {
-        submittedBy: new mongoose.Types.ObjectId(userId),
+        submittedBy: new mongoose.Types.ObjectId(userCheck?._id),
         submissionDate: { $gte: oneYearAgo, $lte: now },
       },
     },
@@ -242,6 +244,174 @@ export const getUserHeatMapData = asyncHandler(async (req, res) => {
     streaks: {
       currentStreak,
       longestStreak,
+    },
+  }).send(res);
+});
+
+export const getPreferredLanguage = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.exists({ user_id: id }).lean();
+  if (!user) {
+    throw ApiError.NotFound("User not found.");
+  }
+
+  const languageCounts = await Submission.aggregate([
+    { $match: { submittedBy: user._id } },
+    {
+      $group: {
+        _id: "$language",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  if (!languageCounts.length) {
+    return ApiResponse.NoContent("No submissions by this user.");
+  }
+
+  const counts = languageCounts.reduce((acc, { _id, count }) => {
+    acc[_id] = count;
+    return acc;
+  }, {});
+
+  const supportedLanguages = [
+    "C++",
+    "C",
+    "JavaScript",
+    "Rust",
+    "Go",
+    "Java",
+    "Python",
+  ];
+
+  const languageStats = supportedLanguages.reduce((acc, lang) => {
+    acc[lang] = counts[lang] || 0;
+    return acc;
+  }, {});
+
+  return ApiResponse.Ok("Fetched user language usages.", {
+    totalCount: languageCounts.reduce((sum, { count }) => sum + count, 0),
+    ...languageStats,
+  }).send(res);
+});
+
+export const getRecentlySolvedQues = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findOne({ user_id: id }).select("_id").lean();
+  if (!user) {
+    throw ApiError.NotFound("User does not exist.");
+  }
+
+  const [acceptedSubmissions, allSubmissions] = await Promise.all([
+    Submission.aggregate([
+      {
+        $match: {
+          submittedBy: user._id,
+          isSolved: true,
+        },
+      },
+      { $sort: { submissionDate: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "questions",
+          localField: "question",
+          foreignField: "_id",
+          as: "questionDetails",
+        },
+      },
+      { $unwind: "$questionDetails" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "questionDetails.submittedBy",
+          foreignField: "_id",
+          as: "questionAuthor",
+        },
+      },
+      { $unwind: "$questionAuthor" },
+      {
+        $project: {
+          _id: 0,
+          question: {
+            title: "$questionDetails.title",
+            tags: "$questionDetails.tags",
+            likes: "$questionDetails.likes",
+            dislikes: "$questionDetails.dislikes",
+            difficulty: "$questionDetails.difficulty",
+            question_id: "$questionDetails.question_id",
+            acceptanceRate: "$questionDetails.acceptanceRate",
+            submittedBy: {
+              username: "$questionAuthor.username",
+              profilePicture: "$questionAuthor.profilePicture",
+              rating: "$questionAuthor.rating",
+              user_id: "$questionAuthor.user_id",
+            },
+          },
+        },
+      },
+    ]),
+    Submission.aggregate([
+      { $match: { submittedBy: user._id } },
+      { $sort: { submissionDate: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "questions",
+          localField: "question",
+          foreignField: "_id",
+          as: "questionDetails",
+        },
+      },
+      { $unwind: "$questionDetails" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "questionDetails.submittedBy",
+          foreignField: "_id",
+          as: "questionAuthor",
+        },
+      },
+      { $unwind: "$questionAuthor" },
+      {
+        $project: {
+          _id: 0,
+          isSolved: 1,
+          language: 1,
+          question: {
+            title: "$questionDetails.title",
+            tags: "$questionDetails.tags",
+            likes: "$questionDetails.likes",
+            dislikes: "$questionDetails.dislikes",
+            difficulty: "$questionDetails.difficulty",
+            question_id: "$questionDetails.question_id",
+            acceptanceRate: "$questionDetails.acceptanceRate",
+            submittedBy: {
+              username: "$questionAuthor.username",
+              profilePicture: "$questionAuthor.profilePicture",
+              rating: "$questionAuthor.rating",
+              user_id: "$questionAuthor.user_id",
+            },
+          },
+        },
+      },
+    ]),
+  ]);
+
+  if (acceptedSubmissions.length === 0 && allSubmissions.length === 0) {
+    throw ApiError.NotFound("No submissions found for this user.");
+  }
+
+  return ApiResponse.Ok("Fetched submissions.", {
+    acceptedSubmissions: {
+      count: acceptedSubmissions.length,
+      submissions: acceptedSubmissions,
+    },
+    allSubmissions: {
+      count: allSubmissions.length,
+      submissions: allSubmissions,
     },
   }).send(res);
 });

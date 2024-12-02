@@ -203,7 +203,7 @@ export const getLeaderBoardRankings = asyncHandler(async (req, res) => {
   const [userCount, users] = await Promise.all([
     User.countDocuments(),
     User.find({})
-      .select("rating username profilePicture questionsSolved bio")
+      .select("rating username profilePicture questionsSolved bio user_id -_id")
       .sort({ rating: -1 })
       .skip(skip)
       .limit(limit)
@@ -344,7 +344,7 @@ export const getUserByUserId = asyncHandler(async (req, res) => {
     totalSubmissions: user.submissions.length,
     contributedAnswers: user.answerContributions.length,
     contributedQuestions: user.questionContributions.length,
-    solvedQuestion: user.questionsSolved.length,
+    solvedQuestions: user.questionsSolved.length,
     user,
   }).send(res);
 });

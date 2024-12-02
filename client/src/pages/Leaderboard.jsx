@@ -127,7 +127,7 @@ const LeaderboardPage = () => {
                 <tbody>
                   {leaderboardData.users.map((user, index) => (
                     <motion.tr
-                      key={user._id}
+                      key={user.user_id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
