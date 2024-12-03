@@ -228,7 +228,7 @@ export const getLoggedInUserData = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findById(id)
-    .select("username email profilePicture rating")
+    .select("username email profilePicture rating user_id")
     .lean();
 
   if (!user) {

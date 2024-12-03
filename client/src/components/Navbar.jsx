@@ -121,9 +121,9 @@ const Navbar = () => {
           },
         });
 
-        const { email, username, profilePicture, rating } =
+        const { email, username, profilePicture, rating, user_id } =
           response?.data?.data?.user;
-        setUserData({ email, username, profilePicture, rating });
+        setUserData({ email, username, profilePicture, rating, user_id });
       } catch (error) {
         console.error("Error fetching user data: " + error);
         localStorage.removeItem("accessToken");
@@ -495,7 +495,10 @@ const Navbar = () => {
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
+                    <Link
+                      to={`/profile/${userData?.user_id}`}
+                      className="cursor-pointer"
+                    >
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </Link>
