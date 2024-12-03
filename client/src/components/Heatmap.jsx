@@ -49,7 +49,7 @@ const SubmissionsHeatmap = ({ data, dayData }) => {
         .attr("y", -10)
         .attr("text-anchor", "start")
         .attr("alignment-baseline", "middle")
-        .attr("fill", "#4a5568")
+        .attr("fill", "#718096")
         .attr("font-weight", "600")
         .attr("font-size", "10px")
         .text(
@@ -73,18 +73,23 @@ const SubmissionsHeatmap = ({ data, dayData }) => {
           .attr("y", dayOfWeek * cellSize)
           .attr("width", cellSize - 1)
           .attr("height", cellSize - 1)
-          .attr("fill", colorScale(submission ? submission.count : 0))
+          .attr(
+            "fill",
+            submission && submission.count > 0
+              ? colorScale(submission.count)
+              : "#1f2937",
+          )
           .attr("rx", 3)
           .attr("ry", 3)
-          .style("stroke", "#e2e8f0")
+          .style("stroke", "#4a5568")
           .style("stroke-width", 0.5)
           .style("transition", "all 0.2s ease")
           .on("mouseover", function () {
-            d3.select(this).style("stroke", "#718096").style("stroke-width", 1);
+            d3.select(this).style("stroke", "#7c3aed").style("stroke-width", 1);
           })
           .on("mouseout", function () {
             d3.select(this)
-              .style("stroke", "#e2e8f0")
+              .style("stroke", "#4a5568")
               .style("stroke-width", 0.5);
           })
           .append("title")
@@ -108,7 +113,7 @@ const SubmissionsHeatmap = ({ data, dayData }) => {
         <div className="flex items-center space-x-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-green-400"
+            className="h-5 w-5 text-violet-400"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
