@@ -386,3 +386,175 @@ export const getUserRank = asyncHandler(async (req, res) => {
     rank,
   }).send(res);
 });
+
+export const getPotentialPartners = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+
+  const currentUser = await User.findById(id).lean();
+
+  if (!currentUser) {
+    throw ApiError.NotFound("User does not exist.");
+  }
+
+  const potentialPartners = await User.aggregate([
+    {
+      $match: {
+        _id: { $ne: currentUser._id },
+        accountabilityPartner: null,
+      },
+    },
+    {
+      $lookup: {
+        from: "submissions",
+        localField: "submissions",
+        foreignField: "_id",
+        as: "userSubmissions",
+      },
+    },
+    {
+      $lookup: {
+        from: "questions",
+        localField: "questionsSolved",
+        foreignField: "_id",
+        as: "solvedQuestions",
+      },
+    },
+    {
+      $addFields: {
+        submissionTags: {
+          $ifNull: [
+            {
+              $reduce: {
+                input: "$userSubmissions",
+                initialValue: [],
+                in: {
+                  $setUnion: ["$$value", { $ifNull: ["$$this.tags", []] }],
+                },
+              },
+            },
+            [],
+          ],
+        },
+        questionTags: {
+          $ifNull: [
+            {
+              $reduce: {
+                input: "$solvedQuestions",
+                initialValue: [],
+                in: {
+                  $setUnion: ["$$value", { $ifNull: ["$$this.tags", []] }],
+                },
+              },
+            },
+            [],
+          ],
+        },
+      },
+    },
+    {
+      $addFields: {
+        matchScore: {
+          $sum: [
+            {
+              $size: {
+                $setIntersection: [
+                  "$submissionTags",
+                  {
+                    $ifNull: [
+                      {
+                        $reduce: {
+                          input: currentUser.submissions,
+                          initialValue: [],
+                          in: {
+                            $setUnion: [
+                              "$$value",
+                              { $ifNull: ["$$this.tags", []] },
+                            ],
+                          },
+                        },
+                      },
+                      [],
+                    ],
+                  },
+                ],
+              },
+            },
+            {
+              $size: {
+                $setIntersection: [
+                  "$questionTags",
+                  {
+                    $ifNull: [
+                      {
+                        $reduce: {
+                          input: currentUser.questionsSolved,
+                          initialValue: [],
+                          in: {
+                            $setUnion: [
+                              "$$value",
+                              { $ifNull: ["$$this.tags", []] },
+                            ],
+                          },
+                        },
+                      },
+                      [],
+                    ],
+                  },
+                ],
+              },
+            },
+            {
+              $multiply: [
+                {
+                  $size: {
+                    $filter: {
+                      input: "$userSubmissions",
+                      as: "submission",
+                      cond: {
+                        $gte: [
+                          "$$submission.createdAt",
+                          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                        ],
+                      },
+                    },
+                  },
+                },
+                2,
+              ],
+            },
+            {
+              $abs: {
+                $subtract: [currentUser.rating || 0, "$rating" || 0],
+              },
+            },
+          ],
+        },
+      },
+    },
+    {
+      $project: {
+        username: 1,
+        rating: 1,
+        user_id: 1,
+        profilePicture: 1,
+        questionsSolved: { $size: "$questionsSolved" },
+        submissions: { $size: "$submissions" },
+        answerContributions: { $size: "$answerContributions" },
+        questionContributions: { $size: "$questionContributions" },
+        bio: 1,
+        socialLinks: 1,
+        matchScore: 1,
+      },
+    },
+    { $sort: { matchScore: -1 } },
+    { $limit: 10 },
+  ]);
+
+  return ApiResponse.Ok(
+    "Potential accountability partners fetched successfully.",
+    {
+      count: potentialPartners.length,
+      potentialPartners: potentialPartners,
+    }
+  ).send(res);
+});
