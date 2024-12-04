@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import Question from "../models/Question.js";
 import Answer from "../models/Answer.js";
+import Partner from "../models/Partner.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
@@ -396,11 +397,15 @@ export const getPotentialPartners = asyncHandler(async (req, res) => {
     throw ApiError.NotFound("User does not exist.");
   }
 
+  const requests = await Partner.find({ sender: id }).select("receiver").lean();
+  const invalidUsersId = requests.map((req) => req.receiver);
+
   const potentialPartners = await User.aggregate([
     {
       $match: {
         _id: { $ne: currentUser._id },
         accountabilityPartner: null,
+        _id: { $nin: invalidUsersId },
       },
     },
     {
