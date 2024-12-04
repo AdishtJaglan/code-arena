@@ -22,5 +22,5 @@ const PartnerSchema = new mongoose.Schema({
   },
 });
 
-const Partner = mongoose.model("AccountabilityPartnerRequest", PartnerSchema);
+const Partner = mongoose.model("Partner", PartnerSchema);
 export default Partner;

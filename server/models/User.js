@@ -54,7 +54,7 @@ const UserSchema = new mongoose.Schema(
     accountabilityPartnerRequest: [
       {
         type: mongoose.Types.ObjectId,
-        ref: "AccountabilityPartnerRequest",
+        ref: "Partner",
       },
     ],
     rating: {
