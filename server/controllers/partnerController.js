@@ -116,9 +116,11 @@ export const handleStatusUpdate = asyncHandler(async (req, res) => {
     ...(status === "Accepted" ? [accepter.save(), sender.save()] : []),
   ]);
 
+  const newPartner = await User.findById(senderId).lean();
+
   return ApiResponse.Ok(`${status} partner request successfully.`, {
     partnerRequest: accountabilityPartnerRequestObject,
-    ...(status === "Accepted" ? { accepter, sender } : {}),
+    ...(status === "Accepted" ? { accepter, sender, partner: newPartner } : {}),
   }).send(res);
 });
 
@@ -141,7 +143,7 @@ export const getPartnerRequests = asyncHandler(async (req, res) => {
   })
     .populate({
       path: "sender",
-      select: "username profilePicture rating user_id -_id",
+      select: "username profilePicture rating user_id",
     })
     .select("sender -_id")
     .lean();
