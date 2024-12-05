@@ -421,7 +421,7 @@ const Navbar = () => {
                   ) : (
                     partnerRequests.map((request) => (
                       <DropdownMenuItem
-                        key={request._id}
+                        key={request.user_id}
                         className="flex items-center justify-between p-2"
                       >
                         <div className="flex items-center space-x-3">
