@@ -40,7 +40,7 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 
-const EndPartnershipModal = ({ isOpen, onOpenChange }) => {
+const EndPartnershipModal = ({ isOpen, onOpenChange, setPartnerData }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleEndPartnerShip = async () => {
@@ -56,6 +56,7 @@ const EndPartnershipModal = ({ isOpen, onOpenChange }) => {
       if (response.status === 200) {
         toast.success("Accountability partner removed successfully.");
         onOpenChange(false);
+        setPartnerData(null);
       }
     } catch (error) {
       console.error("Unable to end partnership: ", error);
@@ -204,11 +205,15 @@ const Navbar = () => {
           (req) => req._id !== senderId,
         );
 
+        setPartnerData(response?.data?.data?.partner);
         setPartnerRequests(updatePartnerRequest);
         toast.success(`${status} request successfully.`);
       }
     } catch (error) {
-      console.error("Error changing request status: " + error);
+      console.error(
+        "Error changing request status: " + error.response?.data?.message ||
+          error.response?.statusText,
+      );
     }
   };
 
@@ -345,7 +350,7 @@ const Navbar = () => {
                       asChild
                       className="group relative col-span-1 flex cursor-pointer justify-center rounded-lg"
                     >
-                      <Link to={`/partner/${partnerData._id}`}>
+                      <Link to={`/profile/${partnerData?.user_id}`}>
                         <div className="flex flex-col items-center p-1">
                           <User className="mb-1 h-6 w-6 text-blue-400 transition-transform group-hover:scale-110" />
                         </div>
@@ -543,6 +548,7 @@ const Navbar = () => {
       <EndPartnershipModal
         isOpen={isEndPartnershipModalOpen}
         onOpenChange={setIsEndPartnershipModalOpen}
+        setPartnerData={setPartnerData}
       />
     </>
   );
