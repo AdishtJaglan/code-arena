@@ -141,7 +141,7 @@ export const getPartnerRequests = asyncHandler(async (req, res) => {
   })
     .populate({
       path: "sender",
-      select: "username profilePicture rating",
+      select: "username profilePicture rating user_id -_id",
     })
     .select("sender -_id")
     .lean();

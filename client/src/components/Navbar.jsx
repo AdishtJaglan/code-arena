@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unsafe-optional-chaining */
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -102,6 +102,7 @@ const EndPartnershipModal = ({ isOpen, onOpenChange }) => {
 };
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [partnerRequests, setPartnerRequests] = useState(null);
   const [partnerData, setPartnerData] = useState(null);
@@ -434,7 +435,12 @@ const Navbar = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="cursor-pointer text-sm font-medium transition-colors duration-300 hover:text-indigo-500">
+                            <div
+                              onClick={() =>
+                                navigate(`/profile/${request?.user_id}`)
+                              }
+                              className="cursor-pointer text-sm font-medium transition-colors duration-300 hover:text-indigo-500"
+                            >
                               {request.username}
                             </div>
                             <div className="text-xs text-gray-400">
