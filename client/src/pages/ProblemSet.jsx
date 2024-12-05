@@ -34,6 +34,68 @@ import {
 } from "@/components/ui/pagination";
 import Navbar from "@/components/Navbar.jsx";
 
+const tags = [
+  "Arrays",
+  "Linked List",
+  "Stack",
+  "Queue",
+  "Hashing",
+  "Heap",
+  "Binary Search",
+  "Sorting",
+  "Dynamic Programming",
+  "Backtracking",
+  "Recursion",
+  "Graph Theory",
+  "Tree",
+  "Binary Tree",
+  "Binary Search Tree",
+  "Greedy",
+  "Divide and Conquer",
+  "Sliding Window",
+  "Bit Manipulation",
+  "Math",
+  "Two Pointers",
+  "Strings",
+  "Trie",
+  "Union Find",
+  "Geometry",
+  "Game Theory",
+  "Segment Tree",
+  "Fenwick Tree",
+  "Memoization",
+  "Combinatorics",
+  "Breadth First Search",
+  "Depth First Search",
+  "Shortest Path",
+  "Topological Sort",
+  "Network Flow",
+  "Knapsack",
+  "Matrix",
+  "Prefix Sum",
+  "Kadane's Algorithm",
+  "Hash Map",
+  "Set",
+  "Probability",
+  "Modular Arithmetic",
+  "Bitmasking",
+  "Number Theory",
+  "Intervals",
+  "Monotonic Stack",
+  "Monotonic Queue",
+  "Z-Algorithm",
+  "KMP Algorithm",
+  "Minimum Spanning Tree",
+  "Maximum Flow",
+  "Eulerian Path",
+  "Cycle Detection",
+  "Strongly Connected Components",
+  "Disjoint Set",
+  "Probability and Statistics",
+  "String Matching",
+  "Pattern Searching",
+];
+
 const DifficultyBadge = ({ difficulty }) => {
   const difficultyColors = {
     Easy: "bg-green-500/20 text-green-400",
@@ -65,13 +127,15 @@ const ProblemSet = () => {
   useEffect(() => {
     const getAllQuestions = async () => {
       setIsLoading(true);
+      const parsedFilters = filters.tags.join(",");
+
       try {
         const response = await axios.get(
           `${API_BASE_URL}/question/complete-question?page=${pageNo}&limit=${15}`,
           {
             params: {
               difficulty: filters.difficulty,
-              tags: filters.tags,
+              tags: parsedFilters,
             },
           },
         );
@@ -132,28 +196,26 @@ const ProblemSet = () => {
         <div>
           <h4 className="mb-2 text-sm font-medium text-gray-400">Tags</h4>
           <div className="flex flex-wrap gap-2">
-            {["Array", "String", "Dynamic Programming", "Tree", "Graph"].map(
-              (tag) => (
-                <button
-                  key={tag}
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      tags: prev.tags.includes(tag)
-                        ? prev.tags.filter((t) => t !== tag)
-                        : [...prev.tags, tag],
-                    }))
-                  }
-                  className={`flex items-center rounded-md px-2 py-1 text-xs transition-all ${
-                    filters.tags.includes(tag)
-                      ? "bg-indigo-600 text-white"
-                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  }`}
-                >
-                  <TagIcon className="mr-1 h-3 w-3" /> {tag}
-                </button>
-              ),
-            )}
+            {tags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    tags: prev.tags.includes(tag)
+                      ? prev.tags.filter((t) => t !== tag)
+                      : [...prev.tags, tag],
+                  }))
+                }
+                className={`flex items-center rounded-md px-2 py-1 text-xs transition-all ${
+                  filters.tags.includes(tag)
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                }`}
+              >
+                <TagIcon className="mr-1 h-3 w-3" /> {tag}
+              </button>
+            ))}
           </div>
         </div>
       </div>
