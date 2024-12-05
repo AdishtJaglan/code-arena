@@ -68,7 +68,7 @@ const EndPartnershipModal = ({ isOpen, onOpenChange, setPartnerData }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="border-red-900/50 bg-gray-900 sm:max-w-[425px]">
+      <DialogContent className="border-zinc-800 bg-black/90 sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-red-500">
             End Accountability Partnership
@@ -231,12 +231,14 @@ const Navbar = () => {
         pauseOnHover
         theme="dark"
       />
-      <nav className="sticky top-0 z-50 w-full border-b border-gray-800 bg-gray-950/90 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-black/90 backdrop-blur-md">
         <div className="container mx-auto grid grid-cols-12 items-center px-4 py-3">
           <div className="col-span-3 flex items-center space-x-2">
             <Link to="/" className="flex items-center space-x-2">
-              <MessageCircleCode className="h-8 w-8 text-indigo-500" />
-              <span className="text-2xl font-bold text-white">Code Arena</span>
+              <MessageCircleCode className="h-8 w-8 text-blue-500" />
+              <span className="text-2xl font-bold text-gray-100">
+                Code Arena
+              </span>
             </Link>
           </div>
 
@@ -250,11 +252,11 @@ const Navbar = () => {
               <Link
                 key={item.label}
                 to={item.path}
-                className="group relative flex items-center space-x-2 text-gray-400 transition-colors duration-300 hover:text-white"
+                className="group relative flex items-center space-x-2 text-gray-400 transition-colors duration-300 hover:text-gray-200"
               >
                 <item.icon className="h-5 w-5 opacity-70 transition-opacity group-hover:opacity-100" />
                 <span className="text-sm font-medium">{item.label}</span>
-                <span className="absolute -bottom-2 left-0 h-0.5 w-full origin-left scale-x-0 bg-indigo-500 transition-transform duration-300 group-hover:scale-x-100"></span>
+                <span className="absolute -bottom-2 left-0 h-0.5 w-full origin-left scale-x-0 bg-blue-500 transition-transform duration-300 group-hover:scale-x-100"></span>
               </Link>
             ))}
           </div>
@@ -263,7 +265,7 @@ const Navbar = () => {
             {partnerData ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="group flex cursor-pointer items-center space-x-3 rounded-lg p-2">
+                  <div className="group flex cursor-pointer items-center space-x-3 rounded-lg p-2 hover:bg-zinc-900">
                     <div className="relative">
                       <UserCheck className="h-6 w-6 text-green-500 transition-transform group-hover:scale-110" />
                       <span className="absolute -right-1 -top-1 h-2.5 w-2.5 animate-pulse rounded-full bg-green-500"></span>
@@ -280,35 +282,35 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-80 space-y-2 bg-gray-900 p-2"
+                  className="w-80 space-y-2 border border-neutral-800 bg-black p-2 shadow-xl"
                 >
-                  <div className="flex items-center space-x-4 rounded-lg bg-gray-800 p-3">
-                    <Avatar className="h-12 w-12 border-2 border-green-500">
+                  <div className="flex items-center space-x-4 rounded-lg bg-[#0a0a0a] p-3">
+                    <Avatar className="h-12 w-12 border border-black">
                       <AvatarImage
                         src={partnerData.profilePicture}
                         alt={partnerData.username}
                         className="object-cover"
                       />
-                      <AvatarFallback className="bg-green-900 text-green-300">
+                      <AvatarFallback className="bg-[#1a1a1a] text-neutral-300">
                         {partnerData.username.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-md font-bold text-white">
+                        <h3 className="text-md font-semibold text-neutral-200">
                           {partnerData.username}
                         </h3>
-                        <span className="text-sm font-medium text-green-400">
+                        <span className="text-sm font-medium text-neutral-600">
                           Rating: {partnerData.rating}
                         </span>
                       </div>
-                      <p className="mt-1 line-clamp-2 text-xs text-gray-400">
+                      <p className="mt-1 line-clamp-2 text-xs text-neutral-700">
                         {partnerData.bio || "No bio available"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 rounded-lg bg-gray-800 p-3">
+                  <div className="grid grid-cols-3 gap-2 rounded-lg bg-[#0a0a0a] p-3">
                     {[
                       {
                         icon: Trophy,
@@ -330,20 +332,20 @@ const Navbar = () => {
                     ].map((stat) => (
                       <div
                         key={stat.label}
-                        className="flex flex-col items-center rounded-md bg-gray-900 p-2"
+                        className="flex flex-col items-center rounded-md bg-black p-2"
                       >
-                        <stat.icon className="mb-1 h-5 w-5 text-indigo-400" />
-                        <span className="text-sm font-semibold text-white">
+                        <stat.icon className="mb-1 h-5 w-5 text-neutral-600" />
+                        <span className="text-sm font-semibold text-neutral-200">
                           {stat.value}
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-neutral-700">
                           {stat.label}
                         </span>
                       </div>
                     ))}
                   </div>
 
-                  <DropdownMenuSeparator className="bg-gray-700" />
+                  <DropdownMenuSeparator className="bg-[#1a1a1a]" />
 
                   <div className="grid grid-cols-3 gap-2">
                     <DropdownMenuItem
@@ -352,10 +354,10 @@ const Navbar = () => {
                     >
                       <Link to={`/profile/${partnerData?.user_id}`}>
                         <div className="flex flex-col items-center p-1">
-                          <User className="mb-1 h-6 w-6 text-blue-400 transition-transform group-hover:scale-110" />
+                          <User className="mb-1 h-6 w-6 text-neutral-600 transition-transform group-hover:scale-110" />
                         </div>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 transform">
-                          <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                          <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-[#0a0a0a] px-2 py-1 text-xs text-neutral-200 opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                             View Profile
                           </span>
                         </div>
@@ -364,10 +366,10 @@ const Navbar = () => {
 
                     <DropdownMenuItem className="group relative col-span-1 flex cursor-pointer justify-center rounded-lg">
                       <div className="flex flex-col items-center p-1">
-                        <MessageCircle className="mb-1 h-6 w-6 text-green-400 transition-transform group-hover:scale-110" />
+                        <MessageCircle className="mb-1 h-6 w-6 text-neutral-600 transition-transform group-hover:scale-110" />
                       </div>
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 transform">
-                        <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                        <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-[#0a0a0a] px-2 py-1 text-xs text-neutral-200 opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                           Start Challenge
                         </span>
                       </div>
@@ -377,11 +379,11 @@ const Navbar = () => {
                       className="group relative col-span-1 flex cursor-pointer justify-center rounded-lg"
                       onClick={() => setIsEndPartnershipModalOpen(true)}
                     >
-                      <div className="flex flex-col items-center p-1 text-red-400">
+                      <div className="flex flex-col items-center p-1 text-neutral-600 hover:text-neutral-200">
                         <UserX className="mb-1 h-6 w-6 transition-transform group-hover:scale-110" />
                       </div>
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 transform">
-                        <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-red-900 px-2 py-1 text-xs text-white opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                        <span className="invisible -translate-y-2 whitespace-nowrap rounded bg-[#0a0a0a] px-2 py-1 text-xs text-neutral-200 opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                           End Partnership
                         </span>
                       </div>
@@ -392,7 +394,7 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/find-partner"
-                className="group flex items-center space-x-2 rounded-lg p-2 text-yellow-400 transition-all hover:bg-gray-800 hover:text-yellow-500"
+                className="group flex items-center space-x-2 rounded-lg p-2 text-blue-400 transition-all hover:bg-zinc-900 hover:text-blue-500"
               >
                 <UserPlus className="h-5 w-5 transition-transform group-hover:scale-110" />
                 <span className="text-sm font-medium">Find Partner</span>
@@ -403,7 +405,7 @@ const Navbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="relative cursor-pointer">
-                    <Bell className="h-5 w-5 text-gray-400 transition-colors hover:text-white" />
+                    <Bell className="h-5 w-5 text-gray-400 transition-colors hover:text-gray-200" />
                     {partnerRequests.length > 0 && (
                       <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                         {partnerRequests.length}
@@ -477,7 +479,7 @@ const Navbar = () => {
 
             {isLoading ? (
               <div className="animate-pulse">
-                <div className="h-10 w-24 rounded bg-gray-700"></div>
+                <div className="h-10 w-24 rounded bg-zinc-800"></div>
               </div>
             ) : userData ? (
               <DropdownMenu>
@@ -493,7 +495,7 @@ const Navbar = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-gray-100">
                         {userData.username}
                       </span>
                       <span className="text-xs text-gray-400">
@@ -524,7 +526,7 @@ const Navbar = () => {
               <>
                 <Button
                   variant="ghost"
-                  className="text-gray-400 transition-all hover:bg-gray-800 hover:text-white"
+                  className="text-gray-400 transition-all hover:bg-zinc-900 hover:text-gray-200"
                   asChild
                 >
                   <Link to="/login">
@@ -532,7 +534,7 @@ const Navbar = () => {
                   </Link>
                 </Button>
                 <Button
-                  className="bg-indigo-700 transition-colors hover:bg-indigo-600"
+                  className="hover:bg-blue-850 bg-blue-900 text-blue-300 transition-colors"
                   asChild
                 >
                   <Link to="/register">
