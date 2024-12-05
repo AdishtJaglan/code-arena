@@ -37,8 +37,8 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950 text-gray-200">
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-900/20 via-indigo-900/10 to-purple-900/20 opacity-50 blur-3xl"></div>
+    <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
+      <div className="absolute inset-0 bg-neutral-900/50 opacity-50 blur-3xl"></div>
 
       <Navbar />
       <div className="container relative z-10 mx-auto px-4">
@@ -47,7 +47,7 @@ const LandingPage = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7 }}
-            className="bg-gradient-to-r from-violet-400 via-purple-500 to-pink-500 bg-clip-text text-6xl font-black leading-tight text-transparent"
+            className="text-6xl font-black leading-tight text-neutral-100"
           >
             Code Arena
           </motion.h1>
@@ -56,7 +56,7 @@ const LandingPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="mx-auto mt-6 max-w-2xl text-xl text-gray-400"
+            className="mx-auto mt-6 max-w-2xl text-xl text-neutral-500"
           >
             Elevate your coding skills through challenging problems, real-time
             progress tracking, and collaborative learning
@@ -70,16 +70,16 @@ const LandingPage = () => {
           >
             <Link
               to="/problems"
-              className="flex transform items-center space-x-2 rounded-lg bg-violet-700 px-6 py-3 text-white transition-all hover:scale-105 hover:bg-violet-600 active:scale-95"
+              className="flex transform items-center space-x-2 rounded-lg bg-neutral-800 px-6 py-3 text-neutral-200 transition-all hover:bg-neutral-700 active:scale-95"
             >
               <span>Start Coding</span>
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight className="h-5 w-5 text-neutral-400" />
             </Link>
             <Link
               to="/learn"
-              className="flex transform items-center space-x-2 rounded-lg border border-gray-700 px-6 py-3 text-gray-300 transition-all hover:scale-105 hover:bg-gray-800 active:scale-95"
+              className="flex transform items-center space-x-2 rounded-lg border border-neutral-800 px-6 py-3 text-neutral-400 transition-all hover:bg-neutral-900 active:scale-95"
             >
-              <Zap className="h-5 w-5 text-yellow-400" />
+              <Zap className="h-5 w-5 text-neutral-600" />
               <span>Learn More</span>
             </Link>
           </motion.div>
@@ -93,18 +93,18 @@ const LandingPage = () => {
               animate="visible"
               variants={featureVariants}
               transition={{ delay: index * 0.2 }}
-              className="transform rounded-xl border border-gray-800 bg-gray-900/60 p-6 text-center transition-all hover:scale-105 hover:bg-gray-900/80"
+              className="transform rounded-xl border border-neutral-800 bg-neutral-900/60 p-6 text-center transition-all hover:scale-105 hover:bg-neutral-900/80"
             >
               <div className="mb-4 flex justify-center">
                 <feature.icon
-                  className="h-12 w-12 text-violet-500"
+                  className="h-12 w-12 text-neutral-600"
                   strokeWidth={1.5}
                 />
               </div>
-              <h3 className="mb-2 text-xl font-bold text-gray-200">
+              <h3 className="mb-2 text-xl font-bold text-neutral-200">
                 {feature.title}
               </h3>
-              <p className="text-gray-400">{feature.description}</p>
+              <p className="text-neutral-500">{feature.description}</p>
             </motion.div>
           ))}
         </div>
