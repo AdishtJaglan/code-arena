@@ -1,9 +1,18 @@
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Code, Target, Users, Zap, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import GridPattern from "@/components/GridPattern";
+// import IconCloud from "@/components/ui/icon-cloud";
 import Navbar from "@/components/Navbar";
 
 const LandingPage = () => {
+  const containerRef = useRef(null);
+  const card1Ref = useRef(null);
+  const card2Ref = useRef(null);
+  const card3Ref = useRef(null);
+
   const featureVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -22,26 +31,62 @@ const LandingPage = () => {
       title: "Diverse Challenges",
       description:
         "Wide range of coding problems across multiple difficulty levels",
+      ref: card1Ref,
     },
     {
       icon: Target,
       title: "Skill Tracking",
       description:
         "Comprehensive progress monitoring and performance analytics",
+      ref: card2Ref,
     },
     {
       icon: Users,
       title: "Community Driven",
       description: "Connect with developers, share solutions, learn together",
+      ref: card3Ref,
     },
   ];
+
+  // const slugs = [
+  //   "typescript",
+  //   "javascript",
+  //   "dart",
+  //   "java",
+  //   "react",
+  //   "flutter",
+  //   "android",
+  //   "html5",
+  //   "css3",
+  //   "nodedotjs",
+  //   "express",
+  //   "nextdotjs",
+  //   "prisma",
+  //   "amazonaws",
+  //   "postgresql",
+  //   "firebase",
+  //   "nginx",
+  //   "testinglibrary",
+  //   "jest",
+  //   "cypress",
+  //   "docker",
+  //   "git",
+  //   "jira",
+  //   "github",
+  //   "gitlab",
+  //   "visualstudiocode",
+  //   "androidstudio",
+  //   "sonarqube",
+  //   "figma",
+  // ];
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
       <div className="absolute inset-0 bg-neutral-900/50 opacity-50 blur-3xl"></div>
 
       <Navbar />
-      <div className="container relative z-10 mx-auto px-4">
+
+      <div className="container relative z-10 mx-auto px-4" ref={containerRef}>
         <div className="pt-24 text-center">
           <motion.h1
             initial={{ opacity: 0, scale: 0.9 }}
@@ -51,6 +96,30 @@ const LandingPage = () => {
           >
             Code Arena
           </motion.h1>
+          <GridPattern
+            squares={[
+              [4, 4],
+              [5, 1],
+              [8, 2],
+              [5, 3],
+              [5, 5],
+              [10, 10],
+              [12, 15],
+              [15, 10],
+              [10, 15],
+              [15, 10],
+              [10, 15],
+              [15, 10],
+            ]}
+            className={cn(
+              "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
+              "inset-x-0 inset-y-[-60%] h-[200%] skew-y-12",
+            )}
+          />
+          {/* 
+          <div className="absolute inset-x-0 inset-y-[-20%] -z-50 h-[200%] skew-y-12">
+            <IconCloud iconSlugs={slugs} />
+          </div> */}
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -88,6 +157,7 @@ const LandingPage = () => {
         <div className="mt-24 grid gap-8 md:grid-cols-3">
           {features.map((feature, index) => (
             <motion.div
+              ref={feature.ref}
               key={feature.title}
               initial="hidden"
               animate="visible"
