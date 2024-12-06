@@ -15,6 +15,7 @@ import {
 import { API_BASE_URL } from "@/configs/env-config";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Particles from "@/components/Particles";
 import axios from "axios";
 import Navbar from "@/components/Navbar";
 
@@ -57,7 +58,7 @@ const PartnerCard = ({ partner }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full rounded-xl border border-black bg-black/90 p-6 transition-all"
+      className="w-full rounded-xl border border-neutral-800 bg-black/90 p-6 transition-all"
     >
       <div className="grid grid-cols-6 gap-3">
         <div className="max-w-1/2 col-span-3 flex items-center justify-center space-x-6 md:w-auto">
@@ -221,59 +222,68 @@ const FindPartner = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black text-gray-200">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
+    <>
+      <Particles
+        className="fixed inset-0 h-screen w-screen"
+        quantity={150}
+        ease={80}
+        color={"#ffffff"}
+        refresh
       />
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-neutral-900/50 opacity-50 blur-3xl"></div>
+      <div className="min-h-screen bg-black text-gray-200">
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+        />
 
-      <Navbar />
+        <Navbar />
 
-      <div className="container relative z-10 mx-auto max-w-7xl px-4">
-        {/* Page Header */}
-        <div className="pt-12 text-center">
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7 }}
-            className="text-6xl font-black leading-tight text-neutral-200"
-          >
-            Code Partners
-          </motion.h1>
+        <div className="container relative z-10 mx-auto max-w-7xl px-4">
+          {/* Page Header */}
+          <div className="pt-12 text-center">
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7 }}
+              className="text-6xl font-black leading-tight text-neutral-200"
+            >
+              Code Partners
+            </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="mx-auto mt-6 max-w-2xl text-xl text-gray-400"
-          >
-            Connect with skilled developers, collaborate on challenges, and grow
-            together
-          </motion.p>
-        </div>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="mx-auto mt-6 max-w-2xl text-xl text-gray-400"
+            >
+              Connect with skilled developers, collaborate on challenges, and
+              grow together
+            </motion.p>
+          </div>
 
-        {/* Partners List */}
-        <div className="mt-16 space-y-6">
-          {partners === null ? (
-            <div className="text-center text-gray-500">Loading partners...</div>
-          ) : (
-            partners.map((partner, index) => (
-              <PartnerCard key={index} partner={partner} />
-            ))
-          )}
+          {/* Partners List */}
+          <div className="mt-16 space-y-6">
+            {partners === null ? (
+              <div className="text-center text-gray-500">
+                Loading partners...
+              </div>
+            ) : (
+              partners.map((partner, index) => (
+                <PartnerCard key={index} partner={partner} />
+              ))
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
