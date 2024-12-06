@@ -25,10 +25,10 @@ const StepRequest = ({ partnerData, onSendRequest }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center space-y-4 rounded-lg bg-gray-700/50 p-6 text-center"
+      className="flex flex-col items-center justify-center space-y-4 rounded-lg bg-gray-950/20 p-6 text-center"
     >
       <div className="rounded-full bg-gray-800 p-4">
-        <X className="h-12 w-12 text-violet-500" />
+        <X className="h-12 w-12 text-blue-500" />
       </div>
       <h2 className="text-xl font-bold text-gray-200">
         Accountability Partner Skipped
@@ -66,14 +66,14 @@ const StepRequest = ({ partnerData, onSendRequest }) => {
 
   const renderPartnerContent = () => (
     <>
-      <div className="flex items-center space-x-4 rounded-lg bg-gradient-to-r from-gray-800 to-violet-900/20 p-4 shadow-md">
+      <div className="flex items-center space-x-4 rounded-lg bg-gradient-to-r from-gray-800 to-blue-900/20 p-4 shadow-md">
         <img
           src={partnerData.profilePicture}
           alt={`${partnerData.username}'s profile`}
-          className="h-16 w-16 rounded-full border-2 border-violet-500 ring-2 ring-violet-700/50"
+          className="h-16 w-16 rounded-full border-2 border-blue-500"
         />
         <div>
-          <h2 className="text-xl font-bold text-violet-300">
+          <h2 className="text-xl font-bold text-blue-300">
             {partnerData.username}
           </h2>
           <p className="text-sm text-gray-400">Rating: {partnerData.rating}</p>
@@ -91,16 +91,20 @@ const StepRequest = ({ partnerData, onSendRequest }) => {
         </h3>
         <ResponsiveContainer width="100%" height="85%">
           <LineChart data={problemSolvingData}>
-            <XAxis dataKey="name" stroke="#8b5cf6" />
-            <YAxis stroke="#8b5cf6" />
+            <XAxis dataKey="name" stroke="#3b82f6" />
+            <YAxis stroke="#3b82f6" />
             <Tooltip
-              contentStyle={{ backgroundColor: "#1f2937", border: "none" }}
-              labelStyle={{ color: "#8b5cf6" }}
+              contentStyle={{
+                backgroundColor: "#3b82f6",
+                borderRadius: "2px",
+                border: "1px solid ##3b82f6",
+              }}
+              labelStyle={{ color: "#000" }}
             />
             <Line
               type="monotone"
               dataKey="solved"
-              stroke="#8b5cf6"
+              stroke="#3b82f6"
               strokeWidth={3}
             />
           </LineChart>
@@ -110,7 +114,7 @@ const StepRequest = ({ partnerData, onSendRequest }) => {
       <div className="flex space-x-4">
         <button
           onClick={() => onSendRequest(partnerData._id)}
-          className="flex flex-1 transform items-center justify-center rounded-lg bg-violet-600 py-3 text-white transition-all hover:scale-[1.02] hover:bg-violet-700"
+          className="flex flex-1 transform items-center justify-center rounded-lg bg-blue-500/70 py-3 text-white transition-all hover:scale-[1.02] hover:bg-blue-500/50"
         >
           <Send className="mr-2" size={20} />
           Send Partner Request

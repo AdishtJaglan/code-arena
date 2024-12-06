@@ -8,8 +8,7 @@ const Button = ({
   const baseStyles =
     "px-6 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2";
   const variants = {
-    primary:
-      "bg-violet-600 text-white hover:bg-violet-700 active:bg-violet-800",
+    primary: "hover:bg-blue-500/40 text-white bg-blue-500/80",
     secondary:
       "border border-gray-700 text-gray-300 hover:bg-gray-800 active:bg-gray-700",
   };

@@ -21,7 +21,7 @@ const StepProfile = ({
 }) => {
   return (
     <motion.div className="space-y-6">
-      <div className="relative rounded-lg border border-dashed border-gray-700 p-6">
+      <div className="relative rounded-lg border border-dashed border-zinc-800/50 p-6">
         <input
           type="file"
           hidden
@@ -33,7 +33,7 @@ const StepProfile = ({
           htmlFor="profile-picture"
           className="flex cursor-pointer flex-col items-center gap-2"
         >
-          <CloudUpload className="h-8 w-8 text-violet-500" />
+          <CloudUpload className="h-8 w-8 text-blue-500" />
           <span className="text-sm text-gray-400">
             {formData.profilePicture
               ? formData.profilePicture.name
@@ -69,11 +69,11 @@ const StepProfile = ({
                   ? "bg-green-500/10 text-green-500"
                   : verificationStatus.error
                     ? "bg-red-500/10 text-red-500"
-                    : "bg-violet-500/10 text-violet-500 hover:bg-violet-500/20"
+                    : "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
               } ${(!formData.accountabilityPartner || verificationStatus.isVerifying) && "cursor-not-allowed opacity-50"}`}
             >
               {verificationStatus.isVerifying ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
               ) : verificationStatus.isVerified ? (
                 <CheckCircle className="h-5 w-5" />
               ) : verificationStatus.error ? (
@@ -86,7 +86,7 @@ const StepProfile = ({
               <button
                 type="button"
                 onClick={() => setIsPartnerModalOpen(true)}
-                className="mt-0.5 flex items-center justify-center rounded-lg bg-gray-800 px-3 text-gray-400 hover:bg-gray-700 hover:text-gray-300"
+                className="mt-0.5 flex items-center justify-center rounded-lg bg-black/40 px-3 text-gray-400 hover:bg-zinc-800 hover:text-gray-300"
               >
                 <InfoOutlined />
               </button>

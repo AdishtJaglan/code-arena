@@ -3,6 +3,7 @@
 //TODO -> liked questions
 //TODO -> security deposit thingy on achieving goals
 //TODO -> ML model for test cases suggestions
+//TODO -> video calling feature for partner (code solving sessions together and/or mock interviews for each other)
 
 import express from "express";
 import mongoose from "mongoose";

@@ -65,7 +65,7 @@ const PartnerInfoModal = ({ isOpen, onClose, partnerInfo }) => (
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-xl border border-gray-800 bg-gray-800 p-6 shadow-xl"
+          className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-xl border border-gray-800 bg-gradient-to-br from-gray-900 via-zinc-950 to-blue-950 p-6 shadow-xl"
         >
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ const PartnerInfoModal = ({ isOpen, onClose, partnerInfo }) => (
 
 const Timeline = ({ currentStep }) => {
   return (
-    <div className="hidden h-full flex-col space-y-2 p-8 lg:flex">
+    <div className="hidden h-full flex-col space-y-4 p-8 lg:flex">
       {steps.map((step, index) => (
         <div key={step.id} className="relative flex items-start">
           <div className="flex flex-col items-center">
@@ -125,20 +125,20 @@ const Timeline = ({ currentStep }) => {
               animate={{
                 scale: currentStep === step.id ? 1.1 : 1,
               }}
-              className={`z-10 mb-2 flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-300 ${
+              className={`z-10 mb-2 flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 ${
                 currentStep >= step.id
-                  ? "bg-violet-600 text-white"
-                  : "bg-gray-700/30 text-gray-400"
+                  ? "bg-blue-900 text-blue-300 shadow-lg"
+                  : "border border-zinc-800/50 bg-black/40 text-gray-600"
               }`}
             >
-              {step.icon}
+              {`${step.id}`}
             </motion.div>
             {index !== steps.length - 1 && (
               <motion.div
-                initial={{ backgroundColor: "#1f2937" }}
+                initial={{ backgroundColor: "#111827" }}
                 animate={{
                   backgroundColor:
-                    currentStep > step.id ? "#8b5cf6" : "#1f2937",
+                    currentStep > step.id ? "#1e40af" : "#111827",
                   height: currentStep > step.id ? "4rem" : "4rem",
                 }}
                 className="w-1 rounded-full"
@@ -152,14 +152,14 @@ const Timeline = ({ currentStep }) => {
           <div className="ml-4">
             <h3
               className={`font-medium transition-colors duration-300 ${
-                currentStep >= step.id ? "text-violet-400" : "text-gray-400"
+                currentStep >= step.id ? "text-blue-500" : "text-gray-500"
               }`}
             >
               {step.title}
             </h3>
             <p
               className={`text-sm transition-colors duration-300 ${
-                currentStep >= step.id ? "text-gray-300" : "text-gray-500"
+                currentStep >= step.id ? "text-gray-400" : "text-gray-600"
               }`}
             >
               {step.description}
@@ -435,35 +435,33 @@ const Register = () => {
         pauseOnHover
         theme="dark"
       />
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-violet-900 p-4 lg:p-8">
-        <div className="flex w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-700/50 bg-gray-800/60 shadow-xl">
-          <div className="w-80 border-r border-gray-700/50">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-black via-zinc-950 to-blue-950 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex w-full max-w-5xl overflow-hidden rounded-2xl border border-zinc-800/50 bg-zinc-900/70 shadow-2xl backdrop-blur-lg"
+        >
+          <div className="w-80 border-r border-zinc-800/50">
             <Timeline currentStep={currentStep} />
           </div>
 
           <div className="flex-1 p-8">
             <div className="flex h-[32.5rem] flex-col">
               <div className="mb-8 text-center">
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <h2 className="bg-gradient-to-r from-violet-400 to-violet-600 bg-clip-text text-2xl font-bold text-transparent">
-                    {steps[currentStep - 1].title}
-                  </h2>
-                  <p className="mt-2 text-gray-400">
-                    {steps[currentStep - 1].description}
-                  </p>
-                </motion.div>
+                <h1 className="text-3xl font-bold text-blue-500">
+                  {steps[currentStep - 1].title}
+                </h1>
+                <p className="mt-2 text-gray-500">
+                  {steps[currentStep - 1].description}
+                </p>
               </div>
 
               <div className="flex-1 overflow-y-auto">
                 {renderStepContent()}
               </div>
 
-              <div className="mt-8 flex items-center justify-between">
-                {currentStep !== 4 && (
+              <div className="mt-8 flex items-center justify-between space-x-4">
+                {currentStep !== 1 && currentStep !== 4 && (
                   <Button
                     type="button"
                     variant="secondary"
@@ -496,7 +494,7 @@ const Register = () => {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
       <PartnerInfoModal
         isOpen={isPartnerModalOpen}
