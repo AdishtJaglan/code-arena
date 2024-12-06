@@ -1,18 +1,13 @@
-import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Code, Target, Users, Zap, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GridPattern from "@/components/GridPattern";
+import { MagicCard } from "@/components/MagicCard";
 // import IconCloud from "@/components/ui/icon-cloud";
 import Navbar from "@/components/Navbar";
 
 const LandingPage = () => {
-  const containerRef = useRef(null);
-  const card1Ref = useRef(null);
-  const card2Ref = useRef(null);
-  const card3Ref = useRef(null);
-
   const featureVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -31,20 +26,17 @@ const LandingPage = () => {
       title: "Diverse Challenges",
       description:
         "Wide range of coding problems across multiple difficulty levels",
-      ref: card1Ref,
     },
     {
       icon: Target,
       title: "Skill Tracking",
       description:
         "Comprehensive progress monitoring and performance analytics",
-      ref: card2Ref,
     },
     {
       icon: Users,
       title: "Community Driven",
       description: "Connect with developers, share solutions, learn together",
-      ref: card3Ref,
     },
   ];
 
@@ -86,7 +78,7 @@ const LandingPage = () => {
 
       <Navbar />
 
-      <div className="container relative z-10 mx-auto px-4" ref={containerRef}>
+      <div className="container relative z-10 mx-auto px-4">
         <div className="pt-24 text-center">
           <motion.h1
             initial={{ opacity: 0, scale: 0.9 }}
@@ -107,7 +99,7 @@ const LandingPage = () => {
               [12, 18],
               [18, 18],
               [21, 19],
-              [21,12]
+              [21, 12],
             ]}
             className={cn(
               "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
@@ -155,24 +147,25 @@ const LandingPage = () => {
         <div className="mt-24 grid gap-8 md:grid-cols-3">
           {features.map((feature, index) => (
             <motion.div
-              ref={feature.ref}
-              key={feature.title}
+              key={index}
               initial="hidden"
               animate="visible"
               variants={featureVariants}
-              transition={{ delay: index * 0.2 }}
-              className="transform rounded-xl border border-neutral-800 bg-neutral-900/60 p-6 text-center transition-all hover:scale-105 hover:bg-neutral-900/80"
             >
-              <div className="mb-4 flex justify-center">
-                <feature.icon
-                  className="h-12 w-12 text-neutral-600"
-                  strokeWidth={1.5}
-                />
-              </div>
-              <h3 className="mb-2 text-xl font-bold text-neutral-200">
-                {feature.title}
-              </h3>
-              <p className="text-neutral-500">{feature.description}</p>
+              <MagicCard className="flex transform cursor-pointer flex-col items-center rounded-xl border border-neutral-800 bg-neutral-900/60 p-6 py-8 text-center shadow-2xl hover:bg-neutral-900/80">
+                <div className="mb-4 flex justify-center">
+                  <feature.icon
+                    className="h-12 w-12 text-neutral-600"
+                    strokeWidth={1.5}
+                  />
+                </div>
+                <h3 className="mb-2 text-lg font-bold text-neutral-200">
+                  {feature.title}
+                </h3>
+                <p className="text-md text-neutral-500">
+                  {feature.description}
+                </p>
+              </MagicCard>
             </motion.div>
           ))}
         </div>
