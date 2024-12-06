@@ -7,10 +7,6 @@ import Login from "./pages/Login";
 import LeaderboardPage from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import FindPartner from "./pages/FindPartner";
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
 
 const App = () => {
   return (

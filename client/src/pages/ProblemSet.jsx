@@ -36,6 +36,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { MagicCard } from "@/components/MagicCard.jsx";
+import Particles from "@/components/Particles.jsx";
 import Navbar from "@/components/Navbar.jsx";
 
 const tags = [
@@ -353,189 +355,207 @@ const ProblemSet = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 dark:bg-black dark:text-gray-100">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        {/* Header with Search and Filters */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="relative mr-4 max-w-md flex-grow">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-zinc-800 bg-zinc-900 text-gray-200 placeholder-gray-600 focus:ring-2 focus:ring-blue-800"
-            />
-          </div>
+    <>
+      <Particles
+        className="fixed inset-0 h-screen w-screen"
+        quantity={100}
+        ease={80}
+        color={"#ffffff"}
+        refresh
+      />
+      <div className="min-h-screen bg-black text-gray-100 dark:bg-black dark:text-gray-100">
+        <Navbar />
 
-          <div className="flex items-center space-x-4">
-            <FiltersModal />
-            {(filters.difficulty || filters.tags.length > 0) && (
-              <Button
-                variant="destructive"
-                onClick={clearAllFilters}
-                className="bg-red-900/50 text-red-400 hover:bg-red-900/70"
-              >
-                <XIcon className="mr-2 h-4 w-4" /> Clear Filters
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="mb-8 grid grid-cols-3 gap-4">
-          {[
-            {
-              icon: StarIcon,
-              color: "indigo",
-              label: "Total Problems",
-              value: totalQuestions,
-            },
-            {
-              icon: CheckCircle2Icon,
-              color: "green",
-              label: "Solved",
-              value: 0,
-            },
-            {
-              icon: XCircleIcon,
-              color: "red",
-              label: "Unsolved",
-              value: totalQuestions,
-            },
-          ].map(({ icon: Icon, color, label, value }) => (
-            <Card
-              key={label}
-              className="hover:bg-zinc-850 border-zinc-800 bg-zinc-900 transition-all duration-300"
-            >
-              <CardHeader className="pb-2">
-                <Icon className={`mx-auto mb-4 h-8 w-8 text-${color}-500`} />
-                <CardTitle className="text-center text-sm text-gray-400">
-                  {label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className={`text-3xl font-bold text-${color}-500`}>
-                  {value}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Pagination */}
-        {questions.length > 0 && (
-          <Pagination className="my-8">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={() => setPageNo(Math.max(1, pageNo - 1))}
-                  disabled={pageNo === 1}
-                  className="bg-zinc-900 text-gray-400 hover:bg-zinc-800 disabled:opacity-50"
-                />
-              </PaginationItem>
-              {[...Array(totalPages)].map((_, index) => (
-                <PaginationItem key={index}>
-                  <PaginationLink
-                    href="#"
-                    isActive={pageNo === index + 1}
-                    onClick={() => setPageNo(index + 1)}
-                    className={`${
-                      pageNo === index + 1
-                        ? "bg-blue-950 text-blue-400"
-                        : "bg-zinc-900 text-gray-400 hover:bg-zinc-800"
-                    }`}
-                  >
-                    {index + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={() => setPageNo(Math.min(totalPages, pageNo + 1))}
-                  disabled={pageNo === totalPages}
-                  className="bg-zinc-900 text-gray-400 hover:bg-zinc-800 disabled:opacity-50"
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-blue-800"></div>
-          </div>
-        ) : (
-          <>
-            {/* Problem List */}
-            <div className="mb-8 space-y-4">
-              {questions.map((question) => (
-                <Card
-                  key={question._id}
-                  onClick={() => solveProblemClick(question.question_id)}
-                  className="hover:bg-zinc-850 cursor-pointer border-zinc-800 bg-zinc-900 transition-all duration-300 hover:border-zinc-700"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Code2Icon className="h-6 w-6 text-indigo-500" />
-                        <h3 className="text-lg font-semibold text-gray-100">
-                          {question.title}
-                        </h3>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <DifficultyBadge difficulty={question.difficulty} />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-gray-500 hover:text-indigo-400"
-                        >
-                          <ArrowUpRightIcon />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center">
-                          <TrendingUpIcon className="mr-2 h-4 w-4 text-green-500" />
-                          <span>
-                            {question.acceptanceRate.toFixed(2)}% Acceptance
-                          </span>
-                        </div>
-                        <div className="flex space-x-2">
-                          {question.tags.slice(0, 3).map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="bg-zinc-800 text-gray-300"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        <div className="container mx-auto px-4 py-8">
+          {/* Header with Search and Filters */}
+          <div className="mb-8 flex items-center justify-between">
+            <div className="relative mr-4 max-w-md flex-grow">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border-zinc-800 bg-zinc-900 text-gray-200 placeholder-gray-600 focus:ring-2 focus:ring-blue-800"
+              />
             </div>
 
-            {/* Empty State */}
-            {questions.length === 0 && (
-              <div className="py-16 text-center">
-                <BookOpenIcon className="mx-auto mb-4 h-16 w-16 text-indigo-600" />
-                <p className="text-lg text-gray-500">
-                  No problems found. Try adjusting your filters.
-                </p>
+            <div className="flex items-center space-x-4">
+              <FiltersModal />
+              {(filters.difficulty || filters.tags.length > 0) && (
+                <Button
+                  variant="destructive"
+                  onClick={clearAllFilters}
+                  className="bg-red-900/50 text-red-400 hover:bg-red-900/70"
+                >
+                  <XIcon className="mr-2 h-4 w-4" /> Clear Filters
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="mb-8 grid grid-cols-3 gap-4">
+            {[
+              {
+                icon: StarIcon,
+                color: "indigo",
+                label: "Total Problems",
+                value: totalQuestions,
+              },
+              {
+                icon: CheckCircle2Icon,
+                color: "green",
+                label: "Solved",
+                value: 0,
+              },
+              {
+                icon: XCircleIcon,
+                color: "red",
+                label: "Unsolved",
+                value: totalQuestions,
+              },
+            ].map(({ icon: Icon, color, label, value }) => (
+              <MagicCard
+                key={label}
+                className={
+                  "hover:bg-zinc-850 flex flex-col border-zinc-800 bg-zinc-900 transition-all duration-300"
+                }
+              >
+                <CardHeader className="pb-2">
+                  <Icon className={`mx-auto mb-4 h-8 w-8 text-${color}-500`} />
+                  <CardTitle className="text-center text-sm text-gray-400">
+                    {label}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className={`text-3xl font-bold text-${color}-500`}>
+                    {value}
+                  </p>
+                </CardContent>
+              </MagicCard>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {questions.length > 0 && (
+            <Pagination className="my-8">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={() => setPageNo(Math.max(1, pageNo - 1))}
+                    disabled={pageNo === 1}
+                    className="bg-zinc-900 text-gray-400 hover:bg-zinc-800 disabled:opacity-50"
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      href="#"
+                      isActive={pageNo === index + 1}
+                      onClick={() => setPageNo(index + 1)}
+                      className={`${
+                        pageNo === index + 1
+                          ? "bg-blue-950 text-blue-400"
+                          : "bg-zinc-900 text-gray-400 hover:bg-zinc-800"
+                      }`}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={() => setPageNo(Math.min(totalPages, pageNo + 1))}
+                    disabled={pageNo === totalPages}
+                    className="bg-zinc-900 text-gray-400 hover:bg-zinc-800 disabled:opacity-50"
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-blue-800"></div>
+            </div>
+          ) : (
+            <>
+              {/* Problem List */}
+              <div className="mb-8 space-y-4">
+                {questions.map((question) => (
+                  <Card
+                    key={question._id}
+                    onClick={() => solveProblemClick(question.question_id)}
+                    className="hover:bg-zinc-850 cursor-pointer border-zinc-800 bg-zinc-900 transition-all duration-300 hover:border-zinc-700"
+                  >
+                    <MagicCard
+                      className={
+                        "hover:bg-zinc-850 flex flex-col border-zinc-800 bg-zinc-900 transition-all duration-300"
+                      }
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <Code2Icon className="h-6 w-6 text-indigo-500" />
+                            <h3 className="text-lg font-semibold text-gray-100">
+                              {question.title}
+                            </h3>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <DifficultyBadge difficulty={question.difficulty} />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-gray-500 hover:text-indigo-400"
+                            >
+                              <ArrowUpRightIcon />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center">
+                              <TrendingUpIcon className="mr-2 h-4 w-4 text-green-500" />
+                              <span>
+                                {question.acceptanceRate.toFixed(2)}% Acceptance
+                              </span>
+                            </div>
+                            <div className="flex space-x-2">
+                              {question.tags.slice(0, 3).map((tag) => (
+                                <Badge
+                                  key={tag}
+                                  variant="secondary"
+                                  className="bg-zinc-800 text-gray-300"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </MagicCard>
+                  </Card>
+                ))}
               </div>
-            )}
-          </>
-        )}
+
+              {/* Empty State */}
+              {questions.length === 0 && (
+                <div className="py-16 text-center">
+                  <BookOpenIcon className="mx-auto mb-4 h-16 w-16 text-indigo-600" />
+                  <p className="text-lg text-gray-500">
+                    No problems found. Try adjusting your filters.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
