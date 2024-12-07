@@ -180,6 +180,7 @@ const Navbar = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setUserData(null);
+    window.location.reload();
   };
 
   const handleRequestStatus = async (senderId, status) => {

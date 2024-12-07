@@ -195,3 +195,52 @@ export const getQuestionByQuestionId = asyncHandler(async (req, res) => {
     res
   );
 });
+
+export const getQuestionCountForDifficulty = asyncHandler(async (req, res) => {
+  const result = await Question.aggregate([
+    {
+      $group: {
+        _id: null,
+        easyTotal: {
+          $sum: {
+            $cond: [{ $eq: ["$difficulty", "Easy"] }, 1, 0],
+          },
+        },
+        mediumTotal: {
+          $sum: {
+            $cond: [{ $eq: ["$difficulty", "Medium"] }, 1, 0],
+          },
+        },
+        hardTotal: {
+          $sum: {
+            $cond: [{ $eq: ["$difficulty", "Hard"] }, 1, 0],
+          },
+        },
+        totalQuestions: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        easyTotal: 1,
+        mediumTotal: 1,
+        hardTotal: 1,
+        totalQuestions: 1,
+      },
+    },
+  ]);
+
+  const questionCount = result[0] || {
+    easyTotal: 0,
+    mediumTotal: 0,
+    hardTotal: 0,
+    totalQuestions: 0,
+  };
+
+  return ApiResponse.Ok(
+    "Fetched difficutly count for questions.",
+    questionCount
+  ).send(res);
+});

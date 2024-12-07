@@ -27,7 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -126,6 +126,8 @@ const ProblemSet = () => {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [questionsSolved, setQuestionsSolved] = useState(null);
+  const [questionData, setQuestionData] = useState(null);
   const [filters, setFilters] = useState({
     difficulty: null,
     tags: [],
@@ -164,6 +166,68 @@ const ProblemSet = () => {
     const timerId = setTimeout(getAllQuestions, 500);
     return () => clearTimeout(timerId);
   }, [pageNo, filters, searchTerm]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    const fetchUserQuestionsSolved = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/user/questions-solved`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        return { data: response.data.data, error: null };
+      } catch (error) {
+        return {
+          data: null,
+          error: error.response?.data?.error || error.message,
+        };
+      }
+    };
+
+    const fetchQuestionDifficultyCount = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/question/difficulty-count`,
+        );
+        return { data: response.data.data, error: null };
+      } catch (error) {
+        return {
+          data: null,
+          error: error.response?.data?.error || error.message,
+        };
+      }
+    };
+
+    const fetchQuestionData = async () => {
+      const [userResult, questionResult] = await Promise.allSettled([
+        fetchUserQuestionsSolved(),
+        fetchQuestionDifficultyCount(),
+      ]);
+
+      if (userResult.status === "fulfilled" && userResult.value.data) {
+        setQuestionsSolved(userResult.value.data);
+      } else {
+        console.error(
+          "Error fetching questions solved:",
+          userResult?.value?.error,
+        );
+      }
+
+      if (questionResult.status === "fulfilled" && questionResult.value.data) {
+        setQuestionData(questionResult.value.data);
+      } else {
+        console.error(
+          "Error fetching question difficulty count:",
+          questionResult?.value?.error,
+        );
+      }
+    };
+
+    fetchQuestionData();
+  }, []);
 
   const solveProblemClick = (id) => {
     navigate(`/problems/${id}`);
@@ -354,6 +418,78 @@ const ProblemSet = () => {
     );
   };
 
+  const cardData = [
+    {
+      icon: StarIcon,
+      color: "blue",
+      label: "Total Problems",
+      value: totalQuestions,
+      difficulty: [
+        {
+          name: "Easy",
+          count: questionData?.easyTotal,
+          color: "bg-green-500",
+        },
+        {
+          name: "Medium",
+          count: questionData?.mediumTotal,
+          color: "bg-yellow-500",
+        },
+        {
+          name: "Hard",
+          count: questionData?.hardTotal,
+          color: "bg-red-500",
+        },
+      ],
+    },
+    {
+      icon: CheckCircle2Icon,
+      color: "green",
+      label: "Solved",
+      value: questionsSolved?.total || 0,
+      difficulty: [
+        {
+          name: "Easy",
+          count: questionsSolved?.easy || 0,
+          color: "bg-green-500",
+        },
+        {
+          name: "Medium",
+          count: questionsSolved?.medium || 0,
+          color: "bg-yellow-500",
+        },
+        {
+          name: "Hard",
+          count: questionsSolved?.hard || 0,
+          color: "bg-red-500",
+        },
+      ],
+    },
+    {
+      icon: XCircleIcon,
+      color: "red",
+      label: "Unsolved",
+      value: totalQuestions - (questionsSolved?.total || 0),
+      difficulty: [
+        {
+          name: "Easy",
+          count: questionData?.easyTotal - (questionsSolved?.easy || 0),
+          color: "bg-green-500",
+        },
+        {
+          name: "Medium",
+          count: questionData?.mediumTotal - (questionsSolved?.medium || 0),
+          color: "bg-yellow-500",
+        },
+        {
+          name: "Hard",
+          count: questionData?.hardTotal - (questionsSolved?.hard || 0),
+          color: "bg-red-500",
+        },
+      ],
+    },
+  ];
+
   return (
     <>
       <Particles
@@ -394,43 +530,55 @@ const ProblemSet = () => {
 
           {/* Stats Cards */}
           <div className="mb-8 grid grid-cols-3 gap-4">
-            {[
-              {
-                icon: StarIcon,
-                color: "indigo",
-                label: "Total Problems",
-                value: totalQuestions,
-              },
-              {
-                icon: CheckCircle2Icon,
-                color: "green",
-                label: "Solved",
-                value: 0,
-              },
-              {
-                icon: XCircleIcon,
-                color: "red",
-                label: "Unsolved",
-                value: totalQuestions,
-              },
-            ].map(({ icon: Icon, color, label, value }) => (
+            {cardData.map(({ icon: Icon, color, label, value, difficulty }) => (
               <MagicCard
                 key={label}
-                className={
-                  "hover:bg-zinc-850 flex flex-col border-zinc-800 bg-zinc-900 transition-all duration-300"
-                }
+                className="group relative overflow-hidden rounded-3xl border border-zinc-800/50 bg-zinc-900/60 shadow-2xl backdrop-blur-sm transition-all duration-500 hover:border-zinc-700/70 hover:shadow-2xl"
               >
-                <CardHeader className="pb-2">
-                  <Icon className={`mx-auto mb-4 h-8 w-8 text-${color}-500`} />
-                  <CardTitle className="text-center text-sm text-gray-400">
-                    {label}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className={`text-3xl font-bold text-${color}-500`}>
-                    {value}
-                  </p>
-                </CardContent>
+                <div className="flex h-full">
+                  <div className={`w-1/2 bg-${color}-500/10 min-h-full p-6`}>
+                    <div className="flex min-h-full flex-col items-center justify-center">
+                      <div
+                        className={`mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-${color}-500/20 transition-all duration-500 group-hover:bg-${color}-500/30`}
+                      >
+                        <Icon
+                          className={`h-10 w-10 text-${color}-500 transition-transform duration-500 group-hover:scale-110`}
+                        />
+                      </div>
+                      <h3 className="mb-2 text-sm uppercase tracking-wider text-gray-400 transition-colors group-hover:text-gray-200">
+                        {label}
+                      </h3>
+                      <p
+                        className={`text-5xl font-bold text-${color}-500 transition-all group-hover:tracking-wide`}
+                      >
+                        {value}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="w-full space-y-4 p-6">
+                    {difficulty.map(({ name, count, color }) => (
+                      <div key={name} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium uppercase tracking-wider text-gray-400">
+                            {name}
+                          </span>
+                          <span className="text-sm font-bold text-gray-200">
+                            {count}
+                          </span>
+                        </div>
+                        <div className="h-3 w-full overflow-hidden rounded-full bg-zinc-800">
+                          <div
+                            className={`${color} h-full transition-all duration-500 group-hover:opacity-80`}
+                            style={{
+                              width: `${(count / totalQuestions) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </MagicCard>
             ))}
           </div>

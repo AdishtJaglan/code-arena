@@ -35,10 +35,10 @@ router.get("/all", getAllUser);
 router.post("/email", getUserByEmail);
 router.get("/leaderboard", getLeaderBoardRankings);
 router.get("/partner", isAuthenticated, getParnterData);
-router.get("/questions-solved/:id", getUserQuestionsSolvedAll);
+router.get("/questions-solved", isAuthenticated, getUserQuestionsSolvedAll);
 router.get("/user-data/:id", getUserByUserId);
 router.get("/partner/:id", getPublicPartnerData);
 router.get("/rank/:id", getUserRank);
-router.get("/potential-partners", isAuthenticated, getPotentialPartners);  
+router.get("/potential-partners", isAuthenticated, getPotentialPartners);
 
 export default router;

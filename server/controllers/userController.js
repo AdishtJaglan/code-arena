@@ -229,7 +229,7 @@ export const getLoggedInUserData = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findById(id)
-    .select("username email profilePicture rating user_id")
+    .select("username email profilePicture rating user_id questionsSolved")
     .lean();
 
   if (!user) {
@@ -267,7 +267,7 @@ export const getParnterData = asyncHandler(async (req, res) => {
 });
 
 export const getUserQuestionsSolvedAll = asyncHandler(async (req, res) => {
-  const { id: userId } = req?.params;
+  const { id: userId } = req?.user;
 
   if (!userId) {
     throw ApiError.BadRequest("User ID is mandatory.");
