@@ -7,6 +7,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import uploadImageToCloudinary from "../utils/cloudinary.js";
+import getUserQuestionsSolvedData from "../utils/userQuestionSolveData.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { username, password, email } = req.body;
@@ -269,63 +270,20 @@ export const getParnterData = asyncHandler(async (req, res) => {
 export const getUserQuestionsSolvedAll = asyncHandler(async (req, res) => {
   const { id: userId } = req?.user;
 
-  if (!userId) {
-    throw ApiError.BadRequest("User ID is mandatory.");
-  }
-
-  const userExists = await User.exists({ _id: userId });
-  if (!userExists) {
-    throw ApiError.NotFound("User not found.");
-  }
-
-  const questionCounts = await User.aggregate([
-    { $match: { _id: new mongoose.Types.ObjectId(userId) } },
-    { $unwind: "$questionsSolved" },
-    {
-      $lookup: {
-        from: "questions",
-        localField: "questionsSolved",
-        foreignField: "_id",
-        as: "questionDetails",
-      },
-    },
-    { $unwind: "$questionDetails" },
-    {
-      $group: {
-        _id: null,
-        easy: {
-          $sum: {
-            $cond: [{ $eq: ["$questionDetails.difficulty", "Easy"] }, 1, 0],
-          },
-        },
-        medium: {
-          $sum: {
-            $cond: [{ $eq: ["$questionDetails.difficulty", "Medium"] }, 1, 0],
-          },
-        },
-        hard: {
-          $sum: {
-            $cond: [{ $eq: ["$questionDetails.difficulty", "Hard"] }, 1, 0],
-          },
-        },
-        total: { $sum: 1 },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        easy: 1,
-        medium: 1,
-        hard: 1,
-        total: 1,
-      },
-    },
-  ]);
-
-  const result = questionCounts[0] || { easy: 0, medium: 0, hard: 0, total: 0 };
+  const result = await getUserQuestionsSolvedData(userId);
 
   return ApiResponse.Ok("Fetched user questions data.", result).send(res);
 });
+
+export const getUserQuestionsSolvedAllPublic = asyncHandler(
+  async (req, res) => {
+    const { id: userId } = req?.params;
+
+    const result = await getUserQuestionsSolvedData(userId);
+
+    return ApiResponse.Ok("Fetched user questions data.", result).send(res);
+  }
+);
 
 export const getUserByUserId = asyncHandler(async (req, res) => {
   const { id } = req.params;
