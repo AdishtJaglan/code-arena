@@ -26,11 +26,6 @@ const SolutionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    answer: {
-      type: mongoose.Types.ObjectId,
-      ref: "Answer",
-      required: true,
-    },
   },
   { timestamps: true }
 );

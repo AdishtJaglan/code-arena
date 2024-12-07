@@ -4,9 +4,9 @@ const LANGUAGES = ["C++", "C", "JavaScript", "Java", "Python", "Go", "Rust"];
 
 const CodeAnswerSchema = new mongoose.Schema(
   {
-    answer: {
+    solution: {
       type: mongoose.Types.ObjectId,
-      ref: "Answer",
+      ref: "Solution",
     },
     code: {
       type: String,
@@ -14,7 +14,7 @@ const CodeAnswerSchema = new mongoose.Schema(
     },
     language: {
       type: String,
-      enum: [LANGUAGES],
+      enum: LANGUAGES,
       required: true,
     },
   },

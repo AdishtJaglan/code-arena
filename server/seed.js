@@ -1,5 +1,3 @@
-//!imp TODO -> rewrite Answer, Solution, CodeAnswer, CodeSolution and Question seed functions
-
 import { faker } from "@faker-js/faker";
 import mongoose from "mongoose";
 import User from "./models/User.js";
@@ -10,11 +8,14 @@ import Answer from "./models/Answer.js";
 import Partner from "./models/Partner.js";
 import TestCase from "./models/TestCase.js";
 import Submission from "./models/Submission.js";
+import Solution from "./models/Solution.js";
+import CodeAnswer from "./models/CodeAnswers.js";
+import CodeQuestion from "./models/CodeQuestion.js";
 
 const MONGODB_URI = "mongodb://localhost:27017/codeIt";
 const NUM_USERS = 100;
 const NUM_QUESTIONS = 200;
-
+const LANGUAGES = ["C++", "C", "JavaScript", "Java", "Python", "Go", "Rust"];
 const TAGS = [
   "Arrays",
   "Linked List",
@@ -214,65 +215,6 @@ async function seedExamples(questions, users) {
   return examples;
 }
 
-async function seedAnswers(questions, users) {
-  const answers = [];
-
-  for (const question of questions) {
-    const answer = new Answer({
-      question: question._id,
-      solutions: [
-        {
-          type: "Brute Force",
-          heading: `Brute Force Solution - ${faker.helpers.arrayElement([
-            "Time: O(n)",
-            "Time: O(n²)",
-            "Time: O(log n)",
-          ])}`,
-          answer: `\`\`\`python\n# Brute Force Solution\ndef solve(arr):\n    ${faker.lorem.lines(
-            5
-          )}\n\`\`\`\n\n${faker.lorem.paragraphs(1)}`,
-          explanation: faker.lorem.paragraph(4),
-          contributedBy: getRandomElement(users)._id,
-        },
-        {
-          type: "Better",
-          heading: `Better Solution - ${faker.helpers.arrayElement([
-            "Time: O(n)",
-            "Time: O(n²)",
-            "Time: O(log n)",
-          ])}`,
-          answer: `\`\`\`python\n# Better Solution\ndef solve(arr):\n    ${faker.lorem.lines(
-            5
-          )}\n\`\`\`\n\n${faker.lorem.paragraphs(1)}`,
-          explanation: faker.lorem.paragraph(4),
-          contributedBy: getRandomElement(users)._id,
-        },
-        {
-          type: "Optimal",
-          heading: `Optimal Solution - ${faker.helpers.arrayElement([
-            "Time: O(n)",
-            "Time: O(n²)",
-            "Time: O(log n)",
-          ])}`,
-          answer: `\`\`\`python\n# Optimal Solution\ndef solve(arr):\n    ${faker.lorem.lines(
-            5
-          )}\n\`\`\`\n\n${faker.lorem.paragraphs(1)}`,
-          explanation: faker.lorem.paragraph(4),
-          contributedBy: getRandomElement(users)._id,
-        },
-      ],
-    });
-    answers.push(answer);
-
-    await Question.findByIdAndUpdate(question._id, {
-      answer: answer._id,
-    });
-  }
-
-  await Answer.insertMany(answers);
-  return answers;
-}
-
 async function seedDiscussions(questions, users) {
   const discussions = [];
   const discussionIds = [];
@@ -386,7 +328,7 @@ async function seedTestCases(questions) {
 async function updateUserReferences(
   users,
   questions,
-  answers,
+  solutions,
   discussions,
   submissions
 ) {
@@ -394,10 +336,9 @@ async function updateUserReferences(
     const userQuestions = questions.filter(
       (q) => q.submittedBy.toString() === user._id.toString()
     );
-    const userAnswers = answers.filter((a) =>
-      a.solutions.some(
-        (s) => s.contributedBy.toString() === user._id.toString()
-      )
+
+    const userSolutions = solutions.filter(
+      (solution) => solution.contributedBy.toString() === user._id.toString()
     );
 
     const userDiscussions = discussions.filter(
@@ -405,7 +346,9 @@ async function updateUserReferences(
     );
 
     user.questionContributions = userQuestions.map((q) => q._id);
-    user.answerContributions = userAnswers.map((a) => a._id);
+
+    user.solutionContributions = userSolutions.map((s) => s._id);
+
     user.questionsSolved = getRandomElements(questions, 0, 50).map(
       (q) => q._id
     );
@@ -564,6 +507,105 @@ def solution(arr):
   return submissionsDocuments;
 }
 
+async function seedSolutions(questions, users) {
+  const solutions = [];
+  const codeAnswers = [];
+
+  for (const question of questions) {
+    const numSolutions = 3;
+
+    for (let i = 0; i < numSolutions; i++) {
+      const solution = new Solution({
+        type: i === 0 ? "Brute Force" : i === 1 ? "Better" : "Optimal",
+        heading: `${
+          i === 0 ? "Brute Force" : i === 1 ? "Better" : "Optimal"
+        } Solution - ${faker.helpers.arrayElement([
+          "Time: O(n)",
+          "Time: O(n²)",
+          "Time: O(log n)",
+        ])}`,
+        explanation: faker.lorem.paragraph(4),
+        contributedBy: getRandomElement(users)._id,
+        codeAnswer: [],
+      });
+
+      const solutionCodeAnswers = [];
+      for (const language of LANGUAGES) {
+        const codeAnswer = new CodeAnswer({
+          solution: solution._id,
+          code: `
+# ${language} ${solution.type} Solution
+def solve(arr):
+    ${faker.lorem.lines(5)}
+    return result
+`,
+          language: language,
+        });
+
+        await codeAnswer.save();
+        solutionCodeAnswers.push(codeAnswer._id);
+        codeAnswers.push(codeAnswer);
+      }
+
+      solution.codeAnswer = solutionCodeAnswers;
+      await solution.save();
+      solutions.push(solution);
+    }
+
+    const solutionIds = solutions.map((sol) => sol._id);
+    const selectedIds = solutionIds.slice(0, 3);
+
+    const answer = new Answer({
+      question: question._id,
+      solutions: selectedIds,
+    });
+
+    await Question.findByIdAndUpdate(question._id, {
+      answer: answer._id,
+    });
+
+    await answer.save();
+  }
+
+  return { solutions, codeAnswers };
+}
+
+async function seedCodeQuestions(questions) {
+  const codeQuestions = [];
+
+  for (const question of questions) {
+    for (const language of LANGUAGES) {
+      const codeQuestion = new CodeQuestion({
+        question: question._id,
+        code: `
+# ${language} Problem Statement
+def solve(arr):
+    ${faker.lorem.lines(5)}
+    return result
+`,
+        language: language,
+      });
+      codeQuestions.push(codeQuestion);
+    }
+  }
+
+  await CodeQuestion.insertMany(codeQuestions);
+
+  const codeQuestionIds = codeQuestions.map((q) => q._id);
+  const randomQuestionIds = codeQuestionIds.slice(0, 6);
+
+  await Question.updateMany(
+    {},
+    {
+      $set: {
+        codeQuestion: randomQuestionIds,
+      },
+    }
+  );
+
+  return codeQuestions;
+}
+
 async function seedDatabase() {
   try {
     await mongoose.connect(MONGODB_URI);
@@ -576,6 +618,9 @@ async function seedDatabase() {
       Answer.deleteMany({}),
       Discussion.deleteMany({}),
       Partner.deleteMany({}),
+      Solution.deleteMany({}),
+      CodeAnswer.deleteMany({}),
+      CodeQuestion.deleteMany({}),
     ]);
     console.log("Cleared existing data");
 
@@ -585,16 +630,19 @@ async function seedDatabase() {
     const questions = await seedQuestions(users);
     console.log(`Seeded ${questions.length} questions`);
 
-    const examples = await seedExamples(questions, users);
-    console.log(`Seeded ${examples.length} examples`);
+    const { solutions, codeAnswers } = await seedSolutions(questions, users);
+    console.log(
+      `Seeded ${solutions.length} solutions and ${codeAnswers.length} code answers`
+    );
+
+    const codeQuestions = await seedCodeQuestions(questions);
+    console.log(`Seeded ${codeQuestions.length} code questions`);
 
     const discussions = await seedDiscussions(questions, users);
     console.log(`Seeded ${discussions.length} discussions`);
 
     const testCases = await seedTestCases(questions);
     console.log(`Seeded ${testCases.length} test cases`);
-
-    const answers = await seedAnswers(questions, users);
 
     const submissions = await seedSubmissions(questions, users);
     console.log(`Seeded ${submissions.length} submissions`);
@@ -606,7 +654,7 @@ async function seedDatabase() {
     await updateUserReferences(
       users,
       questions,
-      answers,
+      solutions,
       discussions,
       submissions
     );

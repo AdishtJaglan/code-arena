@@ -14,7 +14,7 @@ const CodeQuestionSchema = new mongoose.Schema(
     },
     language: {
       type: String,
-      enum: [LANGUAGES],
+      enum: LANGUAGES,
       required: true,
     },
   },
