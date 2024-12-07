@@ -70,6 +70,16 @@ const QuestionSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    explanation: {
+      type: String,
+      required: true,
+    },
+    codeQuestion: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "CodeQuestion",
+      },
+    ],
     constraints: {
       type: String,
       required: true,

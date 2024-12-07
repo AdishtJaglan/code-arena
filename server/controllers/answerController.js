@@ -1,3 +1,6 @@
+//! need complete rewrite after model changes
+// TODO -> rewrite controllers
+
 import Answer from "../models/Answer.js";
 import Question from "../models/Question.js";
 import User from "../models/User.js";

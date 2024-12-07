@@ -7,9 +7,9 @@ import ApiResponse from "../utils/apiResponse.js";
 
 export const createQuestion = asyncHandler(async (req, res) => {
   const { userId } = req.params;
-  const { title, constraints, tags, difficulty } = req.body;
+  const { title, constraints, tags, difficulty, explanation } = req.body;
 
-  if (!title || !constraints || !tags || !difficulty) {
+  if (!title || !constraints || !tags || !difficulty || !explanation) {
     throw ApiError.BadRequest("All fields mandatory.");
   }
 
@@ -24,6 +24,7 @@ export const createQuestion = asyncHandler(async (req, res) => {
     constraints,
     tags,
     difficulty,
+    explanation,
     submittedBy: user._id,
   };
 

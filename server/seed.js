@@ -1,3 +1,5 @@
+//!imp TODO -> rewrite Answer, Solution, CodeAnswer, CodeSolution and Question seed functions
+
 import { faker } from "@faker-js/faker";
 import mongoose from "mongoose";
 import User from "./models/User.js";
@@ -164,7 +166,8 @@ async function seedQuestions(users) {
       title: `Consider the following ${getRandomElement(
         TAGS
       )} problem: ${faker.lorem.sentence()} `,
-      constraints: faker.lorem.sentences(),
+      explanation: faker.lorem.paragraph(2),
+      constraints: faker.lorem.sentence(),
       tags: getRandomElements(TAGS, 1, 4),
       submittedBy: getRandomElement(users)._id,
       difficulty,
