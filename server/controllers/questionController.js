@@ -1,6 +1,7 @@
 import Question from "../models/Question.js";
 import User from "../models/User.js";
 import Example from "../models/Example.js";
+import Solution from "../models/Solution.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";

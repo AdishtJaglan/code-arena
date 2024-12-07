@@ -630,6 +630,9 @@ async function seedDatabase() {
     const questions = await seedQuestions(users);
     console.log(`Seeded ${questions.length} questions`);
 
+    const examples = await seedExamples(questions, users);
+    console.log(`Seeded ${examples.length} examples`);
+
     const { solutions, codeAnswers } = await seedSolutions(questions, users);
     console.log(
       `Seeded ${solutions.length} solutions and ${codeAnswers.length} code answers`
