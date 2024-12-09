@@ -23,6 +23,7 @@ import discussionRoutes from "./routes/discussionRoutes.js";
 import submissionRoutes from "./routes/submissionRoutes.js";
 import codeQuestionRoutes from "./routes/codeQuesitonRoutes.js";
 import solutionRoutes from "./routes/solutionRoutes.js";
+import codeAnswerRoutes from "./routes/codeAnswerRoutes.js";
 
 mongoose
   .connect(ENV.DB_URL || "mongodb://localhost:27017/codeIt")
@@ -52,6 +53,7 @@ app.use("/api/discussion", discussionRoutes);
 app.use("/api/submission", submissionRoutes);
 app.use("/api/code-question", codeQuestionRoutes);
 app.use("/api/solution", solutionRoutes);
+app.use("/api/code-answer", codeAnswerRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome" });
