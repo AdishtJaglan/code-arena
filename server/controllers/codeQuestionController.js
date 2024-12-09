@@ -23,9 +23,14 @@ export const createMultipleCodeQuestions = asyncHandler(async (req, res) => {
     throw ApiError.NotFound("No question found for given question ID.");
   }
 
-  codeQuestion.map((codeQues) => {
-    return { ...codeQues, question: questionId };
-  });
+  for (const codeQues of codeQuestions) {
+    if (!codeQues.code || !codeQues.language) {
+      throw ApiError.BadRequest(
+        "Each code question must have language and source code."
+      );
+    }
+    codeQues.question = questionId;
+  }
 
   const codeQuestions = await CodeQuestion.insertMany(codeQuestion);
   const codeQuestionIds = codeQuestions.map((cq) => cq._id);
