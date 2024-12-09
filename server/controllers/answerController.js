@@ -1,6 +1,3 @@
-//! need complete rewrite after model changes
-// TODO -> rewrite controllers
-
 import Answer from "../models/Answer.js";
 import Question from "../models/Question.js";
 import User from "../models/User.js";
@@ -9,51 +6,37 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 
 export const createAnswer = asyncHandler(async (req, res) => {
-  const { solutions, question } = req.body;
-
-  if (!solutions || !Array.isArray(solutions) || solutions.length === 0) {
-    throw ApiError.BadRequest("Solution must be an array.");
-  }
+  const { question, contributedBy } = req.body;
 
   if (!question) {
     throw ApiError.BadRequest("Question ID is mandatory.");
   }
 
-  const questionCheck = await Question.findById(question).select("answer");
+  if (!contributedBy) {
+    throw ApiError.BadRequest("Contributor ID is mandatory.");
+  }
+
+  const [userCheck, questionCheck] = await Promise.all([
+    User.findById(contributedBy),
+    Question.findById(question),
+  ]);
+
+  if (!userCheck) {
+    throw ApiError.NotFound("User not found.");
+  }
 
   if (!questionCheck) {
     throw ApiError.NotFound("Question not found.");
   }
 
-  for (const solution of solutions) {
-    const { type, heading, answer, contributedBy } = solution;
+  const answer = await Answer.create({ question, contributedBy });
 
-    if (!type || !heading || !answer || !contributedBy) {
-      throw ApiError.BadRequest(
-        "Each solution must include type, heading, answer, and contributedBy."
-      );
-    }
-
-    if (!["Brute Force", "Better", "Optimal", "NA"].includes(type)) {
-      throw ApiError.BadRequest(
-        `Invalid solution type '${type}'. Allowed types are: 'Brute Force', 'Better', 'Optimal', 'NA'.`
-      );
-    }
-
-    const userExists = await User.exists({ _id: contributedBy });
-    if (!userExists) {
-      throw ApiError.NotFound(`User with ID ${contributedBy} not found.`);
-    }
-  }
-
-  const answer = await Answer.create(req.body);
-
+  userCheck.answerContributions.push(answer._id);
   questionCheck.answer = answer._id;
-  await questionCheck.save();
 
-  return ApiResponse.Created("Successfully created answer.", { answer }).send(
-    res
-  );
+  await Promise.all([userCheck.save(), questionCheck.save()]);
+
+  return ApiResponse.Created("Created answer.", answer).send(res);
 });
 
 export const getAllAnswers = asyncHandler(async (req, res) => {

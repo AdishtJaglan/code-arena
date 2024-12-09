@@ -7,6 +7,11 @@ const AnswerSchema = new mongoose.Schema(
       ref: "Question",
       required: true,
     },
+    contributedBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     solutions: [
       {
         type: mongoose.Types.ObjectId,
