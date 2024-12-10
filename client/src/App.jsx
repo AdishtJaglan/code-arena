@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import LeaderboardPage from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import FindPartner from "./pages/FindPartner";
+import QuestionContribution from "./pages/QuestionContribution";
 
 const App = () => {
   return (
@@ -20,6 +21,10 @@ const App = () => {
         <Route path="/leaderboard" element={<LeaderboardPage />}></Route>
         <Route path="/profile/:id" element={<Profile />}></Route>
         <Route path="/find-partner" element={<FindPartner />}></Route>
+        <Route
+          path="/question-contribution"
+          element={<QuestionContribution />}
+        ></Route>
         <Route path="*" element={<Home />} />
       </Routes>
     </Router>
