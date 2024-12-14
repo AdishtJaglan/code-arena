@@ -31,7 +31,9 @@ export const createQuestion = asyncHandler(async (req, res) => {
 
   const question = await Question.create(body);
 
-  return ApiResponse.Created("Created question successfully.", { question });
+  return ApiResponse.Created("Created question successfully.", {
+    question,
+  }).send(res);
 });
 
 export const getAllQuestions = asyncHandler(async (req, res) => {
