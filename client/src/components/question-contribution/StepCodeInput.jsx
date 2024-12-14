@@ -127,7 +127,9 @@ const StepCodeInput = ({
 
                 <Editor
                   height="400px"
-                  language={lang.name.toLowerCase()}
+                  language={
+                    lang.name === "C++" ? "cpp" : lang.name.toLowerCase()
+                  }
                   theme="vs-dark"
                   options={{
                     minimap: { enabled: false },
