@@ -23,7 +23,7 @@ export const createMultipleCodeQuestions = asyncHandler(async (req, res) => {
     throw ApiError.NotFound("No question found for given question ID.");
   }
 
-  for (const codeQues of codeQuestions) {
+  for (const codeQues of codeQuestion) {
     if (!codeQues.code || !codeQues.language) {
       throw ApiError.BadRequest(
         "Each code question must have language and source code."
