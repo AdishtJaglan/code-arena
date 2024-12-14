@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,51 +7,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Editor } from "@monaco-editor/react";
-import {
-  Trash2,
-  PlusCircle,
-  FileCode,
-  ArrowRight,
-  Zap,
-  Copy,
-  Check,
-  RefreshCw,
-  FileText,
-} from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 
-const TAGS = [
-  "Array",
-  "String",
-  "Dynamic Programming",
-  "Graph",
-  "Tree",
-  "Math",
-  "Greedy",
-  "Recursion",
-  "Bit Manipulation",
-];
+import StepProblemDetails from "@/components/question-contribution/StepProblemDetails";
+import StepCodeInput from "@/components/question-contribution/StepCodeInput";
+import StepTestCases from "@/components/question-contribution/StepTestCases";
+import StepExample from "@/components/question-contribution/StepExample";
+import StepEmpty from "@/components/question-contribution/StepEmpty";
 
-const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const LANGUAGES = [
   {
     name: "Python",
@@ -148,505 +112,43 @@ const CompetitiveProgrammingForm = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const renderProblemDetails = () => {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="space-y-4"
-      >
-        <div>
-          <Label className="text-neutral-400">Problem Title</Label>
-          <Input
-            value={problemData.title}
-            onChange={(e) =>
-              setProblemData((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Enter problem title"
-            className="border-neutral-800 bg-neutral-900 text-neutral-200 focus:border-blue-600"
-          />
-        </div>
-
-        <div>
-          <Label className="text-neutral-400">Problem Explanation</Label>
-          <Textarea
-            value={problemData.explanation}
-            onChange={(e) =>
-              setProblemData((prev) => ({
-                ...prev,
-                explanation: e.target.value,
-              }))
-            }
-            placeholder="Detailed problem description"
-            className="min-h-[150px] border-neutral-800 bg-neutral-900 text-neutral-200 focus:border-blue-600"
-          />
-        </div>
-
-        <div>
-          <Label className="text-neutral-400">Constraints</Label>
-          <Textarea
-            value={problemData.constraints}
-            onChange={(e) =>
-              setProblemData((prev) => ({
-                ...prev,
-                constraints: e.target.value,
-              }))
-            }
-            placeholder="Problem constraints"
-            className="min-h-[100px] border-neutral-800 bg-neutral-900 text-neutral-200 focus:border-blue-600"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-neutral-400">Tags</Label>
-            <Select
-              onValueChange={(value) => {
-                setProblemData((prev) => ({
-                  ...prev,
-                  tags: prev.tags.includes(value)
-                    ? prev.tags
-                    : [...prev.tags, value],
-                }));
-              }}
-            >
-              <SelectTrigger className="border-neutral-800 bg-neutral-900 text-neutral-200">
-                <SelectValue placeholder="Select tags" />
-              </SelectTrigger>
-              <SelectContent className="border-neutral-800 bg-neutral-900">
-                {TAGS.map((tag) => (
-                  <SelectItem
-                    key={tag}
-                    value={tag}
-                    className="text-neutral-200 hover:bg-neutral-800 focus:bg-neutral-800"
-                  >
-                    {tag}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {problemData.tags.map((tag) => (
-                <div
-                  key={tag}
-                  className="flex items-center rounded-full bg-blue-600/20 px-2 py-1 text-xs text-neutral-300"
-                >
-                  {tag}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-1 h-4 w-4 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
-                    onClick={() =>
-                      setProblemData((prev) => ({
-                        ...prev,
-                        tags: prev.tags.filter((t) => t !== tag),
-                      }))
-                    }
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-neutral-400">Difficulty</Label>
-            <Select
-              value={problemData.difficulty}
-              onValueChange={(value) =>
-                setProblemData((prev) => ({ ...prev, difficulty: value }))
-              }
-            >
-              <SelectTrigger className="border-neutral-800 bg-neutral-900 text-neutral-200">
-                <SelectValue placeholder="Select difficulty" />
-              </SelectTrigger>
-              <SelectContent className="border-neutral-800 bg-neutral-900">
-                {DIFFICULTIES.map((diff) => (
-                  <SelectItem
-                    key={diff}
-                    value={diff}
-                    className="text-neutral-200 hover:bg-neutral-800 focus:bg-neutral-800"
-                  >
-                    {diff}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </motion.div>
-    );
-  };
-
-  const renderCodeInputs = () => {
-    return (
-      <TooltipProvider>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.4,
-            ease: "easeOut",
-          }}
-          className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 shadow-2xl"
-        >
-          <Tabs
-            value={activeLanguage}
-            onValueChange={handleLanguageChange}
-            className="w-full"
-          >
-            <TabsList className="grid grid-cols-4 rounded-none border-b border-neutral-800 bg-neutral-950/50 p-1">
-              {LANGUAGES.map((lang) => (
-                <TabsTrigger
-                  key={lang.name}
-                  value={lang.name}
-                  className="group relative transition-all duration-300 data-[state=active]:bg-neutral-800"
-                >
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={lang.icon}
-                      alt={`${lang.name} icon`}
-                      className="h-5 w-5 opacity-60 transition-opacity group-data-[state=active]:opacity-100"
-                    />
-                    <span className="font-medium text-neutral-400 group-data-[state=active]:text-white">
-                      {lang.name}
-                    </span>
-                  </div>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {LANGUAGES.map((lang) => (
-              <TabsContent key={lang.name} value={lang.name} className="p-4">
-                <div className="relative">
-                  <div className="absolute right-2 top-2 z-10 flex space-x-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 bg-neutral-800/50 hover:bg-neutral-700"
-                          onClick={() => handleResetCode(lang.name)}
-                        >
-                          <RefreshCw className="h-4 w-4 text-neutral-400" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        Reset to Default
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 bg-neutral-800/50 hover:bg-neutral-700"
-                          onClick={() => handleCopyCode(lang.name)}
-                        >
-                          {copiedLanguage === lang.name ? (
-                            <Check className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Copy className="h-4 w-4 text-neutral-400" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        {copiedLanguage === lang.name ? "Copied!" : "Copy Code"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-
-                  <Editor
-                    height="400px"
-                    language={lang.name.toLowerCase()}
-                    theme="vs-dark"
-                    options={{
-                      minimap: { enabled: false },
-                      scrollbar: {
-                        vertical: "hidden",
-                        horizontal: "hidden",
-                      },
-                      lineNumbers: "on",
-                      glyphMargin: true,
-                      folding: true,
-                      lineDecorationsWidth: 10,
-                      renderLineHighlight: "none",
-                      fontFamily: "JetBrains Mono, Consolas, monospace",
-                      fontSize: 13,
-                    }}
-                    value={
-                      problemData.codeInputs[lang.name] ||
-                      LANGUAGES.find((l) => l.name === lang.name)
-                        ?.defaultCode ||
-                      ""
-                    }
-                    onChange={(value) => handleCodeChange(value, lang.name)}
-                  />
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </motion.div>
-      </TooltipProvider>
-    );
-  };
-
-  const renderTestCases = () => {
-    const addTestCase = () => {
-      setProblemData((prev) => ({
-        ...prev,
-        testCases: [...prev.testCases, { input: "", output: "" }],
-      }));
-    };
-
-    const updateTestCase = (index, field, value) => {
-      const updatedTestCases = [...problemData.testCases];
-      updatedTestCases[index][field] = value;
-      setProblemData((prev) => ({ ...prev, testCases: updatedTestCases }));
-    };
-
-    const removeTestCase = (index) => {
-      setProblemData((prev) => ({
-        ...prev,
-        testCases: prev.testCases.filter((_, i) => i !== index),
-      }));
-    };
-
-    return (
-      <div className="space-y-6">
-        <AnimatePresence>
-          {problemData.testCases.map((testCase, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="border-neutral-800 bg-neutral-900/80 shadow-lg">
-                <CardContent className="space-y-4 p-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="flex items-center text-neutral-300">
-                        <FileCode className="mr-2 h-4 w-4 text-blue-500" />
-                        Input
-                      </Label>
-                      <Textarea
-                        value={testCase.input}
-                        onChange={(e) =>
-                          updateTestCase(index, "input", e.target.value)
-                        }
-                        placeholder="Enter test case input"
-                        className="min-h-[120px] border-neutral-800 bg-neutral-950 text-neutral-200 transition-all focus:ring-2 focus:ring-blue-600"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="flex items-center text-neutral-300">
-                        <FileCode className="mr-2 h-4 w-4 text-green-500" />
-                        Output
-                      </Label>
-                      <Textarea
-                        value={testCase.output}
-                        onChange={(e) =>
-                          updateTestCase(index, "output", e.target.value)
-                        }
-                        placeholder="Enter expected test case output"
-                        className="min-h-[120px] border-neutral-800 bg-neutral-950 text-neutral-200 transition-all focus:ring-2 focus:ring-green-600"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex items-center justify-between border-t border-neutral-800 p-4">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="border-none bg-red-600/20 text-red-400 hover:bg-red-600/40"
-                          onClick={() => removeTestCase(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>Remove this test case</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <span className="text-xs text-neutral-500">
-                    Test Case {index + 1}
-                  </span>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
-        >
-          <Button
-            onClick={addTestCase}
-            className="group w-full bg-blue-600 text-white transition-all hover:bg-blue-700"
-          >
-            <PlusCircle className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
-            Add Test Case
-          </Button>
-        </motion.div>
-      </div>
-    );
-  };
-
-  const renderExamples = () => {
-    const addExample = () => {
-      setProblemData((prev) => ({
-        ...prev,
-        examples: [
-          ...prev.examples,
-          { input: "", output: "", explanation: "" },
-        ],
-      }));
-    };
-
-    const updateExample = (index, field, value) => {
-      const updatedExamples = [...problemData.examples];
-      updatedExamples[index][field] = value;
-      setProblemData((prev) => ({ ...prev, examples: updatedExamples }));
-    };
-
-    const removeExample = (index) => {
-      setProblemData((prev) => ({
-        ...prev,
-        examples: prev.examples.filter((_, i) => i !== index),
-      }));
-    };
-
-    return (
-      <div className="space-y-6">
-        <AnimatePresence>
-          {problemData.examples.map((example, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="border-neutral-800 bg-neutral-900/80 shadow-lg">
-                <CardContent className="space-y-4 p-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="flex items-center text-neutral-300">
-                        <FileText className="mr-2 h-4 w-4 text-blue-500" />
-                        Input
-                      </Label>
-                      <Input
-                        value={example.input}
-                        onChange={(e) =>
-                          updateExample(index, "input", e.target.value)
-                        }
-                        placeholder="Enter example input"
-                        className="border-neutral-800 bg-neutral-950 text-neutral-200 transition-all focus:ring-2 focus:ring-blue-600"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="flex items-center text-neutral-300">
-                        <FileText className="mr-2 h-4 w-4 text-green-500" />
-                        Output
-                      </Label>
-                      <Input
-                        value={example.output}
-                        onChange={(e) =>
-                          updateExample(index, "output", e.target.value)
-                        }
-                        placeholder="Enter expected output"
-                        className="border-neutral-800 bg-neutral-950 text-neutral-200 transition-all focus:ring-2 focus:ring-green-600"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center text-neutral-300">
-                      <FileText className="mr-2 h-4 w-4 text-purple-500" />
-                      Explanation
-                    </Label>
-                    <Textarea
-                      value={example.explanation}
-                      onChange={(e) =>
-                        updateExample(index, "explanation", e.target.value)
-                      }
-                      placeholder="Provide a detailed explanation of this example"
-                      className="min-h-[120px] border-neutral-800 bg-neutral-950 text-neutral-200 transition-all focus:ring-2 focus:ring-purple-600"
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter className="flex items-center justify-between border-t border-neutral-800 p-4">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="border-none bg-red-600/20 text-red-400 hover:bg-red-600/40"
-                          onClick={() => removeExample(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>Remove this example</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <span className="text-xs text-neutral-500">
-                    Example {index + 1}
-                  </span>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
-        >
-          <Button
-            onClick={addExample}
-            className="group w-full bg-blue-600 text-white transition-all hover:bg-blue-700"
-          >
-            <PlusCircle className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
-            Add Example
-          </Button>
-        </motion.div>
-      </div>
-    );
-  };
-
-  const renderEmptyStep = () => (
-    <div className="p-8 text-center text-muted-foreground">
-      Step 5 - Coming Soon
-    </div>
-  );
-
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 0:
-        return renderProblemDetails();
+        return (
+          <StepProblemDetails
+            problemData={problemData}
+            setProblemData={setProblemData}
+          />
+        );
       case 1:
-        return renderCodeInputs();
+        return (
+          <StepCodeInput
+            activeLanguage={activeLanguage}
+            handleLanguageChange={handleLanguageChange}
+            handleResetCode={handleResetCode}
+            handleCopyCode={handleCopyCode}
+            handleCodeChange={handleCodeChange}
+            problemData={problemData}
+            copiedLanguage={copiedLanguage}
+          />
+        );
       case 2:
-        return renderTestCases();
+        return (
+          <StepTestCases
+            problemData={problemData}
+            setProblemData={setProblemData}
+          />
+        );
       case 3:
-        return renderExamples();
+        return (
+          <StepExample
+            problemData={problemData}
+            setProblemData={setProblemData}
+          />
+        );
       case 4:
-        return renderEmptyStep();
+        return <StepEmpty />;
       default:
         return null;
     }
