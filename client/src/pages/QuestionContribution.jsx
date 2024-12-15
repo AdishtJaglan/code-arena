@@ -1,14 +1,6 @@
 import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ArrowRight, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight,  ArrowLeft } from "lucide-react";
 
 import StepProblemDetails from "@/components/question-contribution/StepProblemDetails";
 import StepCodeInput from "@/components/question-contribution/StepCodeInput";
@@ -41,6 +33,14 @@ const LANGUAGES = [
     defaultCode:
       "#include <iostream>\n\nusing namespace std;\n\nauto solution() {\n    // Write your code here\n    return nullptr;\n}\n\nint main() {\n    // Example usage\n    cout << solution() << endl;\n    return 0;\n}",
   },
+];
+
+const steps = [
+  "Problem Details",
+  "Code Inputs",
+  "Test Cases",
+  "Examples",
+  "Extra",
 ];
 
 const CompetitiveProgrammingForm = () => {
@@ -112,7 +112,7 @@ const CompetitiveProgrammingForm = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const renderCurrentStep = () => {
+  const renderStepContent = () => {
     switch (currentStep) {
       case 0:
         return (
@@ -159,95 +159,79 @@ const CompetitiveProgrammingForm = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
-      <div className="absolute inset-0 bg-neutral-900/50 opacity-50 blur-3xl"></div>
+    <div className="font-inter flex min-h-screen items-center justify-center bg-black p-4 text-neutral-300">
+      <div className="w-full max-w-xl space-y-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <h1 className="mb-2 text-3xl font-light tracking-tight text-neutral-100">
+            Problem Architect
+          </h1>
+          <p className="text-sm text-neutral-400">
+            Craft your coding challenge with precision
+          </p>
+        </motion.div>
 
-      <div className="container relative z-10 mx-auto px-4">
-        <Card className="mx-auto w-full max-w-4xl border border-neutral-800 bg-neutral-900/60 shadow-2xl">
-          <CardHeader className="text-center">
-            <CardTitle
-              as={motion.h2}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7 }}
-              className="text-3xl font-black text-neutral-100"
+        {/* Progress Indicator */}
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => (
+            <div
+              key={step}
+              className={`mx-1 h-1 flex-1 rounded-full transition-all duration-300 ${
+                currentStep === index
+                  ? "bg-neutral-600"
+                  : currentStep > index
+                    ? "bg-neutral-700"
+                    : "bg-neutral-900"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Content Area */}
+        <motion.div
+          className="rounded-lg border border-neutral-800 bg-neutral-900 p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
             >
-              Create Problem
-            </CardTitle>
-            <CardDescription className="mt-2 text-neutral-500">
-              Fill out problem details step by step
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Stepper */}
-            <div className="mb-6">
-              <div className="mb-4 flex items-center justify-between">
-                {[
-                  "Problem Details",
-                  "Code Inputs",
-                  "Test Cases",
-                  "Examples",
-                  "Extra",
-                ].map((step, index) => (
-                  <motion.div
-                    key={step}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`w-full py-2 text-center ${
-                      currentStep === index
-                        ? "font-bold text-neutral-100"
-                        : "text-neutral-500"
-                    } `}
-                  >
-                    {step}
-                  </motion.div>
-                ))}
-              </div>
-              <div className="relative h-1 w-full bg-neutral-800">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(currentStep + 1) * 20}%` }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute h-1 bg-blue-600"
-                  style={{ left: 0 }}
-                />
-              </div>
-            </div>
+              {renderStepContent(currentStep)}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
 
-            {/* Current Step Content */}
-            <div className="mb-6">{renderCurrentStep()}</div>
+        {/* Navigation */}
+        <div className="flex space-x-4">
+          <button
+            onClick={prevStep}
+            disabled={currentStep === 0}
+            className="flex flex-1 items-center justify-center rounded-md border border-neutral-800 py-3 text-neutral-300 transition-all hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-30"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </button>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                className="border-neutral-800 text-neutral-300 transition-all hover:bg-neutral-800 active:scale-95"
-              >
-                Previous
-              </Button>
-              {currentStep === 4 ? (
-                <Button
-                  onClick={handleSubmit}
-                  className="flex items-center space-x-2 bg-blue-600 text-white transition-all hover:bg-blue-700 active:scale-95"
-                >
-                  <span>Submit Problem</span>
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={nextStep}
-                  className="flex items-center space-x-2 bg-blue-600 text-white transition-all hover:bg-blue-700 active:scale-95"
-                >
-                  <span>Next</span>
-                  <Zap className="h-5 w-5" />
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+          <button
+            onClick={nextStep}
+            className={`flex-1 rounded-md py-3 transition-all ${
+              currentStep === steps.length - 1
+                ? "bg-neutral-700 text-neutral-100 hover:bg-neutral-600"
+                : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+            } flex items-center justify-center active:scale-[0.98]`}
+          >
+            {currentStep === steps.length - 1 ? "Submit" : "Next"}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
