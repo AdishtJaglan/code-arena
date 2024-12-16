@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, ArrowUp, ArrowDown, Star } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { API_BASE_URL } from "@/configs/env-config";
 import Navbar from "@/components/Navbar";
 import axios from "axios";
@@ -27,26 +27,6 @@ const LeaderboardPage = () => {
     getLeaderboardData();
   }, [currentPage]);
 
-  const getRatingTier = (rating) => {
-    if (rating >= 3000) return "Legendary";
-    if (rating >= 2700) return "Master";
-    if (rating >= 2400) return "Expert";
-    return "Challenger";
-  };
-
-  const renderTrophyIcon = (index) => {
-    switch (index) {
-      case 0:
-        return <Trophy className="h-8 w-8 text-yellow-500" />;
-      case 1:
-        return <Trophy className="h-6 w-6 text-gray-400" />;
-      case 2:
-        return <Trophy className="h-5 w-5 text-amber-700" />;
-      default:
-        return null;
-    }
-  };
-
   const handlePrevious = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -64,147 +44,113 @@ const LeaderboardPage = () => {
     navigate(`/profile/${id}`);
   };
 
+  const getRatingClass = (rating) => {
+    if (rating >= 2000) return "bg-violet-900/30 text-violet-400";
+    if (rating >= 1500) return "bg-blue-900/30 text-blue-400";
+    if (rating >= 1000) return "bg-green-900/30 text-green-400";
+    return "bg-neutral-900/30 text-neutral-400";
+  };
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
-      <div className="absolute inset-0 bg-neutral-900/50 opacity-50 blur-3xl"></div>
+    <div className="min-h-screen bg-black text-neutral-200">
       <Navbar />
-      <div className="container relative z-10 mx-auto px-4 pt-10">
+      <div className="container mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
           className="mb-12 text-center"
         >
-          <h1 className="text-5xl font-black text-neutral-100">Leaderboard</h1>
-          <p className="mx-auto mt-4 max-w-xl text-neutral-500">
+          <h1 className="mb-4 text-4xl font-bold text-neutral-100">
+            Leaderboard
+          </h1>
+          <p className="mx-auto max-w-xl text-neutral-500">
             Top performers who have conquered the most challenging coding
             problems
           </p>
         </motion.div>
 
         {leaderboardData === null ? (
-          <div className="max-w-8xl mx-auto min-h-screen w-full animate-pulse rounded-lg bg-neutral-900 p-4">
-            <div className="mb-6 h-16 rounded-lg bg-neutral-800 shadow-lg"></div>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
+          <div className="space-y-4">
+            {[...Array(10)].map((_, index) => (
               <div
-                key={item}
-                className="flex items-center space-x-4 border-b border-neutral-800 bg-neutral-900 p-4 transition-all duration-300 hover:bg-neutral-800"
-              >
-                <div className="h-14 w-14 animate-pulse rounded-full bg-neutral-700"></div>
-                <div className="flex-grow space-y-2">
-                  <div className="h-5 w-3/4 rounded bg-neutral-800"></div>
-                  <div className="h-4 w-1/2 rounded bg-neutral-700"></div>
-                </div>
-                <div className="space-y-2 text-right">
-                  <div className="h-5 w-20 rounded bg-neutral-800"></div>
-                  <div className="h-4 w-16 rounded bg-neutral-700"></div>
-                </div>
-              </div>
+                key={index}
+                className="h-20 animate-pulse rounded-lg bg-neutral-900"
+              ></div>
             ))}
           </div>
         ) : (
           <>
-            <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/60">
-              <table className="w-full">
-                <thead className="bg-neutral-800/50">
-                  <tr>
-                    <th className="p-4 text-left text-neutral-400">Rank</th>
-                    <th className="p-4 text-left text-neutral-400">User</th>
-                    <th className="p-4 text-center text-neutral-400">
-                      Problems Solved
-                    </th>
-                    <th className="p-4 text-center text-neutral-400">Rating</th>
-                    <th className="p-4 text-left text-neutral-400">Tier</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaderboardData.users.map((user, index) => (
-                    <motion.tr
-                      key={user.user_id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        delay: index * 0.1,
-                        duration: 0.5,
-                      }}
-                      className="border-b border-neutral-800 transition-colors hover:bg-neutral-800/30"
+            <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/50">
+              {leaderboardData.users.map((user, index) => (
+                <motion.div
+                  key={user.user_id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    delay: index * 0.1,
+                    duration: 0.3,
+                  }}
+                  className="flex items-center border-b border-neutral-800 p-4 transition-colors last:border-b-0 hover:bg-neutral-900/70"
+                >
+                  <div className="w-12 flex-none font-mono text-neutral-500">
+                    {index + 1 + (currentPage > 1 ? (currentPage - 1) * 10 : 0)}
+                  </div>
+
+                  <div className="flex flex-grow items-center space-x-4">
+                    <img
+                      src={user.profilePicture}
+                      alt={user.username}
+                      className="h-12 w-12 rounded-full border-2 border-neutral-700"
+                    />
+                    <div>
+                      <div
+                        onClick={() => handleUsernameClick(user.user_id)}
+                        className="cursor-pointer font-semibold text-neutral-200 hover:text-neutral-400"
+                      >
+                        {user.username}
+                      </div>
+                      <div className="max-w-xs truncate text-sm text-neutral-500">
+                        {user.bio}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Star className="h-4 w-4 text-neutral-600" />
+                      <span className="text-neutral-300">
+                        {user.questionsSolved.length}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`rounded-full px-3 py-1 text-sm font-medium ${getRatingClass(user.rating)}`}
                     >
-                      <td className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-neutral-300">
-                            {index +
-                              1 +
-                              (currentPage > 1 ? (currentPage - 1) * 10 : 0)}
-                          </span>
-                          {currentPage === 1 && renderTrophyIcon(index)}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-4">
-                          <img
-                            src={user.profilePicture}
-                            alt={user.username}
-                            className="h-12 w-12 rounded-full border-2 border-neutral-700"
-                          />
-                          <div>
-                            <div
-                              onClick={() => handleUsernameClick(user.user_id)}
-                              className="cursor-pointer font-semibold text-neutral-200 transition-colors duration-300 hover:text-neutral-400"
-                            >
-                              {user.username}
-                            </div>
-                            <div className="max-w-xs truncate text-xs text-neutral-500">
-                              {user.bio}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex items-center justify-center space-x-1">
-                          <Star className="h-4 w-4 text-neutral-600" />
-                          <span className="text-neutral-300">
-                            {user.questionsSolved.length}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className="font-bold text-neutral-300">
-                          {user.rating}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span
-                          className={`rounded-full bg-neutral-800 px-3 py-1 text-sm text-neutral-300`}
-                        >
-                          {getRatingTier(user.rating)}
-                        </span>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+                      {user.rating}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
 
-            <div className="my-8 flex justify-center space-x-4">
+            <div className="mt-8 flex items-center justify-center space-x-4">
               <button
                 onClick={handlePrevious}
-                className="flex items-center space-x-2 rounded-lg bg-neutral-800 px-4 py-2 text-neutral-300 hover:bg-neutral-700 disabled:opacity-50"
+                className="rounded-full bg-neutral-800 p-2 text-neutral-300 transition-colors hover:bg-neutral-700"
               >
-                <ArrowUp className="h-4 w-4" />
-                <span>Previous</span>
+                <ChevronLeft className="h-6 w-6" />
               </button>
 
-              <div className="rounded-lg bg-neutral-800 px-4 py-2 text-neutral-300">
+              <div className="rounded-full bg-neutral-800 px-6 py-2 text-neutral-300">
                 Page {currentPage} of{" "}
                 {Math.ceil(leaderboardData.count / itemsPerPage)}
               </div>
 
               <button
                 onClick={handleNext}
-                className="flex items-center space-x-2 rounded-lg bg-neutral-800 px-4 py-2 text-neutral-300 hover:bg-neutral-700 disabled:opacity-50"
+                className="rounded-full bg-neutral-800 p-2 text-neutral-300 transition-colors hover:bg-neutral-700"
               >
-                <span>Next</span>
-                <ArrowDown className="h-4 w-4" />
+                <ChevronRight className="h-6 w-6" />
               </button>
             </div>
           </>
