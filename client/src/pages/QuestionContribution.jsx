@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight,  ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 
 import StepProblemDetails from "@/components/question-contribution/StepProblemDetails";
 import StepCodeInput from "@/components/question-contribution/StepCodeInput";
@@ -152,10 +152,6 @@ const CompetitiveProgrammingForm = () => {
       default:
         return null;
     }
-  };
-
-  const handleSubmit = () => {
-    console.log("Full Problem Data:", problemData);
   };
 
   return (
