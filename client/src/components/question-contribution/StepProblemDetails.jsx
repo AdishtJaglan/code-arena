@@ -10,19 +10,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Button from "../Button";
 import { Trash2 } from "lucide-react";
 
 const TAGS = [
-  "Array",
-  "String",
+  "Arrays",
+  "Linked List",
+  "Stack",
+  "Queue",
+  "Hashing",
+  "Heap",
+  "Binary Search",
+  "Sorting",
   "Dynamic Programming",
-  "Graph",
-  "Tree",
-  "Math",
-  "Greedy",
+  "Backtracking",
   "Recursion",
+  "Graph Theory",
+  "Tree",
+  "Binary Tree",
+  "Binary Search Tree",
+  "Greedy",
+  "Divide and Conquer",
+  "Sliding Window",
   "Bit Manipulation",
+  "Math",
+  "Two Pointers",
+  "Strings",
+  "Trie",
+  "Union Find",
+  "Geometry",
+  "Game Theory",
+  "Segment Tree",
+  "Fenwick Tree",
+  "Memoization",
+  "Combinatorics",
+  "Breadth First Search",
+  "Depth First Search",
+  "Shortest Path",
+  "Topological Sort",
+  "Network Flow",
+  "Knapsack",
+  "Matrix",
+  "Prefix Sum",
+  "Kadane's Algorithm",
+  "Hash Map",
+  "Set",
+  "Probability",
+  "Modular Arithmetic",
+  "Bitmasking",
+  "Number Theory",
+  "Intervals",
+  "Monotonic Stack",
+  "Monotonic Queue",
+  "Z-Algorithm",
+  "KMP Algorithm",
+  "Minimum Spanning Tree",
+  "Maximum Flow",
+  "Eulerian Path",
+  "Cycle Detection",
+  "Strongly Connected Components",
+  "Disjoint Set",
+  "Probability and Statistics",
+  "String Matching",
+  "Pattern Searching",
 ];
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
@@ -108,13 +157,11 @@ const StepProblemDetails = ({ problemData, setProblemData }) => {
             {problemData.tags.map((tag) => (
               <div
                 key={tag}
-                className="flex items-center rounded-full bg-blue-600/20 px-2 py-1 text-xs text-neutral-300"
+                className="flex items-center rounded-full bg-black/20 px-2 py-1 text-xs text-neutral-300"
               >
                 {tag}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="ml-1 h-4 w-4 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
+                <button
+                  className="ml-1 h-4 w-4"
                   onClick={() =>
                     setProblemData((prev) => ({
                       ...prev,
@@ -122,8 +169,8 @@ const StepProblemDetails = ({ problemData, setProblemData }) => {
                     }))
                   }
                 >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
+                  <Trash2 className="h-3 w-3 text-rose-500 hover:text-rose-600" />
+                </button>
               </div>
             ))}
           </div>

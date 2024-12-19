@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import { API_BASE_URL } from "@/configs/env-config";
 import axios from "axios";
 
 import StepProblemDetails from "@/components/question-contribution/StepProblemDetails";
@@ -43,6 +45,12 @@ const steps = [
   "Examples",
   "Extra",
 ];
+
+const getCodeLanguageAndCode = (obj) => {
+  return Object.entries(obj).map(([key, value]) => {
+    return { language: key, code: value };
+  });
+};
 
 const CompetitiveProgrammingForm = () => {
   const [activeLanguage, setActiveLanguage] = useState(LANGUAGES[0].name);
@@ -156,24 +164,86 @@ const CompetitiveProgrammingForm = () => {
   };
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      toast.error("You must be logged in to create a question.");
+      return;
+    }
+
+    const api = axios.create({
+      baseURL: API_BASE_URL,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
     try {
-      // TODO /question/create -> [questionId] -> token required
-      // TODO /code-ques/create-many -> [questionId] -> token required
-      // TODO /test-case/create-many -> [questionId] -> token required
-      // TODO /example/create-many -> [questionId] -> token required
-      // TODO -> integrate answer creation logic as well.
+      const {
+        title,
+        constraints,
+        tags,
+        difficulty,
+        explanation,
+        codeInputs,
+        testCases,
+        examples,
+      } = problemData;
+
+      const {
+        data: {
+          data: {
+            question: { _id: questionId },
+          },
+        },
+      } = await api.post("/question/create", {
+        title,
+        constraints,
+        tags,
+        difficulty,
+        explanation,
+      });
+
+      const requests = [
+        api.post("/code-question/create-many", {
+          questionId,
+          codeQuestion: getCodeLanguageAndCode(codeInputs),
+        }),
+        api.post("/test-case/create-many", {
+          question: questionId,
+          testCases,
+        }),
+        api.post("/example/create-many", {
+          question: questionId,
+          examples,
+        }),
+      ];
+
+      await Promise.all(requests);
+
+      toast.success("Question created successfully!");
     } catch (error) {
-      console.error(
-        "Error creating question. Please try again. Error: " +
-          error?.response?.message ||
-          error?.message ||
-          error,
-      );
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unknown error occurred";
+      toast.error(`Error creating question: ${errorMessage}`);
+      console.error("Question creation error:", error);
     }
   };
 
   return (
     <div className="font-inter flex min-h-screen items-center justify-center bg-black p-4 text-neutral-300">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       <div className="w-full max-w-xl space-y-8">
         {/* Header */}
         <motion.div
@@ -204,6 +274,13 @@ const CompetitiveProgrammingForm = () => {
             />
           ))}
         </div>
+
+        <button
+          onClick={handleSubmit}
+          className="rounded-lg bg-rose-500 px-6 py-3 text-white"
+        >
+          test
+        </button>
 
         {/* Content Area */}
         <motion.div

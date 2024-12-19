@@ -116,12 +116,6 @@ const QuestionSchema = new mongoose.Schema(
       {
         type: mongoose.Types.ObjectId,
         ref: "Example",
-        validate: {
-          validator: function (v) {
-            return v.length <= 3;
-          },
-          message: "Maximum 3 examples allowed",
-        },
       },
     ],
     answer: {

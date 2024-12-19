@@ -1,3 +1,4 @@
+// TODO -> create toggle for isHidden flag. Only allow three cases of isHidden: true
 /* eslint-disable react/prop-types */
 import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -16,7 +17,7 @@ const StepTestCases = ({ problemData, setProblemData }) => {
   const addTestCase = () => {
     setProblemData((prev) => ({
       ...prev,
-      testCases: [...prev.testCases, { input: "", output: "" }],
+      testCases: [...prev.testCases, { input: "", output: "", isHidden: true }], //! dont hardcode this flag
     }));
   };
 
