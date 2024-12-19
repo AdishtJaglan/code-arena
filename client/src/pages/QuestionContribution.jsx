@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft } from "lucide-react";
+import axios from "axios";
 
 import StepProblemDetails from "@/components/question-contribution/StepProblemDetails";
 import StepCodeInput from "@/components/question-contribution/StepCodeInput";
@@ -151,6 +152,23 @@ const CompetitiveProgrammingForm = () => {
         return <StepEmpty />;
       default:
         return null;
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      // TODO /question/create -> [questionId] -> token required
+      // TODO /code-ques/create-many -> [questionId] -> token required
+      // TODO /test-case/create-many -> [questionId] -> token required
+      // TODO /example/create-many -> [questionId] -> token required
+      // TODO -> integrate answer creation logic as well.
+    } catch (error) {
+      console.error(
+        "Error creating question. Please try again. Error: " +
+          error?.response?.message ||
+          error?.message ||
+          error,
+      );
     }
   };
 

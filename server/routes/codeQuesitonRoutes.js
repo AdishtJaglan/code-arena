@@ -5,6 +5,7 @@ import {
   getAllCodeQuestions,
   getCodeQuestionsForQuestion,
 } from "../controllers/codeQuestionController.js";
+import isAuthenticated from "../middlewares/isAuthenticated.js";
 const router = Router();
 
 router.post("/create", createCodeQuestion);

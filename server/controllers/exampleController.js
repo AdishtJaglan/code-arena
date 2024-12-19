@@ -5,6 +5,63 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 
+export const createManyExample = asyncHandler(async (req, res) => {
+  const { _id: contributedBy } = req?.user;
+  const { examples, question } = req.body;
+
+  if (!question) {
+    throw ApiError.BadRequest("Question ID is mandatory.");
+  }
+
+  if (!contributedBy) {
+    throw ApiError.BadRequest("User ID is mandatory.");
+  }
+
+  if (!Array.isArray(examples) || examples.length === 0) {
+    throw ApiError.BadRequest(
+      "Example must be an array of length greater than 0."
+    );
+  }
+
+  const [questionCheck, userCheck] = await Promise.all([
+    Question.findById(question).select("examples"),
+    User.findById(contributedBy),
+  ]);
+
+  if (!questionCheck) {
+    throw ApiError.NotFound("Question does not exist.");
+  }
+
+  if (!userCheck) {
+    throw ApiError.NotFound("User does not exist.");
+  }
+
+  for (const example of examples) {
+    const { input, output, explanation } = example || {};
+
+    if (!input || !output || !explanation) {
+      throw ApiError.BadRequest(
+        "Each example object must contain: input, output and explanation."
+      );
+    }
+
+    example.contributedBy = contributedBy;
+    example.question = question;
+  }
+
+  const newExamples = await Example.insertMany(examples);
+  const newExampleIds = newExamples.map((ex) => ex._id);
+
+  questionCheck.examples.push(...newExampleIds);
+  await questionCheck.save();
+
+  return ApiResponse.Created("Created examples successfully.", {
+    count: newExamples.length,
+    examples: newExamples,
+    question: questionCheck,
+  }).send(res);
+});
+
 export const createExample = asyncHandler(async (req, res) => {
   const { input, output, contributedBy, question } = req.body;
 

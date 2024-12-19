@@ -7,7 +7,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 
 export const createQuestion = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
+  const { _id: userId } = req?.user;
   const { title, constraints, tags, difficulty, explanation } = req.body;
 
   if (!title || !constraints || !tags || !difficulty || !explanation) {
