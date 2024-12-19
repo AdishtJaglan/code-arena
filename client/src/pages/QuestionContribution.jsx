@@ -275,6 +275,7 @@ const CompetitiveProgrammingForm = () => {
           ))}
         </div>
 
+        {/* only for development */}
         <button
           onClick={handleSubmit}
           className="rounded-lg bg-rose-500 px-6 py-3 text-white"
