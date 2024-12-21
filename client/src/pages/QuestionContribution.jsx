@@ -1,7 +1,11 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
+import { Card, CardContent } from "@/components/ui/card";
+import Button from "@/components/Button";
+import Navbar from "@/components/Navbar";
+
 import { API_BASE_URL } from "@/configs/env-config";
 import axios from "axios";
 
@@ -231,7 +235,7 @@ const CompetitiveProgrammingForm = () => {
   };
 
   return (
-    <div className="font-inter flex min-h-screen items-center justify-center bg-black p-4 text-neutral-300">
+    <div className="font-inter min-h-screen bg-black text-neutral-300">
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -244,85 +248,134 @@ const CompetitiveProgrammingForm = () => {
         pauseOnHover
         theme="dark"
       />
-      <div className="w-full max-w-xl space-y-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <h1 className="mb-2 text-3xl font-light tracking-tight text-neutral-100">
-            Problem Architect
-          </h1>
-          <p className="text-sm text-neutral-400">
-            Craft your coding challenge with precision
-          </p>
-        </motion.div>
+      <Navbar />
 
-        {/* Progress Indicator */}
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <div
-              key={step}
-              className={`mx-1 h-1 flex-1 rounded-full transition-all duration-300 ${
-                currentStep === index
-                  ? "bg-neutral-600"
-                  : currentStep > index
-                    ? "bg-neutral-700"
-                    : "bg-neutral-900"
-              }`}
-            />
-          ))}
+      <div className="flex w-full text-neutral-300">
+        {/* Sidebar */}
+        <div className="flex h-[calc(100vh-4rem)] w-1/3 flex-col justify-between border-r border-neutral-800/50 bg-black p-4 pt-8">
+          <div className="mx-auto w-full space-y-6">
+            {/* Header with subtle animation */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <h1 className="mb-1 bg-gradient-to-r from-neutral-100 to-neutral-400 bg-clip-text text-2xl font-light tracking-tight text-transparent">
+                Problem Architect
+              </h1>
+              <p className="text-xs text-neutral-400">
+                Craft your coding challenge
+              </p>
+            </motion.div>
+
+            {/* Progress Tracker */}
+            <div className="relative pt-1">
+              <div className="absolute left-0 top-4 h-0.5 w-full rounded-full bg-neutral-900">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-neutral-600 to-neutral-500"
+                  style={{
+                    width: `${(currentStep / (steps.length - 1)) * 100}%`,
+                  }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+
+              <div className="relative flex justify-between">
+                {steps.map((step, index) => (
+                  <div key={step} className="group flex flex-col items-center">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                        currentStep > index
+                          ? "border-neutral-500 bg-neutral-600 text-neutral-100"
+                          : currentStep === index
+                            ? "border-neutral-500 bg-black text-neutral-300 ring-2 ring-neutral-800/50 ring-offset-1 ring-offset-black"
+                            : "border-neutral-800 bg-black text-neutral-500"
+                      }`}
+                    >
+                      {currentStep > index ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <span className="text-xs">{index + 1}</span>
+                      )}
+                    </motion.div>
+                    <span
+                      className={`mt-2 text-[10px] transition-all duration-300 ${
+                        currentStep === index
+                          ? "text-neutral-300"
+                          : currentStep > index
+                            ? "text-neutral-500"
+                            : "text-neutral-600"
+                      }`}
+                    >
+                      {step}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Card */}
+            <Card className="border-neutral-800 bg-neutral-900/90 backdrop-blur-sm">
+              <CardContent className="min-h-[300px] p-4">
+                <div className="flex h-full flex-col items-center justify-center space-y-3">
+                  <div className="rounded-full bg-neutral-800/50 px-3 py-1 text-xs text-neutral-400">
+                    Step {currentStep + 1} of {steps.length}
+                  </div>
+                  <h2 className="text-lg font-medium text-neutral-300">
+                    {steps[currentStep]}
+                  </h2>
+                  <p className="text-center text-xs text-neutral-400">
+                    Complete your {steps[currentStep].toLowerCase()} to proceed
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Navigation */}
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="flex-1 border-neutral-800 bg-transparent py-2 text-sm text-neutral-300 hover:bg-neutral-800/50 hover:text-neutral-200 disabled:opacity-30"
+              >
+                <ArrowLeft className="mr-2 h-3 w-3" /> Back
+              </Button>
+              <Button
+                onClick={nextStep}
+                className={`flex-1 py-2 text-sm ${
+                  currentStep === steps.length - 1
+                    ? "bg-gradient-to-r from-neutral-600 to-neutral-500 hover:from-neutral-500 hover:to-neutral-400"
+                    : "bg-neutral-800 hover:bg-neutral-700"
+                }`}
+              >
+                {currentStep === steps.length - 1 ? "Submit" : "Next"}
+                <ArrowRight className="ml-2 h-3 w-3" />
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* only for development */}
-        <button
-          onClick={handleSubmit}
-          className="rounded-lg bg-rose-500 px-6 py-3 text-white"
-        >
-          test
-        </button>
-
-        {/* Content Area */}
-        <motion.div
-          className="rounded-lg border border-neutral-800 bg-neutral-900 p-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              {renderStepContent(currentStep)}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Navigation */}
-        <div className="flex space-x-4">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className="flex flex-1 items-center justify-center rounded-md border border-neutral-800 py-3 text-neutral-300 transition-all hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-30"
+        {/* Main Content Area */}
+        <div className="w-2/3 p-8">
+          <motion.div
+            className="h-full rounded-lg border border-neutral-800 bg-neutral-900/90 p-8 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </button>
-
-          <button
-            onClick={nextStep}
-            className={`flex-1 rounded-md py-3 transition-all ${
-              currentStep === steps.length - 1
-                ? "bg-neutral-700 text-neutral-100 hover:bg-neutral-600"
-                : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-            } flex items-center justify-center active:scale-[0.98]`}
-          >
-            {currentStep === steps.length - 1 ? "Submit" : "Next"}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </button>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                {renderStepContent(currentStep)}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
         </div>
       </div>
     </div>
