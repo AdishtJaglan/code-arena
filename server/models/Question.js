@@ -104,12 +104,6 @@ const QuestionSchema = new mongoose.Schema(
       {
         type: mongoose.Types.ObjectId,
         ref: "TestCase",
-        validate: {
-          validator: function (v) {
-            return v.length <= 30;
-          },
-          message: "Maximum 30 test cases allowed",
-        },
       },
     ],
     examples: [

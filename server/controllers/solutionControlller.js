@@ -7,7 +7,8 @@ import ApiError from "../utils/apiError.js";
 import Answer from "../models/Answer.js";
 
 export const createMultipleSolutions = asyncHandler(async (req, res) => {
-  const { contributedBy, solutions, answerId } = req.body;
+  const { _id: contributedBy } = req.user;
+  const { solutions, answerId } = req.body;
 
   if (!answerId) {
     throw ApiError.BadRequest("Answer ID is mandatory.");
@@ -59,15 +60,27 @@ export const createMultipleSolutions = asyncHandler(async (req, res) => {
 });
 
 export const createSolution = asyncHandler(async (req, res) => {
-  const { type, heading, explanation, contributedBy } = req.body;
+  const { _id: contributedBy } = req.user;
+  const { type, heading, explanation, answerId } = req.body;
+
+  if (!answerId) {
+    throw ApiError.BadRequest("Answer ID is mandatory.");
+  }
 
   if (!type || !heading || !explanation || !contributedBy) {
     throw ApiError.BadRequest("All fields are mandatory.");
   }
 
-  const user = await User.exists({ _id: contributedBy });
+  const [userCheck, answerCheck] = await Promise.all([
+    User.exists({ _id: contributedBy }),
+    Answer.findById(answerId),
+  ]);
 
-  if (!user) {
+  if (!answerCheck) {
+    throw ApiError.NotFound("Answer does note exist.");
+  }
+
+  if (!userCheck) {
     throw ApiError.NotFound("User not found.");
   }
 
@@ -78,8 +91,12 @@ export const createSolution = asyncHandler(async (req, res) => {
     contributedBy,
   });
 
+  answerCheck.solutions.push(solution._id);
+  await answerCheck.save();
+
   return ApiResponse.Created("Created solution successfully.", {
     solution,
+    answer: answerCheck,
   }).send(res);
 });
 

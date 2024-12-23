@@ -56,10 +56,81 @@ const getCodeLanguageAndCode = (obj) => {
   });
 };
 
+const getType = (type) => {
+  switch (type) {
+    case "better":
+      return "Better";
+    case "optimal":
+      return "Optimal";
+    case "brute":
+      return "Brute Force";
+    default:
+      return "NA";
+  }
+};
+
+const getLanguage = (lang) => {
+  switch (lang) {
+    case "cpp":
+      return "C++";
+    case "java":
+      return "Java";
+    case "python":
+      return "Python";
+    case "javascript":
+      return "JavaScript";
+    default:
+      return "Go";
+  }
+};
+
+const formatSolutions = (solutions) => {
+  return Object.entries(solutions).map(([key, value]) => ({
+    ...value,
+    type: getType(key),
+  }));
+};
+
+const formatCodeAnswers = (code) => {
+  return Object.entries(code).map(([key, value]) => ({
+    code: value,
+    language: getLanguage(key),
+  }));
+};
+
+const solutionService = {
+  async createAnswer(questionID, token) {
+    const response = await axios.post(
+      `${API_BASE_URL}/answer/create`,
+      { question: questionID },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response?.data?.data;
+  },
+
+  async createSolution(solution, token) {
+    const response = await axios.post(
+      `${API_BASE_URL}/solution/create`,
+      solution,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response?.data?.data?.solution;
+  },
+
+  async createCodeAnswers(codeAnswerBody, token) {
+    return axios.post(
+      `${API_BASE_URL}/code-answer/create-many`,
+      codeAnswerBody,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+  },
+};
+
 const CompetitiveProgrammingForm = () => {
   const [activeLanguage, setActiveLanguage] = useState(LANGUAGES[0].name);
   const [copiedLanguage, setCopiedLanguage] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [questionID, setQuestionID] = useState(null);
   const [solutions, setSolutions] = useState({});
   const [problemData, setProblemData] = useState({
     title: "",
@@ -127,7 +198,44 @@ const CompetitiveProgrammingForm = () => {
   };
 
   const handleSaveSolution = async (solutions) => {
-    console.log(solutions);
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      toast.error("You must be registered or logged in to contribute.");
+      return;
+    }
+
+    try {
+      const answer = await solutionService.createAnswer(questionID, token);
+
+      const formattedSolutions = formatSolutions(solutions);
+
+      const promises = formattedSolutions.map(async (solution) => {
+        const solutionWithAnswerId = { ...solution, answerId: answer._id };
+        const createdSolution = await solutionService.createSolution(
+          solutionWithAnswerId,
+          token,
+        );
+
+        const codeAnswerBody = {
+          solutionId: createdSolution._id,
+          codeAnswers: formatCodeAnswers(solution.code),
+        };
+
+        return solutionService.createCodeAnswers(codeAnswerBody, token);
+      });
+
+      await Promise.all(promises);
+      toast.success("Created answer!");
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.statusText ||
+        "An unexpected error occurred";
+
+      console.error(`Error creating solution: ${errorMessage}`);
+      toast.error(errorMessage);
+    }
   };
 
   const handleSubmit = async () => {
@@ -168,6 +276,8 @@ const CompetitiveProgrammingForm = () => {
         difficulty,
         explanation,
       });
+
+      setQuestionID(questionId);
 
       const requests = [
         api.post("/code-question/create-many", {

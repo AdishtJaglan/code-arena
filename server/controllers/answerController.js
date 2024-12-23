@@ -8,7 +8,8 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 
 export const createAnswer = asyncHandler(async (req, res) => {
-  const { question, contributedBy } = req.body;
+  const { _id: contributedBy } = req.user;
+  const { question } = req.body;
 
   if (!question) {
     throw ApiError.BadRequest("Question ID is mandatory.");
