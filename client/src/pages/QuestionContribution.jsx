@@ -357,9 +357,9 @@ const CompetitiveProgrammingForm = () => {
           </div>
         </div>
 
-        <button onClick={handleSubmit} className="py-y bg-rose-500 px-6">
+        {/* <button onClick={handleSubmit} className="py-y bg-rose-500 px-6">
           test
-        </button>
+        </button> */}
 
         {/* Main Content Area */}
         <div className="w-2/3 p-8">

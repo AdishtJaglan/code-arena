@@ -39,7 +39,7 @@ export const createMultipleCodeAnswer = asyncHandler(async (req, res) => {
   const codeAnswerIds = newCodeAnswers.map((obj) => obj._id);
 
   solutionCheck.codeAnswer.push(...codeAnswerIds);
-  solutionCheck.save();
+  await solutionCheck.save();
 
   return ApiResponse.Created("Created multiple for code answers.", {
     count: newCodeAnswers.length,

@@ -1,6 +1,8 @@
 import Answer from "../models/Answer.js";
 import Question from "../models/Question.js";
 import User from "../models/User.js";
+import Solution from "../models/Solution.js";
+import CodeAnswer from "../models/CodeAnswers.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
@@ -74,4 +76,27 @@ export const getAnswersForAQuestion = asyncHandler(async (req, res) => {
   return ApiResponse.Ok("Fetched answer for this question.", { answer }).send(
     res
   );
+});
+
+export const getCompleteAnswer = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw ApiError.BadRequest("Answer ID is mandatory.");
+  }
+
+  const answer = await Answer.findById(id)
+    .populate({
+      path: "solutions",
+      populate: {
+        path: "codeAnswer",
+      },
+    })
+    .lean();
+
+  if (!answer) {
+    throw ApiError.NotFound("No answer found for that ID.");
+  }
+
+  return ApiResponse.Ok("Fetched complete answer.", { answer }).send(res);
 });

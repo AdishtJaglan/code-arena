@@ -4,9 +4,14 @@ import CodeAnswer from "../models/CodeAnswers.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
+import Answer from "../models/Answer.js";
 
 export const createMultipleSolutions = asyncHandler(async (req, res) => {
-  const { contributedBy, solutions } = req.body;
+  const { contributedBy, solutions, answerId } = req.body;
+
+  if (!answerId) {
+    throw ApiError.BadRequest("Answer ID is mandatory.");
+  }
 
   if (!contributedBy) {
     throw ApiError.BadRequest("User ID is mandatory.");
@@ -18,10 +23,17 @@ export const createMultipleSolutions = asyncHandler(async (req, res) => {
     );
   }
 
-  const userCheck = await User.exists({ _id: contributedBy });
+  const [userCheck, answerCheck] = await Promise.all([
+    User.exists({ _id: contributedBy }),
+    Answer.findById(answerId),
+  ]);
 
   if (!userCheck) {
     throw ApiError.NotFound("User not found.");
+  }
+
+  if (!answerCheck) {
+    throw ApiError.NotFound("Answer not found.");
   }
 
   for (const solution of solutions) {
@@ -35,6 +47,10 @@ export const createMultipleSolutions = asyncHandler(async (req, res) => {
   }
 
   const newSolutions = await Solution.insertMany(solutions);
+  const newSolutionIds = newSolutions.map((sol) => sol._id);
+
+  answerCheck.solutions.push(...newSolutionIds);
+  await answerCheck.save();
 
   return ApiResponse.Created("Created solutions.", {
     count: solutions.length,
