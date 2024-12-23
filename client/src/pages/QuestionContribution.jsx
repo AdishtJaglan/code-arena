@@ -60,6 +60,7 @@ const CompetitiveProgrammingForm = () => {
   const [activeLanguage, setActiveLanguage] = useState(LANGUAGES[0].name);
   const [copiedLanguage, setCopiedLanguage] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [solutions, setSolutions] = useState({});
   const [problemData, setProblemData] = useState({
     title: "",
     explanation: "",
@@ -125,46 +126,8 @@ const CompetitiveProgrammingForm = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <StepProblemDetails
-            problemData={problemData}
-            setProblemData={setProblemData}
-          />
-        );
-      case 1:
-        return (
-          <StepCodeInput
-            activeLanguage={activeLanguage}
-            handleLanguageChange={handleLanguageChange}
-            handleResetCode={handleResetCode}
-            handleCopyCode={handleCopyCode}
-            handleCodeChange={handleCodeChange}
-            problemData={problemData}
-            copiedLanguage={copiedLanguage}
-          />
-        );
-      case 2:
-        return (
-          <StepTestCases
-            problemData={problemData}
-            setProblemData={setProblemData}
-          />
-        );
-      case 3:
-        return (
-          <StepExample
-            problemData={problemData}
-            setProblemData={setProblemData}
-          />
-        );
-      case 4:
-        return <StepEmpty />;
-      default:
-        return null;
-    }
+  const handleSaveSolution = async (solutions) => {
+    console.log(solutions);
   };
 
   const handleSubmit = async () => {
@@ -231,6 +194,54 @@ const CompetitiveProgrammingForm = () => {
         "Unknown error occurred";
       toast.error(`Error creating question: ${errorMessage}`);
       console.error("Question creation error:", error);
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <StepProblemDetails
+            problemData={problemData}
+            setProblemData={setProblemData}
+          />
+        );
+      case 1:
+        return (
+          <StepCodeInput
+            activeLanguage={activeLanguage}
+            handleLanguageChange={handleLanguageChange}
+            handleResetCode={handleResetCode}
+            handleCopyCode={handleCopyCode}
+            handleCodeChange={handleCodeChange}
+            problemData={problemData}
+            copiedLanguage={copiedLanguage}
+          />
+        );
+      case 2:
+        return (
+          <StepTestCases
+            problemData={problemData}
+            setProblemData={setProblemData}
+          />
+        );
+      case 3:
+        return (
+          <StepExample
+            problemData={problemData}
+            setProblemData={setProblemData}
+          />
+        );
+      case 4:
+        return (
+          <StepEmpty
+            solutions={solutions}
+            setSolutions={setSolutions}
+            handleSaveSolution={handleSaveSolution}
+          />
+        );
+      default:
+        return null;
     }
   };
 

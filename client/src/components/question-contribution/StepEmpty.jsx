@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,13 +13,12 @@ import {
 import { Separator } from "../ui/separator";
 import { ScrollArea } from "../ui/scroll-area";
 import Button from "../Button";
-const SolutionForm = () => {
+
+const SolutionForm = ({ solutions, setSolutions, handleSaveSolution }) => {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [showTypeSelection, setShowTypeSelection] = useState(true);
   const [activeSolution, setActiveSolution] = useState(null);
   const [activeLanguage, setActiveLanguage] = useState("cpp");
-
-  const [solutions, setSolutions] = useState({});
 
   const solutionTypes = [
     {
@@ -235,7 +235,7 @@ const SolutionForm = () => {
 
               <Button
                 className="w-full bg-sky-600 text-white hover:bg-sky-700"
-                onClick={() => console.log("Solutions:", solutions)}
+                onClick={() => handleSaveSolution(solutions)}
               >
                 Save Solution
               </Button>
