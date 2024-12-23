@@ -9,7 +9,9 @@ import {
   Languages,
   ChevronRight,
 } from "lucide-react";
-
+import { Separator } from "../ui/separator";
+import { ScrollArea } from "../ui/scroll-area";
+import Button from "../Button";
 const SolutionForm = () => {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [showTypeSelection, setShowTypeSelection] = useState(true);
@@ -158,46 +160,86 @@ const SolutionForm = () => {
     <div className="font-inter overflow-scroll text-neutral-300">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-48 border-r border-neutral-800 bg-neutral-900">
-          <div className="p-4">
-            <h2 className="mb-4 text-lg font-medium text-neutral-200">
-              Solutions
-            </h2>
-            <div className="space-y-2">
-              {selectedTypes.map((type) => (
-                <motion.button
-                  key={type}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setActiveSolution(type)}
-                  className={`w-full rounded-lg px-4 py-3 text-left transition-all ${
-                    activeSolution === type
-                      ? "bg-neutral-800 text-neutral-200"
-                      : "text-neutral-400 hover:bg-neutral-800/50"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div
-                      className={`mr-3 h-2 w-2 rounded-full ${
-                        activeSolution === type
-                          ? "bg-blue-500"
-                          : "bg-neutral-600"
-                      }`}
-                    />
-                    {solutionTypes.find((t) => t.id === type)?.label}
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
+        <div className="flex h-full w-64 flex-col">
+          <ScrollArea className="flex-1">
+            <div className="p-6">
+              <h2 className="mb-6 text-xl font-semibold text-neutral-100">
+                Solutions
+              </h2>
 
-          <div className="mt-4 border-t border-neutral-800 p-4">
-            <button
-              onClick={() => setShowTypeSelection(true)}
-              className="flex w-full items-center justify-center rounded-md border border-neutral-800 py-2 text-sm text-neutral-400 transition-all hover:bg-neutral-800 active:scale-[0.98]"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Selection
-            </button>
+              <div className="space-y-2">
+                {selectedTypes.map((type) => {
+                  const solution = solutionTypes.find((t) => t.id === type);
+                  return (
+                    <motion.button
+                      key={type}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setActiveSolution(type)}
+                      className={`group relative w-full overflow-hidden rounded-lg p-4 text-left transition-all ${
+                        activeSolution === type
+                          ? "bg-neutral-800"
+                          : "hover:bg-neutral-800/40"
+                      }`}
+                    >
+                      <div className="relative z-10 flex items-center space-x-3">
+                        <div
+                          className={`h-3 w-3 rounded-full transition-colors ${
+                            activeSolution === type
+                              ? "bg-blue-500 shadow-lg shadow-blue-500/30"
+                              : "bg-neutral-600"
+                          }`}
+                        />
+                        <span
+                          className={`font-medium transition-colors ${
+                            activeSolution === type
+                              ? "text-neutral-100"
+                              : "text-neutral-400 group-hover:text-neutral-300"
+                          }`}
+                        >
+                          {solution?.label}
+                        </span>
+                      </div>
+
+                      {activeSolution === type && (
+                        <motion.div
+                          layoutId="activeBackground"
+                          className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent"
+                          initial={false}
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 30,
+                          }}
+                        />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          </ScrollArea>
+
+          <div className="p-6">
+            <Separator className="mb-6 bg-neutral-800" />
+
+            <div className="space-y-4">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 border-neutral-800 bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+                onClick={() => setShowTypeSelection(true)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Selection
+              </Button>
+
+              <Button
+                className="w-full bg-sky-600 text-white hover:bg-sky-700"
+                onClick={() => console.log("Solutions:", solutions)}
+              >
+                Save Solution
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -308,13 +350,6 @@ const SolutionForm = () => {
                     </AnimatePresence>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => console.log("Solutions:", solutions)}
-                  className="w-full rounded-md bg-neutral-800 py-3 text-neutral-300 transition-all hover:bg-neutral-700 active:scale-[0.98]"
-                >
-                  Save Solution
-                </button>
               </motion.div>
             </AnimatePresence>
           </div>
