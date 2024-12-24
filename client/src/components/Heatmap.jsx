@@ -105,7 +105,7 @@ const SubmissionsHeatmap = ({ data, dayData }) => {
   }, [data, containerRef]);
 
   return (
-    <div ref={containerRef} className="w-full space-y-4 bg-transparent">
+    <div ref={containerRef} className="w-full space-y-4">
       <div className="flex items-center justify-between text-sm text-gray-400">
         <div className="flex items-center space-x-2">
           <svg
@@ -179,7 +179,7 @@ const SubmissionsHeatmap = ({ data, dayData }) => {
       </div>
       <svg
         ref={svgRef}
-        className="h-auto w-full rounded-md bg-neutral-800/50 shadow-sm ring-1 ring-gray-700"
+        className="h-auto w-full rounded-md bg-zinc-900 shadow-sm ring-1 ring-gray-700"
       />
     </div>
   );

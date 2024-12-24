@@ -196,9 +196,9 @@ const Profile = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 100 }}
-            className="col-span-2 row-span-6 h-fit w-fit overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-900 shadow-xl"
+            className="col-span-2 row-span-6 h-fit w-fit overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl"
           >
-            <Card className="border-none bg-transparent">
+            <Card className="border-none border-zinc-800 bg-zinc-900">
               <CardHeader className="py-6 text-center">
                 <div className="flex flex-col items-center">
                   <Avatar className="mb-4 h-28 w-28">
@@ -314,7 +314,7 @@ const Profile = () => {
                 {/* Edit Profile Button */}
                 <Button
                   variant="outline"
-                  className="mt-4 w-full border-neutral-600 bg-transparent text-neutral-300 transition-colors hover:bg-neutral-700/30"
+                  className="mt-4 w-full border-neutral-600 text-neutral-300 transition-colors hover:bg-neutral-700/30"
                 >
                   Edit Profile
                 </Button>
@@ -327,18 +327,18 @@ const Profile = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100 }}
-            className="col-span-3 row-span-2 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 shadow-xl"
+            className="col-span-3 row-span-2 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl"
           >
-            <Card className="border-none bg-transparent">
-              <CardHeader className="bg-neutral-800/50 py-4 text-center">
-                <CardTitle className="flex items-center justify-center text-xl font-bold text-neutral-200">
-                  <TrendingUp className="mr-2 text-indigo-600" size={24} />
+            <Card className="border-none bg-zinc-900">
+              <CardHeader className="py-4 text-center">
+                <CardTitle className="flex items-center justify-center text-xl font-bold text-white">
+                  <TrendingUp className="mr-2 text-indigo-400" size={24} />
                   Question Statistics
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 {questionStats === null ? (
-                  <div className="text-neutral-500">Loading...</div>
+                  <div className="text-neutral-400">Loading...</div>
                 ) : (
                   <>
                     <div className="grid grid-cols-3 gap-4">
@@ -347,33 +347,33 @@ const Profile = () => {
                         .map(([difficulty, count]) => (
                           <div
                             key={difficulty}
-                            className="transform rounded-xl bg-neutral-800 p-4 text-center transition-all hover:scale-105 hover:shadow-lg"
+                            className="transform rounded-xl bg-zinc-900 p-4 text-center transition-all hover:scale-105 hover:shadow-lg"
                           >
                             <div className="mb-2 flex items-center justify-center">
                               {difficultyIcons[difficulty]}
                               <span
                                 className={`text-3xl font-bold ${
                                   {
-                                    easy: "text-emerald-600",
-                                    medium: "text-amber-600",
-                                    hard: "text-red-600",
+                                    easy: "text-emerald-400",
+                                    medium: "text-amber-400",
+                                    hard: "text-red-400",
                                   }[difficulty]
                                 }`}
                               >
                                 {count}
                               </span>
                             </div>
-                            <div className="mb-2 text-sm capitalize text-neutral-500">
+                            <div className="mb-2 text-sm capitalize text-neutral-400">
                               {difficulty} Questions
                             </div>
                             <Progress
                               value={parseFloat(
                                 (count / questionStats.total) * 100,
                               ).toFixed(2)}
-                              className="h-2 bg-neutral-900"
+                              className="h-2 bg-black"
                               indicatorClassName={difficultyColors[difficulty]}
                             />
-                            <div className="mt-1 text-xs text-neutral-600">
+                            <div className="mt-1 text-xs text-neutral-500">
                               {parseFloat(
                                 (count / questionStats.total) * 100,
                               ).toFixed(2)}
@@ -383,15 +383,14 @@ const Profile = () => {
                         ))}
                     </div>
 
-                    {/* Total Questions */}
-                    <div className="mt-4 rounded-xl bg-neutral-800 p-4 text-center">
+                    <div className="mt-4 rounded-xl bg-neutral-900 p-4 text-center">
                       <div className="mb-2 flex items-center justify-center">
-                        <Layers className="mr-2 text-indigo-600" size={20} />
-                        <span className="text-3xl font-bold text-indigo-500">
+                        <Layers className="mr-2 text-indigo-400" size={20} />
+                        <span className="text-3xl font-bold text-indigo-400">
                           {questionStats?.total}
                         </span>
                       </div>
-                      <div className="text-sm text-neutral-500">
+                      <div className="text-sm text-neutral-400">
                         Total Questions Solved
                       </div>
                     </div>
@@ -406,9 +405,9 @@ const Profile = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100 }}
-            className="col-span-3 row-span-2 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 shadow-2xl"
+            className="col-span-3 row-span-2 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl"
           >
-            <Card className="border-none bg-transparent">
+            <Card className="border-none bg-zinc-900">
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center space-x-6">
                   <Avatar className="h-24 w-24 border-4 border-neutral-700 ring-4 ring-neutral-800">
@@ -510,9 +509,9 @@ const Profile = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100 }}
-            className="col-span-6 row-span-2 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 shadow-xl"
+            className="col-span-6 row-span-2 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl"
           >
-            <Card className="border-none bg-transparent">
+            <Card className="border-none bg-zinc-900">
               <CardHeader className="bg-neutral-800/50 py-4 text-center">
                 <CardTitle className="flex items-center justify-center text-xl font-bold text-neutral-200">
                   <CheckCircle className="mr-2 text-indigo-600" size={24} />
