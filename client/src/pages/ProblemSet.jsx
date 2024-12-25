@@ -37,6 +37,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { MagicCard } from "@/components/MagicCard.jsx";
+import FixedActionButton from "@/components/ActionButton.jsx";
 import Particles from "@/components/Particles.jsx";
 import Navbar from "@/components/Navbar.jsx";
 
@@ -501,6 +502,7 @@ const ProblemSet = () => {
       />
       <div className="min-h-screen bg-black text-gray-100 dark:bg-black dark:text-gray-100">
         <Navbar />
+        <FixedActionButton />
 
         <div className="container mx-auto px-4 py-8">
           {/* Header with Search and Filters */}

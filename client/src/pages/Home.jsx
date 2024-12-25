@@ -4,6 +4,7 @@ import { Code, Target, Users, Zap, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GridPattern from "@/components/GridPattern";
 import { MagicCard } from "@/components/MagicCard";
+import FixedActionButton from "@/components/ActionButton";
 // import IconCloud from "@/components/ui/icon-cloud";
 import Navbar from "@/components/Navbar";
 
@@ -77,6 +78,7 @@ const LandingPage = () => {
       <div className="absolute inset-0 bg-neutral-900/50 opacity-50 blur-3xl"></div>
 
       <Navbar />
+      <FixedActionButton />
 
       <div className="container relative z-10 mx-auto px-4">
         <div className="pt-24 text-center">
