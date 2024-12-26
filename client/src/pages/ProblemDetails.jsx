@@ -23,7 +23,6 @@ import {
   CodeIcon,
   Save,
   Play,
-  XCircle,
   Languages,
 } from "lucide-react";
 import { Editor as MonacoEditor } from "@monaco-editor/react";
@@ -81,12 +80,10 @@ const ProblemDetails = () => {
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState(null);
   const [submittedBy, setSubmittedBy] = useState(null);
-  const [testCases, setTestCases] = useState(null);
   const [expandedSolution, setExpandedSolution] = useState(null);
   const [language, setLanguage] = useState("python");
   const [code, setCode] = useState("// your code goes in here");
   const [loading, setLoading] = useState(true);
-  const [testResults, setTestResults] = useState([]);
 
   useEffect(() => {
     const getQuestionDetails = async () => {
@@ -95,14 +92,15 @@ const ProblemDetails = () => {
           `${API_BASE_URL}/question/complete-question/${id}`,
         );
 
-        const { answer, submittedBy, examples, testCases, ...question } =
+        const { answer, submittedBy, examples, ...question } =
           response.data.data.question;
+
+        console.log(response.data.data.question);
 
         setQuestion(question);
         setAnswers(answer);
         setSubmittedBy(submittedBy);
         setExamples(examples);
-        setTestCases(testCases);
         setLoading(false);
       } catch (error) {
         console.error("Error while fetching question: ", error);
@@ -126,20 +124,6 @@ const ProblemDetails = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-  };
-
-  const runTestCases = () => {
-    const results = testCases.slice(0, 3).map((testCase, index) => {
-      //mock testing -> lol
-      const isPassed = Math.random() > 0.3;
-      return {
-        ...testCase,
-        passed: isPassed,
-        index: index + 1,
-      };
-    });
-
-    setTestResults(results);
   };
 
   return (
@@ -358,7 +342,7 @@ const ProblemDetails = () => {
 
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={runTestCases}
+                          // onClick={runTestCases}
                           className="group flex items-center space-x-2 rounded-md bg-blue-600 px-3 py-2 text-white transition-colors hover:bg-blue-500"
                         >
                           <Play className="h-4 w-4 group-hover:animate-pulse" />
@@ -402,7 +386,7 @@ const ProblemDetails = () => {
                       <h3 className="mb-4 text-xl font-semibold text-gray-200">
                         Test Cases
                       </h3>
-                      {testCases.slice(0, 3).map((testCase, index) => (
+                      {/* {testCases.slice(0, 3).map((testCase, index) => (
                         <div
                           key={testCase._id}
                           className="mb-4 rounded-lg border border-gray-700 bg-gray-800 p-4"
@@ -443,7 +427,7 @@ const ProblemDetails = () => {
                               )}
                           </div>
                         </div>
-                      ))}
+                      ))} */}
                     </div>
                   </div>
                 </TabsContent>

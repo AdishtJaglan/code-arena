@@ -170,7 +170,8 @@ export const getQuestionByQuestionId = asyncHandler(async (req, res) => {
   }
 
   const question = await Question.findOne({ question_id: question_id })
-    .select("-discussion")
+    .select("-discussion -testCases")
+    .populate("codeQuestion examples")
     .populate({
       path: "submittedBy",
       select: "username profilePicture rating bio",
@@ -178,15 +179,9 @@ export const getQuestionByQuestionId = asyncHandler(async (req, res) => {
     .populate({
       path: "answer",
       populate: {
-        path: "solutions.contributedBy",
-        select: "username profilePicture bio rating",
+        path: "solutions",
       },
     })
-    .populate({
-      path: "testCases",
-      match: { isHidden: false },
-    })
-    .populate("examples")
     .lean();
 
   if (!question) {
