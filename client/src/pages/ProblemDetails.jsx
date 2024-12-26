@@ -1,89 +1,90 @@
-/* eslint-disable react/prop-types */
-import React, { useEffect, useState, useRef } from "react";
+/* eslint-disable no-unused-vars */
+
+//TODO -> Make the IDE use the code from code question
+//TODO -> Add the test cases to the IDE
+//TODO -> Make submit and run button functional
+//TODO -> Add like dislike button
+//TODO -> Add the discussion, submission and editorial section
+//TODO -> Add the report bug button functionality
+
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE_URL } from "@/configs/env-config";
-import axios from "axios";
-import Navbar from "../components/Navbar";
 import { motion } from "framer-motion";
 import {
-  Code,
-  Clock,
-  BarChart2,
-  Copy,
-  CheckCircle2,
-  FileCode,
-  ChevronRight,
-  ChevronDown,
-  ThumbsUp,
-  ThumbsDown,
-  Gauge,
-  Check,
-  Layers,
   FileText,
-  CodeIcon,
-  Save,
-  Play,
-  Languages,
+  Trophy,
+  SquareTerminal,
+  Edit,
+  MessageCircle,
+  MessageCircleCode,
+  Upload,
+  Clipboard,
+  Eraser,
+  TriangleAlert,
+  SquareChartGantt,
 } from "lucide-react";
-import { Editor as MonacoEditor } from "@monaco-editor/react";
+import { Editor } from "@monaco-editor/react";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
+import axios from "axios";
+import Navbar from "../components/Navbar";
 import LANGUAGE_CONFIGS from "@/configs/language-config";
-
-const LanguageDropdown = ({ language, languages, onLanguageChange }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-
-  const currentLang = languages[language];
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 rounded-md bg-gray-700 px-3 py-2 text-gray-300 transition-colors hover:bg-gray-600"
-      >
-        <currentLang.icon className="h-4 w-4" />
-        <span className="text-sm capitalize">{language}</span>
-        <Languages className="ml-1 h-4 w-4 opacity-50" />
-      </button>
-
-      {isOpen && (
-        <div className="absolute left-0 top-full z-10 mt-1 overflow-hidden rounded-md border border-gray-700 bg-gray-800 shadow-lg">
-          {Object.keys(languages).map((lang) => (
-            <button
-              key={lang}
-              onClick={() => {
-                onLanguageChange(lang);
-                setIsOpen(false);
-              }}
-              className={`flex w-full items-center space-x-2 px-3 py-2 text-left ${
-                language === lang
-                  ? "bg-violet-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700"
-              } `}
-            >
-              {React.createElement(languages[lang].icon, {
-                className: "w-4 h-4",
-              })}
-              <span className="text-sm capitalize">{lang}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const ProblemDetails = () => {
   const { id } = useParams();
-  const editorRef = useRef(null);
 
   const [examples, setExamples] = useState([]);
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState(null);
   const [submittedBy, setSubmittedBy] = useState(null);
-  const [expandedSolution, setExpandedSolution] = useState(null);
-  const [language, setLanguage] = useState("python");
-  const [code, setCode] = useState("// your code goes in here");
   const [loading, setLoading] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const config = LANGUAGE_CONFIGS[selectedLanguage];
+
+  //! resizable pane states
+  const [rightTopHeight, setRightTopHeight] = useState(80);
+
+  const handleMouseDown = useCallback(
+    (e, direction) => {
+      e.preventDefault();
+      const startY = e.clientY;
+      const startHeight = rightTopHeight;
+
+      const handleMouseMove = (e) => {
+        const rightPane = document.getElementById("rightPane");
+        const deltaY = e.clientY - startY;
+        const containerHeight = rightPane.offsetHeight;
+        const newHeight = startHeight + (deltaY / containerHeight) * 100;
+        setRightTopHeight(Math.min(Math.max(20, newHeight), 80));
+      };
+
+      const handleMouseUp = () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [rightTopHeight],
+  );
 
   useEffect(() => {
     const getQuestionDetails = async () => {
@@ -94,8 +95,6 @@ const ProblemDetails = () => {
 
         const { answer, submittedBy, examples, ...question } =
           response.data.data.question;
-
-        console.log(response.data.data.question);
 
         setQuestion(question);
         setAnswers(answer);
@@ -110,423 +109,444 @@ const ProblemDetails = () => {
     getQuestionDetails();
   }, [id]);
 
-  const handleEditorDidMount = (editor) => {
-    editorRef.current = editor;
-  };
+  const tabs = [
+    { id: "description", icon: FileText },
+    { id: "editorial", icon: Edit },
+    { id: "discussion", icon: MessageCircle },
+    { id: "submissions", icon: Upload },
+  ];
 
-  const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage);
-  };
-
-  const handleCodeChange = (value) => {
-    setCode(value);
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
+  const getDifficultyStyle = (difficulty) => {
+    switch (difficulty?.toLowerCase()) {
+      case "hard":
+        return "border-red-500 bg-red-500/20 text-red-200";
+      case "medium":
+        return "border-yellow-500 bg-yellow-500/20 text-yellow-200";
+      case "easy":
+        return "border-green-500 bg-green-500/20 text-green-200";
+      default:
+        return "border-zinc-500 bg-zinc-500/20 text-zinc-200";
+    }
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950 text-gray-200">
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-900/20 via-indigo-900/10 to-purple-900/20 opacity-50 blur-3xl"></div>
+    <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
       <Navbar />
-      <div className="container relative z-10 mx-auto px-4 pt-8">
-        {loading ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
-            <div className="text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="animate-pulse">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-16 w-16 text-purple-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+
+      <div id="editorContainer" className="flex h-[90vh] w-full space-x-1">
+        {/* main question */}
+        <motion.div
+          className="h-full w-1/2 overflow-scroll rounded-sm border border-zinc-700 bg-neutral-900/60"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <Tabs defaultValue="description" className="relative">
+            <TabsList className="sticky top-0 z-10 flex w-full items-center justify-start gap-1 overflow-hidden rounded-none border-t border-zinc-800 bg-zinc-900/95 p-3 backdrop-blur-sm">
+              {tabs.map(({ id, icon: Icon }, index) => (
+                <React.Fragment key={id}>
+                  <TabsTrigger
+                    value={id}
+                    className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 data-[state=active]:rounded-[0.5rem] data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    <Icon
+                      size={16}
+                      className={`${index === 0 ? "text-blue-500" : index === 3 ? "text-emerald-600" : "text-orange-400"} `}
                     />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="mx-auto h-4 w-48 animate-pulse rounded bg-gray-700"></div>
-                <div className="mx-auto h-4 w-64 animate-pulse rounded bg-gray-700"></div>
-              </div>
-              <p className="mt-4 text-sm text-gray-300">
-                <span className="text-blue-400">Loading</span>
-                <span className="ml-1 text-green-400">content</span>
-                <span className="ml-1 text-purple-400">...</span>
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex min-h-[calc(100vh-4rem)] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
-            <div className="w-1/2 overflow-auto border-r border-gray-800 p-6">
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="space-y-6"
-              >
-                <h1 className="mb-4 bg-gradient-to-r from-violet-400 via-purple-500 to-pink-500 bg-clip-text text-3xl font-bold text-transparent">
-                  {question.title}
-                </h1>
+                    {id.charAt(0).toUpperCase() + id.slice(1)}
+                  </TabsTrigger>
+                  {index != tabs.length - 1 && (
+                    <Separator orientation="vertical" className="bg-zinc-600" />
+                  )}
+                </React.Fragment>
+              ))}
+            </TabsList>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3 rounded-md bg-gray-800 p-3">
-                    <Clock className="text-blue-400" />
-                    <div>
-                      <p className="text-sm text-gray-300">Time Limit</p>
-                      <p className="font-semibold text-blue-400">
-                        {question.timeLimit}ms
-                      </p>
+            <TabsContent
+              value="description"
+              className="flex h-full flex-col p-4"
+            >
+              {question != null && submittedBy != null ? (
+                <>
+                  {/* heading */}
+                  <div className="mb-6 flex items-center space-x-2 overflow-hidden">
+                    <h2 className="text-xl font-bold">{question?.title}</h2>
+                  </div>
+
+                  {/* tags */}
+                  <div className="mb-6 flex flex-wrap items-center gap-3 overflow-hidden">
+                    <Badge
+                      variant="outline"
+                      className={`px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${getDifficultyStyle(question?.difficulty)}`}
+                    >
+                      {question?.difficulty?.toLowerCase()}
+                    </Badge>
+
+                    <div className="flex flex-wrap gap-2 overflow-clip">
+                      {question?.tags?.map((tag, index) => (
+                        <Badge
+                          key={tag}
+                          variant="outline"
+                          className="cursor-pointer border-zinc-700 bg-zinc-800/50 px-3 py-1 text-xs font-normal tracking-wide text-zinc-200 backdrop-blur-sm transition-all hover:border-zinc-500 hover:bg-zinc-700/50"
+                        >
+                          {tag.toLowerCase()}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3 rounded-md bg-gray-800 p-3">
-                    <BarChart2 className="text-blue-400" />
-                    <div>
-                      <p className="text-sm text-gray-300">Memory</p>
-                      <p className="font-semibold text-blue-400">
-                        {question.memoryLimit}MB
-                      </p>
-                    </div>
+                  {/* question */}
+                  <div className="mb-6 flex-1 overflow-hidden p-4">
+                    <p>{question?.explanation}</p>
                   </div>
 
-                  <div className="flex items-center space-x-3 rounded-md bg-gray-800 p-3">
-                    <Gauge
-                      className={`${
-                        question.difficulty === "Easy"
-                          ? "text-green-400"
-                          : question.difficulty === "Medium"
-                            ? "text-yellow-400"
-                            : "text-red-400"
-                      }`}
-                    />
-                    <div>
-                      <p className="text-sm text-gray-300">Difficulty</p>
-                      <p
-                        className={`font-semibold ${
-                          question.difficulty === "Easy"
-                            ? "text-green-400"
-                            : question.difficulty === "Medium"
-                              ? "text-yellow-400"
-                              : "text-red-400"
-                        }`}
-                      >
-                        {question.difficulty}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3 rounded-md bg-gray-800 p-3">
-                    <Check className="text-green-400" />
-                    <div>
-                      <p className="text-sm text-gray-300">Acceptance</p>
-                      <p className="font-semibold text-green-400">
-                        {question.acceptanceRate.toFixed(2)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between rounded-md bg-gray-800 p-4">
-                  <div className="flex items-center space-x-2">
-                    <ThumbsUp className="text-green-400" />
-                    <span className="text-gray-300">{question.likes}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <ThumbsDown className="text-red-400" />
-                    <span className="text-gray-300">{question.dislikes}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Layers className="text-purple-400" />
-                    <span className="text-gray-300">
-                      {question.noOfSuccess + question.noOfFails}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <h2 className="mb-2 text-xl font-semibold text-purple-400">
-                    Constraints
-                  </h2>
-                  <p className="rounded-md bg-gray-800 p-4 text-gray-300">
-                    {question.constraints}
-                  </p>
-                </div>
-
-                <div>
-                  <h2 className="mb-2 text-xl font-semibold text-purple-400">
-                    Examples
-                  </h2>
-                  <div className="space-y-4">
-                    {examples.map((example, index) => (
-                      <div
-                        key={example._id || index}
-                        className="rounded-md border border-gray-700 bg-gray-800 p-4 transition-all hover:border-purple-500"
-                      >
-                        <p className="mb-2 text-gray-300">
-                          <strong className="text-blue-400">Input:</strong>{" "}
-                          {example.input}
+                  {/* examples */}
+                  <div className="my-3 flex-1 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/80 p-4">
+                    {examples.map((ex, index) => (
+                      <div key={ex?._id} className="my-3 space-y-4">
+                        <p className="font-bold text-neutral-200">
+                          Example {index + 1}:
                         </p>
-                        <p className="mb-2 text-gray-300">
-                          <strong className="text-green-400">Output:</strong>{" "}
-                          {example.output}
-                        </p>
-                        <p className="text-gray-300">
-                          <strong className="text-purple-400">
-                            Explanation:
-                          </strong>{" "}
-                          {example.explanation}
-                        </p>
+                        <div className="flex flex-col gap-2 border-l-2 border-neutral-600 px-3">
+                          <p className="text-sm text-gray-200">
+                            Input:{" "}
+                            <span className="font-light text-neutral-300">
+                              {ex?.input}
+                            </span>
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            Output:{" "}
+                            <span className="font-light text-neutral-300">
+                              {ex?.output}
+                            </span>
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            Explanation:{" "}
+                            <span className="font-light text-neutral-300">
+                              {ex?.explanation}
+                            </span>
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-4 rounded-md bg-gray-800 p-4">
-                  <img
-                    src={submittedBy.profilePicture}
-                    alt={submittedBy.username}
-                    className="h-16 w-16 rounded-full border-2 border-purple-500 object-cover"
-                  />
-                  <div>
-                    <p className="text-lg font-semibold text-gray-300">
-                      {submittedBy.username}
-                    </p>
-                    <p className="text-sm text-gray-400">{submittedBy.bio}</p>
-                    <p className="mt-1 text-sm text-blue-400">
-                      Submitted {submittedBy.submissionDate}
-                    </p>
+                  {/* constraints */}
+                  <div className="mb-6 space-y-1 p-4">
+                    <p className="font-bold text-neutral-200">Constraints:</p>
+                    <ul className="list-disc pl-6">
+                      <li className="text-neutral-400">
+                        {question?.constraints}
+                      </li>
+                    </ul>
                   </div>
-                </div>
-              </motion.div>
-            </div>
 
-            <div className="flex w-1/2 flex-col">
-              <Tabs defaultValue="code" className="flex h-full flex-col">
-                <TabsList className="grid w-full grid-cols-2 border-b border-gray-700 bg-gray-800/50">
-                  <TabsTrigger
-                    value="code"
-                    className="data-[state=active]:bg-violet-900/50 data-[state=active]:text-violet-300"
-                  >
-                    <Code className="mr-2 h-4 w-4" /> Code
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="solutions"
-                    className="data-[state=active]:bg-violet-900/50 data-[state=active]:text-violet-300"
-                  >
-                    <FileCode className="mr-2 h-4 w-4" /> Solutions
-                  </TabsTrigger>
-                </TabsList>
+                  {/* question stats */}
+                  <Card className="mb-6 w-full border-neutral-800 bg-neutral-900/80">
+                    <CardContent className="grid grid-cols-2 gap-6 p-6">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-zinc-400">Likes</span>
+                        <span className="text-lg font-medium text-zinc-100">
+                          {question?.likes}
+                        </span>
+                      </div>
 
-                <TabsContent value="code" className="flex-1 overflow-hidden">
-                  <div className="flex h-full flex-col">
-                    <div className="flex items-center justify-between space-x-4 bg-gray-800/80 p-2">
-                      <LanguageDropdown
-                        language={language}
-                        languages={LANGUAGE_CONFIGS}
-                        onLanguageChange={handleLanguageChange}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-zinc-400">Dislikes</span>
+                        <span className="text-lg font-medium text-zinc-100">
+                          {question?.dislikes}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-zinc-400">
+                          Success Rate
+                        </span>
+                        <span className="text-lg font-medium text-zinc-100">
+                          {question?.acceptanceRate.toFixed(2)}%
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-zinc-400">Solutions</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-medium text-zinc-100">
+                            {question?.noOfSuccess}
+                          </span>
+                          <span className="text-xs text-zinc-500">
+                            of {question?.noOfSuccess + question?.noOfFails}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* contributor */}
+                  <div className="space-y-2 p-4">
+                    <p className="font-bold text-neutral-200">Contributor:</p>
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={submittedBy?.profilePicture}
+                        alt={submittedBy?.username}
+                        className="h-12 w-12 rounded-full object-cover"
                       />
 
-                      <div className="flex items-center space-x-2">
-                        <button
-                          // onClick={runTestCases}
-                          className="group flex items-center space-x-2 rounded-md bg-blue-600 px-3 py-2 text-white transition-colors hover:bg-blue-500"
-                        >
-                          <Play className="h-4 w-4 group-hover:animate-pulse" />
-                          <span className="text-sm">Run</span>
-                        </button>
-                        <button className="group flex items-center space-x-2 rounded-md bg-green-600 px-3 py-2 text-white transition-colors hover:bg-green-500">
-                          <Save className="h-4 w-4 group-hover:scale-110" />
-                          <span className="text-sm">Submit</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <MonacoEditor
-                      height="60vh"
-                      language={language}
-                      theme="vs-dark"
-                      value={code}
-                      onChange={handleCodeChange}
-                      onMount={handleEditorDidMount}
-                      options={{
-                        fontSize: 14,
-                        minimap: {
-                          enabled: true,
-                          side: "right",
-                          renderCharacters: false,
-                        },
-                        scrollbar: {
-                          vertical: "auto",
-                          horizontal: "auto",
-                        },
-                        automaticLayout: true,
-                        wordWrap: "on",
-                        contextmenu: true,
-                        formatOnType: true,
-                        formatOnPaste: true,
-                        smoothScrolling: true,
-                      }}
-                    />
-
-                    <div className="p-4">
-                      <h3 className="mb-4 text-xl font-semibold text-gray-200">
-                        Test Cases
-                      </h3>
-                      {/* {testCases.slice(0, 3).map((testCase, index) => (
-                        <div
-                          key={testCase._id}
-                          className="mb-4 rounded-lg border border-gray-700 bg-gray-800 p-4"
-                        >
-                          <div className="mb-2 flex items-center justify-between">
-                            <h4 className="text-md font-medium text-gray-300">
-                              Test Case {index + 1}
-                            </h4>
-                            {testResults[index] &&
-                              (testResults[index].passed ? (
-                                <CheckCircle2 className="text-green-500" />
-                              ) : (
-                                <XCircle className="text-red-500" />
-                              ))}
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-sm">
-                              <span className="font-semibold text-blue-400">
-                                Input:
-                              </span>
-                              <span className="ml-2 text-gray-300">
-                                {testCase.input}
-                              </span>
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-semibold text-green-400">
-                                Expected Output:
-                              </span>
-                              <span className="ml-2 text-gray-300">
-                                {testCase.output}
-                              </span>
-                            </p>
-                            {testResults[index] &&
-                              !testResults[index].passed && (
-                                <p className="text-sm text-red-400">
-                                  Test case failed
-                                </p>
-                              )}
-                          </div>
-                        </div>
-                      ))} */}
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent
-                  value="solutions"
-                  className="flex-1 space-y-4 overflow-auto p-4"
-                >
-                  {answers.solutions.map((solution, index) => (
-                    <div
-                      key={index}
-                      className="rounded-lg border border-gray-700 bg-gray-800/50"
-                    >
-                      <div
-                        onClick={() =>
-                          setExpandedSolution(
-                            expandedSolution === index ? null : index,
-                          )
-                        }
-                        className="flex cursor-pointer items-center justify-between p-4 transition-colors hover:bg-gray-800/70"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs ${
-                              solution.type === "Optimal"
-                                ? "bg-green-900/50 text-green-400"
-                                : solution.type === "Brute Force"
-                                  ? "bg-rose-700 text-rose-200/80"
-                                  : "bg-blue-600 text-blue-200/80"
-                            }`}
-                          >
-                            {solution.type}
-                          </span>
-                          <h3 className="font-semibold text-gray-300">
-                            {solution.heading}
+                      <div className="flex flex-1 flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-zinc-100">
+                            {submittedBy?.username}
                           </h3>
-                        </div>
-                        {expandedSolution === index ? (
-                          <ChevronDown className="text-gray-400" />
-                        ) : (
-                          <ChevronRight className="text-gray-400" />
-                        )}
-                      </div>
-
-                      {expandedSolution === index && (
-                        <div className="border-t border-gray-700 bg-gray-800/50 p-4">
-                          <div className="mb-6">
-                            <div className="mb-2 flex items-center">
-                              <CodeIcon className="mr-2 text-blue-400" />
-                              <h3 className="text-lg font-semibold text-blue-300">
-                                Solution
-                              </h3>
-                            </div>
-                            <div className="relative">
-                              <pre className="overflow-auto rounded-lg bg-gray-900 p-4 text-sm leading-relaxed">
-                                {solution.answer}
-                              </pre>
-                              <button
-                                onClick={() => copyToClipboard(solution.answer)}
-                                className="absolute right-2 top-2 rounded-lg bg-gray-800 p-2 transition-colors hover:bg-gray-700"
-                                aria-label="Copy solution"
-                              >
-                                <Copy className="h-4 w-4 text-gray-400" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {solution.explanation && (
-                            <div className="mt-4">
-                              <div className="mb-2 flex items-center">
-                                <FileText className="mr-2 text-green-400" />
-                                <h3 className="text-lg font-semibold text-green-300">
-                                  Explanation
-                                </h3>
-                              </div>
-                              <div className="rounded-lg bg-gray-900 p-4 text-sm leading-relaxed text-gray-300">
-                                {solution.explanation}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="mt-4 flex items-center space-x-2 text-sm text-gray-400">
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            <span>
-                              Contributed by{" "}
-                              <span className="cursor-pointer font-bold text-pink-600 transition-colors hover:text-pink-500">
-                                {solution.contributedBy.username}
-                              </span>
+                          <div className="flex items-center gap-1 rounded-md bg-zinc-800 px-2 py-0.5">
+                            <Trophy size={14} className="text-yellow-500" />
+                            <span className="text-sm text-zinc-300">
+                              {submittedBy?.rating}
                             </span>
                           </div>
                         </div>
-                      )}
+                        <p className="text-sm text-zinc-400">
+                          {submittedBy?.bio}
+                        </p>
+                      </div>
                     </div>
-                  ))}
-                </TabsContent>
-              </Tabs>
+                  </div>
+                </>
+              ) : (
+                <div className="flex h-full flex-col p-4">
+                  {/* Title skeleton */}
+                  <div className="mb-6 h-7 w-3/4 animate-pulse rounded-lg bg-neutral-800" />
+
+                  {/* Tags skeleton */}
+                  <div className="mb-6 flex flex-wrap items-center gap-3">
+                    <div className="h-6 w-20 animate-pulse rounded-full bg-neutral-800" />
+                    <div className="flex gap-2">
+                      {[1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="h-6 w-16 animate-pulse rounded-full bg-neutral-800"
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Question skeleton */}
+                  <div className="mb-6 flex-1 space-y-3 p-4">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="h-4 w-full animate-pulse rounded bg-neutral-800"
+                      />
+                    ))}
+                  </div>
+
+                  {/* Examples skeleton */}
+                  <div className="my-3 rounded-xl border border-neutral-800 bg-neutral-900/80 p-4">
+                    {[1, 2].map((example) => (
+                      <div key={example} className="my-3 space-y-4">
+                        <div className="h-5 w-24 animate-pulse rounded bg-neutral-800" />
+                        <div className="space-y-3 border-l-2 border-neutral-600 px-3">
+                          {[1, 2, 3].map((line) => (
+                            <div
+                              key={line}
+                              className="h-4 w-11/12 animate-pulse rounded bg-neutral-800"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Constraints skeleton */}
+                  <div className="mb-6 space-y-3 p-4">
+                    <div className="h-5 w-28 animate-pulse rounded bg-neutral-800" />
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-neutral-800" />
+                  </div>
+
+                  {/* Stats card skeleton */}
+                  <Card className="mb-6 border-neutral-800 bg-neutral-900/80">
+                    <CardContent className="grid grid-cols-2 gap-6 p-6">
+                      {[1, 2, 3, 4].map((stat) => (
+                        <div key={stat} className="flex flex-col gap-2">
+                          <div className="h-3 w-16 animate-pulse rounded bg-neutral-800" />
+                          <div className="h-6 w-20 animate-pulse rounded bg-neutral-800" />
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Contributor skeleton */}
+                  <div className="space-y-3 p-4">
+                    <div className="h-5 w-24 animate-pulse rounded bg-neutral-800" />
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 animate-pulse rounded-full bg-neutral-800" />
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="h-5 w-32 animate-pulse rounded bg-neutral-800" />
+                          <div className="flex h-6 w-16 items-center gap-1 rounded-md bg-neutral-800" />
+                        </div>
+                        <div className="h-4 w-3/4 animate-pulse rounded bg-neutral-800" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent
+              value="editorial"
+              className="flex h-full flex-col p-4"
+            ></TabsContent>
+
+            <TabsContent
+              value="discussion"
+              className="flex h-full flex-col p-4"
+            ></TabsContent>
+
+            <TabsContent
+              value="submissions"
+              className="flex h-full flex-col p-4"
+            ></TabsContent>
+          </Tabs>
+        </motion.div>
+
+        {/* editor + Test cases */}
+        <div
+          id="rightPane"
+          className="flex w-1/2 flex-1 flex-col overflow-hidden"
+        >
+          {/* editor */}
+          <motion.div
+            className="relative flex h-full flex-col overflow-hidden rounded-xl border border-zinc-700 bg-neutral-900/80 shadow-lg backdrop-blur-sm"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ height: `${rightTopHeight}%` }}
+          >
+            {/* header */}
+            <div className="flex w-full items-center justify-between border-b border-zinc-800 bg-zinc-900/95 px-4 py-2 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <MessageCircleCode className="h-5 w-5 text-blue-500" />
+                <p className="text-sm text-neutral-200">Code</p>
+              </div>
             </div>
-          </div>
-        )}
+
+            {/* CTA buttons */}
+            <div className="flex w-full items-center justify-between bg-neutral-950 px-4 py-1.5">
+              <div className="flex items-center justify-evenly gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Clipboard className="h-4 w-4 cursor-pointer text-gray-400 hover:text-gray-200" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy to clipboard</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Eraser className="h-4 w-4 cursor-pointer text-gray-400 hover:text-gray-200" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Clear editor</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              <Select
+                value={selectedLanguage}
+                onValueChange={setSelectedLanguage}
+              >
+                <SelectTrigger className="h-6 w-28 border-0 bg-zinc-800/50 text-xs font-medium text-neutral-300 hover:bg-zinc-800">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-neutral-700 bg-zinc-800">
+                  {Object.entries(LANGUAGE_CONFIGS).map(([key]) => (
+                    <SelectItem
+                      key={key}
+                      value={key}
+                      className="text-xs text-neutral-300 hover:bg-zinc-700"
+                    >
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* editor */}
+            <div className="min-h-0 w-full flex-1">
+              <Editor
+                height="100%"
+                language={config.language}
+                theme={config.theme}
+                defaultValue={`// Start coding in ${config.language}`}
+                options={{
+                  fontSize: 14,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                  wordWrap: "on",
+                  padding: { top: 16 },
+                  lineNumbers: "on",
+                  renderLineHighlight: "all",
+                  smoothScrolling: true,
+                  cursorBlinking: "smooth",
+                }}
+              />
+            </div>
+
+            {/* footer */}
+            <div className="flex items-center justify-between gap-4 bg-neutral-950 px-4 py-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TriangleAlert className="h-4 w-4 cursor-pointer text-orange-400 hover:text-orange-200" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Report a bug</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <div className="space-x-4">
+                <button className="rounded-[0.5rem] border border-green-500 bg-green-500/20 px-4 py-1 text-green-200 hover:bg-emerald-800/30">
+                  submit
+                </button>
+                <button className="rounded-[0.5rem] border border-red-500 bg-red-500/20 px-4 py-1 text-red-200 hover:bg-red-900/30">
+                  run
+                </button>
+              </div>
+            </div>
+          </motion.div>
+
+          <div
+            className="h-0.5 cursor-row-resize bg-neutral-800 hover:bg-neutral-700 active:bg-neutral-600"
+            onMouseDown={(e) => handleMouseDown(e, "vertical")}
+          ></div>
+
+          {/* Test cases */}
+          <motion.div
+            className="flex-1 overflow-hidden rounded-xl border border-zinc-700 bg-neutral-900/60"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex h-full flex-col overflow-hidden">
+              <div className="mb-4 flex items-center space-x-2 overflow-hidden bg-zinc-900/95 px-4 py-2">
+                <SquareTerminal className="h-4 w-4 text-emerald-700" />
+                <p className="text-md font-light text-gray-400">Test Cases</p>
+
+                <Separator
+                  orientation="vertical"
+                  className="h-3/4 bg-zinc-600"
+                />
+
+                <p className="text-md font-light text-gray-400">Result</p>
+                <SquareChartGantt className="h-4 w-4 text-emerald-700" />
+              </div>
+              <div className="flex-1 overflow-auto rounded-xl p-4">
+                Test cases go here...
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
