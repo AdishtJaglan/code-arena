@@ -167,7 +167,7 @@ async function seedQuestions(users) {
       title: `Consider the following ${getRandomElement(
         TAGS
       )} problem: ${faker.lorem.sentence()} `,
-      explanation: faker.lorem.paragraph(2),
+      explanation: faker.lorem.paragraphs(3),
       constraints: faker.lorem.sentence(),
       tags: getRandomElements(TAGS, 1, 4),
       submittedBy: getRandomElement(users)._id,
