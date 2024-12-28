@@ -29,6 +29,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_BASE_URL } from "@/configs/env-config";
+import axios from "axios";
 
 const FixedActionButton = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,6 +40,8 @@ const FixedActionButton = () => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [isBugReportOpen, setIsBugReportOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [reportTitle, setReportTitle] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
 
   const menuItems = [
     {
@@ -80,6 +84,31 @@ const FixedActionButton = () => {
 
     setIsApiDialogOpen(false);
     setApiKeySubmitting(false);
+  };
+
+  const handleReportDialogSubmit = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/bug-report/create`, {
+        title: reportTitle,
+        description: reportDescription,
+      });
+
+      if (response.data.success === true) {
+        toast.success("Report submitted successfully.", {
+          className: "border-zinc-800 bg-zinc-900 text-zinc-300",
+          duration: 2000,
+        });
+        setIsBugReportOpen(false);
+      }
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+
+      console.error("Error occurred while submitting report:", errorMessage);
+      toast.error("Error submitting bug report.", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+    }
   };
 
   return (
@@ -225,6 +254,7 @@ const FixedActionButton = () => {
                   id="title"
                   placeholder="Brief description"
                   className="border-zinc-800 bg-zinc-900 text-zinc-300 placeholder:text-zinc-600"
+                  onChange={(e) => setReportTitle(e.target.value)}
                 />
               </div>
 
@@ -236,6 +266,7 @@ const FixedActionButton = () => {
                   id="description"
                   className="h-32 w-full rounded-md border border-zinc-800 bg-zinc-900 p-2 text-zinc-300 placeholder:text-zinc-600"
                   placeholder="Steps to reproduce the issue..."
+                  onChange={(e) => setReportDescription(e.target.value)}
                 />
               </div>
             </div>
@@ -249,7 +280,7 @@ const FixedActionButton = () => {
                 Cancel
               </Button>
               <Button
-                onClick={() => setIsBugReportOpen(false)}
+                onClick={() => handleReportDialogSubmit()}
                 className="border border-emerald-600 bg-emerald-800 text-zinc-300 hover:bg-emerald-700"
               >
                 Submit

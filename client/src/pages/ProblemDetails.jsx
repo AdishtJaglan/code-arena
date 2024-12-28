@@ -40,8 +40,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Toaster, toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 import axios from "axios";
 import Navbar from "../components/Navbar";
@@ -57,6 +69,11 @@ const ProblemDetails = () => {
   const [loading, setLoading] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const config = LANGUAGE_CONFIGS[selectedLanguage];
+
+  //! bug report modal state
+  const [isBugReportOpen, setIsBugReportOpen] = useState(false);
+  const [reportTitle, setReportTitle] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
 
   //! resizable pane states
   const [rightTopHeight, setRightTopHeight] = useState(80);
@@ -129,9 +146,35 @@ const ProblemDetails = () => {
     }
   };
 
+  const handleReportDialogSubmit = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/bug-report/create`, {
+        title: reportTitle,
+        description: reportDescription,
+      });
+
+      if (response.data.success === true) {
+        toast.success("Report submitted successfully.", {
+          className: "border-zinc-800 bg-zinc-900 text-zinc-300",
+          duration: 2000,
+        });
+        setIsBugReportOpen(false);
+      }
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+
+      console.error("Error occurred while submitting report:", errorMessage);
+      toast.error("Error submitting bug report.", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+    }
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
       <Navbar />
+      <Toaster position="bottom-left" theme="dark" />
 
       <div id="editorContainer" className="flex h-[90vh] w-full space-x-1">
         {/* main question */}
@@ -499,7 +542,10 @@ const ProblemDetails = () => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <TriangleAlert className="h-4 w-4 cursor-pointer text-orange-400 hover:text-orange-200" />
+                    <TriangleAlert
+                      onClick={() => setIsBugReportOpen(true)}
+                      className="h-4 w-4 cursor-pointer text-orange-400 hover:text-orange-200"
+                    />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Report a bug</p>
@@ -548,6 +594,59 @@ const ProblemDetails = () => {
           </motion.div>
         </div>
       </div>
+
+      <Dialog open={isBugReportOpen} onOpenChange={setIsBugReportOpen}>
+        <DialogContent className="max-w-md rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-400 shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-200">Report Issue</DialogTitle>
+            <DialogDescription className="text-zinc-500">
+              Help us improve by reporting any issues
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-zinc-400">
+                Title
+              </Label>
+              <Input
+                id="title"
+                placeholder="Brief description"
+                className="border-zinc-800 bg-zinc-900 text-zinc-300 placeholder:text-zinc-600"
+                onChange={(e) => setReportTitle(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-zinc-400">
+                Description
+              </Label>
+              <textarea
+                id="description"
+                className="h-32 w-full rounded-md border border-zinc-800 bg-zinc-900 p-2 text-zinc-300 placeholder:text-zinc-600"
+                placeholder="Steps to reproduce the issue..."
+                onChange={(e) => setReportDescription(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsBugReportOpen(false)}
+              className="border-rose-600 bg-rose-900 text-zinc-400 hover:bg-red-900 hover:text-zinc-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleReportDialogSubmit()}
+              className="border border-emerald-600 bg-emerald-800 text-zinc-300 hover:bg-emerald-700"
+            >
+              Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
