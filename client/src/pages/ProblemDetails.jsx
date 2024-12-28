@@ -5,7 +5,6 @@
 //TODO -> Make submit and run button functional
 //TODO -> Add like dislike button
 //TODO -> Add the discussion, submission and editorial section
-//TODO -> Add the report bug button functionality
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
