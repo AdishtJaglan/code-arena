@@ -11,8 +11,9 @@ import Submission from "./models/Submission.js";
 import Solution from "./models/Solution.js";
 import CodeAnswer from "./models/CodeAnswers.js";
 import CodeQuestion from "./models/CodeQuestion.js";
+import BugReport from "./models/BugReport.js";
 
-const MONGODB_URI = "mongodb://localhost:27017/codeIt";
+const MONGODB_URI = "mongodb://localhost:27017/code-arena";
 const NUM_USERS = 100;
 const NUM_QUESTIONS = 200;
 const LANGUAGES = ["C++", "C", "JavaScript", "Java", "Python", "Go", "Rust"];
@@ -606,6 +607,21 @@ def solve(arr):
   return codeQuestions;
 }
 
+async function seedBugReports() {
+  const NUM_REPORTS = 50;
+
+  for (let i = 0; i < NUM_REPORTS; i++) {
+    const report = new BugReport({
+      title: faker.lorem.sentence(),
+      description: faker.lorem.paragraph(),
+    });
+
+    await report.save();
+  }
+
+  return NUM_REPORTS;
+}
+
 async function seedDatabase() {
   try {
     await mongoose.connect(MONGODB_URI);
@@ -621,6 +637,7 @@ async function seedDatabase() {
       Solution.deleteMany({}),
       CodeAnswer.deleteMany({}),
       CodeQuestion.deleteMany({}),
+      BugReport.deleteMany({}),
     ]);
     console.log("Cleared existing data");
 
@@ -652,6 +669,9 @@ async function seedDatabase() {
 
     const requests = await seedAccountabilityPartnerRequests(users);
     console.log(`Seeded ${requests.length} accountability partner requests`);
+
+    const bugReports = await seedBugReports();
+    console.log(`Seeded ${bugReports.length} bug reports`);
 
     console.log("Updating user references...");
     await updateUserReferences(
