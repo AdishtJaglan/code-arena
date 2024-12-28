@@ -306,7 +306,7 @@ async function seedTestCases(questions) {
 
     for (let i = 0; i < numTestCases; i++) {
       const testCase = new TestCase({
-        input: `Input: [${faker.number.int()}, ${faker.number.int()}, ${faker.number.int()}]`,
+        input: `[${faker.number.int()}, ${faker.number.int()}, ${faker.number.int()}]`,
         output: faker.number.int().toString(),
         isHidden: faker.datatype.boolean(),
         question: question._id,

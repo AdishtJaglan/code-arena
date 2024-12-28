@@ -115,3 +115,34 @@ export const getTestCasesByQuestion = asyncHandler(async (req, res) => {
     testCases,
   }).send(res);
 });
+
+export const getNotHiddenTestCasesByQuestionId = asyncHandler(
+  async (req, res) => {
+    const { question_id } = req.params;
+
+    if (!question_id) {
+      throw ApiError.BadRequest("Question ID is required.");
+    }
+
+    const questionCheck = await Question.exists({ question_id: question_id });
+
+    if (!questionCheck) {
+      throw ApiError.NotFound("Question not found.");
+    }
+
+    const testCases = await TestCase.find({
+      question: questionCheck._id,
+      isHidden: false,
+    })
+      .limit(3)
+      .lean();
+
+    if (!testCases) {
+      throw ApiError.NotFound("No test cases found.");
+    }
+
+    return ApiResponse.Ok("Fetched test cases.", {
+      testCases,
+    }).send(res);
+  }
+);
