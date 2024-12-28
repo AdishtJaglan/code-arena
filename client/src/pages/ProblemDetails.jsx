@@ -6,7 +6,7 @@
 //TODO -> Add like dislike button
 //TODO -> Add the discussion, submission and editorial section
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE_URL } from "@/configs/env-config";
 import { motion } from "framer-motion";
@@ -19,6 +19,7 @@ import {
   MessageCircleCode,
   Upload,
   Clipboard,
+  Check,
   Eraser,
   TriangleAlert,
   SquareChartGantt,
@@ -60,6 +61,7 @@ import LANGUAGE_CONFIGS from "@/configs/language-config";
 
 const ProblemDetails = () => {
   const { id } = useParams();
+  const editorRef = useRef(null);
 
   const [examples, setExamples] = useState([]);
   const [question, setQuestion] = useState(null);
@@ -67,6 +69,8 @@ const ProblemDetails = () => {
   const [submittedBy, setSubmittedBy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const [copied, setCopied] = useState(false);
+  const [cleared, setCleared] = useState(false);
   const config = LANGUAGE_CONFIGS[selectedLanguage];
 
   //! bug report modal state
@@ -168,6 +172,49 @@ const ProblemDetails = () => {
         duration: 2000,
       });
     }
+  };
+
+  const handleEditorDidMount = (editor) => {
+    editorRef.current = editor;
+  };
+
+  const handleCopy = async () => {
+    if (!editorRef.current) return;
+
+    const code = editorRef.current.getValue();
+
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy code:", err);
+
+      const textArea = document.createElement("textarea");
+      textArea.value = code;
+      document.body.appendChild(textArea);
+      textArea.select();
+
+      try {
+        document.execCommand("copy");
+        setCopied(true);
+
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Fallback copy failed:", err);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const handleClear = () => {
+    if (!editorRef.current) return;
+
+    editorRef.current.setValue("");
+
+    setCleared(true);
+    setTimeout(() => setCleared(false), 2000);
   };
 
   return (
@@ -475,19 +522,39 @@ const ProblemDetails = () => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Clipboard className="h-4 w-4 cursor-pointer text-gray-400 hover:text-gray-200" />
+                      <button
+                        onClick={handleCopy}
+                        className="flex items-center justify-center transition-all duration-200 ease-in-out"
+                        disabled={copied}
+                      >
+                        {copied ? (
+                          <Check className="h-4 w-4 text-green-400" />
+                        ) : (
+                          <Clipboard className="h-4 w-4 cursor-pointer text-gray-400 hover:text-gray-200" />
+                        )}
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Copy to clipboard</p>
+                      <p>{copied ? "Copied!" : "Copy to clipboard"}</p>
                     </TooltipContent>
                   </Tooltip>
 
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Eraser className="h-4 w-4 cursor-pointer text-gray-400 hover:text-gray-200" />
+                      <button
+                        onClick={handleClear}
+                        className="flex items-center justify-center transition-all duration-200 ease-in-out"
+                        disabled={cleared}
+                      >
+                        {cleared ? (
+                          <Check className="h-4 w-4 text-green-400" />
+                        ) : (
+                          <Eraser className="h-4 w-4 cursor-pointer text-gray-400 hover:text-gray-200" />
+                        )}
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Clear editor</p>
+                      <p>{cleared ? "Cleared!" : "Clear editor"}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -521,6 +588,7 @@ const ProblemDetails = () => {
                 language={config.language}
                 theme={config.theme}
                 defaultValue={`// Start coding in ${config.language}`}
+                onMount={handleEditorDidMount}
                 options={{
                   fontSize: 14,
                   minimap: { enabled: false },
