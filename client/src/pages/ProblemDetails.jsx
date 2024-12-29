@@ -2,10 +2,10 @@
 /* eslint-disable no-unused-vars */
 
 //TODO -> Make the IDE use the code from code question
-//TODO -> Add the test cases to the IDE
 //TODO -> Make submit and run button functional
 //TODO -> Add like dislike button
 //TODO -> Add the discussion, submission and editorial section
+//TODO -> Add functionality to test cases
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
@@ -118,7 +118,9 @@ const ProblemDetails = () => {
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState(null);
   const [submittedBy, setSubmittedBy] = useState(null);
+
   const [testCases, setTestCases] = useState(null);
+  const [overallStatus, setOverallStatus] = useState(TestStatus.NOT_RUN);
 
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [copied, setCopied] = useState(false);
@@ -280,23 +282,27 @@ const ProblemDetails = () => {
     setTimeout(() => setCleared(false), 2000);
   };
 
-  const getOverallStatus = () => {
-    if (testCases.every((tc) => tc.status === TestStatus.NOT_RUN)) {
+  useEffect(() => {
+    const getOverallStatus = () => {
+      if (testCases.every((tc) => tc.status === TestStatus.NOT_RUN)) {
+        return TestStatus.NOT_RUN;
+      }
+      if (testCases.some((tc) => tc.status === TestStatus.RUNNING)) {
+        return TestStatus.RUNNING;
+      }
+      if (testCases.some((tc) => tc.status === TestStatus.FAILED)) {
+        return TestStatus.FAILED;
+      }
+      if (testCases.every((tc) => tc.status === TestStatus.PASSED)) {
+        return TestStatus.PASSED;
+      }
       return TestStatus.NOT_RUN;
-    }
-    if (testCases.some((tc) => tc.status === TestStatus.RUNNING)) {
-      return TestStatus.RUNNING;
-    }
-    if (testCases.some((tc) => tc.status === TestStatus.FAILED)) {
-      return TestStatus.FAILED;
-    }
-    if (testCases.every((tc) => tc.status === TestStatus.PASSED)) {
-      return TestStatus.PASSED;
-    }
-    return TestStatus.NOT_RUN;
-  };
+    };
 
-  const overallStatus = getOverallStatus();
+    if (testCases != null) {
+      getOverallStatus();
+    }
+  }, [testCases]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
@@ -735,7 +741,7 @@ const ProblemDetails = () => {
                     className="h-6 bg-zinc-700"
                   />
                   <Badge variant="secondary" className="bg-zinc-800">
-                    {testCases.length} Cases
+                    {testCases?.length} Cases
                   </Badge>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -745,72 +751,78 @@ const ProblemDetails = () => {
               </div>
 
               <div className="px-6 pb-6">
-                <Tabs defaultValue="case0" className="w-full">
-                  <TabsList className="mb-4 w-full justify-start space-x-2 bg-zinc-900/50 p-1">
-                    {testCases.map((testCase, index) => {
-                      const getTabColor = (status) => {
-                        switch (status) {
-                          case TestStatus.PASSED:
-                            return "data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400";
-                          case TestStatus.FAILED:
-                            return "data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400";
-                          case TestStatus.RUNNING:
-                            return "data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400";
-                          default:
-                            return "data-[state=active]:bg-zinc-700/50 data-[state=active]:text-zinc-300";
-                        }
-                      };
+                {testCases == null ? (
+                  <div className="flex h-48 items-center justify-center">
+                    <div className="text-gray-400">Loading test cases...</div>
+                  </div>
+                ) : (
+                  <Tabs defaultValue="case0" className="w-full">
+                    <TabsList className="mb-4 w-full justify-start space-x-2 bg-zinc-900/50 p-1">
+                      {testCases.map((testCase, index) => {
+                        const getTabColor = (status) => {
+                          switch (status) {
+                            case TestStatus.PASSED:
+                              return "data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400";
+                            case TestStatus.FAILED:
+                              return "data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400";
+                            case TestStatus.RUNNING:
+                              return "data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400";
+                            default:
+                              return "data-[state=active]:bg-zinc-700/50 data-[state=active]:text-zinc-300";
+                          }
+                        };
 
-                      return (
-                        <TabsTrigger
-                          key={index}
-                          value={`case${index}`}
-                          className={`flex items-center space-x-2 ${getTabColor(testCase.status)}`}
-                        >
-                          <span>Case {index + 1}</span>
-                          <StatusIcon status={testCase.status} />
-                        </TabsTrigger>
-                      );
-                    })}
-                  </TabsList>
-                  {testCases.map((testCase, index) => (
-                    <TabsContent key={index} value={`case${index}`}>
-                      <Card className="border-zinc-800 bg-zinc-900/30">
-                        <CardContent className="p-6">
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-gray-400">
-                                  Input:
-                                </span>
-                                <code className="rounded bg-zinc-900 px-2 py-1 font-mono text-sm text-emerald-400">
-                                  {testCase.input}
-                                </code>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-gray-400">
-                                  Output:
-                                </span>
-                                <code className="rounded bg-zinc-900 px-2 py-1 font-mono text-sm text-emerald-400">
-                                  {testCase.output}
-                                </code>
-                                <StatusIcon status={testCase.status} />
-                              </div>
-                            </div>
-                            {testCase.status === TestStatus.FAILED &&
-                              testCase.error && (
-                                <div className="mt-2 rounded-md bg-red-950/30 p-3 text-sm text-red-400">
-                                  {testCase.error}
+                        return (
+                          <TabsTrigger
+                            key={index}
+                            value={`case${index}`}
+                            className={`flex items-center space-x-2 ${getTabColor(testCase.status)}`}
+                          >
+                            <span>Case {index + 1}</span>
+                            <StatusIcon status={testCase.status} />
+                          </TabsTrigger>
+                        );
+                      })}
+                    </TabsList>
+                    {testCases.map((testCase, index) => (
+                      <TabsContent key={index} value={`case${index}`}>
+                        <Card className="border-zinc-800 bg-zinc-900/30">
+                          <CardContent className="p-6">
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm font-medium text-gray-400">
+                                    Input:
+                                  </span>
+                                  <code className="rounded bg-zinc-900 px-2 py-1 font-mono text-sm text-emerald-400">
+                                    {testCase.input}
+                                  </code>
                                 </div>
-                              )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </TabsContent>
-                  ))}
-                </Tabs>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm font-medium text-gray-400">
+                                    Output:
+                                  </span>
+                                  <code className="rounded bg-zinc-900 px-2 py-1 font-mono text-sm text-emerald-400">
+                                    {testCase.output}
+                                  </code>
+                                  <StatusIcon status={testCase.status} />
+                                </div>
+                              </div>
+                              {testCase.status === TestStatus.FAILED &&
+                                testCase.error && (
+                                  <div className="mt-2 rounded-md bg-red-950/30 p-3 text-sm text-red-400">
+                                    {testCase.error}
+                                  </div>
+                                )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                )}
               </div>
             </div>
           </motion.div>
