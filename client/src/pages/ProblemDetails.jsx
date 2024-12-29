@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 
 //TODO -> Make the IDE use the code from code question
@@ -23,6 +24,9 @@ import {
   Eraser,
   TriangleAlert,
   SquareChartGantt,
+  CheckCircle2,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +62,53 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import LANGUAGE_CONFIGS from "@/configs/language-config";
+
+const TestStatus = {
+  NOT_RUN: "not_run",
+  RUNNING: "running",
+  PASSED: "passed",
+  FAILED: "failed",
+};
+
+const StatusBadge = ({ status }) => {
+  const variants = {
+    [TestStatus.NOT_RUN]: {
+      color: "bg-zinc-800 text-zinc-400",
+      label: "Not Run",
+    },
+    [TestStatus.RUNNING]: {
+      color: "bg-blue-950/30 border-blue-800 text-blue-400",
+      label: "Running Tests",
+    },
+    [TestStatus.PASSED]: {
+      color: "bg-emerald-950/30 border-emerald-800 text-emerald-400",
+      label: "All Tests Passed",
+    },
+    [TestStatus.FAILED]: {
+      color: "bg-red-950/30 border-red-800 text-red-400",
+      label: "Tests Failed",
+    },
+  };
+
+  return (
+    <Badge variant="outline" className={`${variants[status].color}`}>
+      {variants[status].label}
+    </Badge>
+  );
+};
+
+const StatusIcon = ({ status }) => {
+  switch (status) {
+    case TestStatus.PASSED:
+      return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+    case TestStatus.FAILED:
+      return <XCircle className="h-4 w-4 text-red-500" />;
+    case TestStatus.RUNNING:
+      return <Clock className="h-4 w-4 text-blue-500" />;
+    default:
+      return <Clock className="h-4 w-4 text-zinc-500" />;
+  }
+};
 
 const ProblemDetails = () => {
   const { id } = useParams();
@@ -228,6 +279,24 @@ const ProblemDetails = () => {
     setCleared(true);
     setTimeout(() => setCleared(false), 2000);
   };
+
+  const getOverallStatus = () => {
+    if (testCases.every((tc) => tc.status === TestStatus.NOT_RUN)) {
+      return TestStatus.NOT_RUN;
+    }
+    if (testCases.some((tc) => tc.status === TestStatus.RUNNING)) {
+      return TestStatus.RUNNING;
+    }
+    if (testCases.some((tc) => tc.status === TestStatus.FAILED)) {
+      return TestStatus.FAILED;
+    }
+    if (testCases.every((tc) => tc.status === TestStatus.PASSED)) {
+      return TestStatus.PASSED;
+    }
+    return TestStatus.NOT_RUN;
+  };
+
+  const overallStatus = getOverallStatus();
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
@@ -649,25 +718,99 @@ const ProblemDetails = () => {
 
           {/* Test cases */}
           <motion.div
-            className="flex-1 overflow-hidden rounded-xl border border-zinc-700 bg-neutral-900/60"
+            className="flex-1 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/80 shadow-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
             <div className="flex h-full flex-col overflow-hidden">
-              <div className="mb-4 flex items-center space-x-2 overflow-hidden bg-zinc-900/95 px-4 py-2">
-                <SquareTerminal className="h-4 w-4 text-emerald-700" />
-                <p className="text-md font-light text-gray-400">Test Cases</p>
-
-                <Separator
-                  orientation="vertical"
-                  className="h-3/4 bg-zinc-600"
-                />
-
-                <p className="text-md font-light text-gray-400">Result</p>
-                <SquareChartGantt className="h-4 w-4 text-emerald-700" />
+              <div className="mb-4 flex items-center justify-between bg-zinc-900/95 px-6 py-3">
+                <div className="flex items-center space-x-3">
+                  <SquareTerminal className="h-5 w-5 text-emerald-500" />
+                  <h3 className="text-lg font-medium text-gray-200">
+                    Test Cases
+                  </h3>
+                  <Separator
+                    orientation="vertical"
+                    className="h-6 bg-zinc-700"
+                  />
+                  <Badge variant="secondary" className="bg-zinc-800">
+                    {testCases.length} Cases
+                  </Badge>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <StatusBadge status={overallStatus} />
+                  <SquareChartGantt className="h-5 w-5 text-emerald-500" />
+                </div>
               </div>
-              <div className="flex-1 overflow-auto rounded-xl p-4">
-                Test cases go here...
+
+              <div className="px-6 pb-6">
+                <Tabs defaultValue="case0" className="w-full">
+                  <TabsList className="mb-4 w-full justify-start space-x-2 bg-zinc-900/50 p-1">
+                    {testCases.map((testCase, index) => {
+                      const getTabColor = (status) => {
+                        switch (status) {
+                          case TestStatus.PASSED:
+                            return "data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400";
+                          case TestStatus.FAILED:
+                            return "data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400";
+                          case TestStatus.RUNNING:
+                            return "data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400";
+                          default:
+                            return "data-[state=active]:bg-zinc-700/50 data-[state=active]:text-zinc-300";
+                        }
+                      };
+
+                      return (
+                        <TabsTrigger
+                          key={index}
+                          value={`case${index}`}
+                          className={`flex items-center space-x-2 ${getTabColor(testCase.status)}`}
+                        >
+                          <span>Case {index + 1}</span>
+                          <StatusIcon status={testCase.status} />
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
+                  {testCases.map((testCase, index) => (
+                    <TabsContent key={index} value={`case${index}`}>
+                      <Card className="border-zinc-800 bg-zinc-900/30">
+                        <CardContent className="p-6">
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-medium text-gray-400">
+                                  Input:
+                                </span>
+                                <code className="rounded bg-zinc-900 px-2 py-1 font-mono text-sm text-emerald-400">
+                                  {testCase.input}
+                                </code>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-medium text-gray-400">
+                                  Output:
+                                </span>
+                                <code className="rounded bg-zinc-900 px-2 py-1 font-mono text-sm text-emerald-400">
+                                  {testCase.output}
+                                </code>
+                                <StatusIcon status={testCase.status} />
+                              </div>
+                            </div>
+                            {testCase.status === TestStatus.FAILED &&
+                              testCase.error && (
+                                <div className="mt-2 rounded-md bg-red-950/30 p-3 text-sm text-red-400">
+                                  {testCase.error}
+                                </div>
+                              )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </div>
             </div>
           </motion.div>
