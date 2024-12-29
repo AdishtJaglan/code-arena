@@ -134,6 +134,7 @@ export const getNotHiddenTestCasesByQuestionId = asyncHandler(
       question: questionCheck._id,
       isHidden: false,
     })
+      .select("-_id")
       .limit(3)
       .lean();
 

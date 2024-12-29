@@ -67,7 +67,8 @@ const ProblemDetails = () => {
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState(null);
   const [submittedBy, setSubmittedBy] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [testCases, setTestCases] = useState(null);
+
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [copied, setCopied] = useState(false);
   const [cleared, setCleared] = useState(false);
@@ -120,13 +121,24 @@ const ProblemDetails = () => {
         setAnswers(answer);
         setSubmittedBy(submittedBy);
         setExamples(examples);
-        setLoading(false);
       } catch (error) {
         console.error("Error while fetching question: ", error);
       }
     };
 
+    const getTestCases = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/test-case/${id}`);
+
+        const { testCases } = response?.data?.data || {};
+        setTestCases(testCases);
+      } catch (error) {
+        console.error("Error while fetching test cases: ", error);
+      }
+    };
+
     getQuestionDetails();
+    getTestCases();
   }, [id]);
 
   const tabs = [
