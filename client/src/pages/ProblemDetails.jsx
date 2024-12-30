@@ -2,10 +2,10 @@
 /* eslint-disable no-unused-vars */
 
 //TODO -> Make the IDE use the code from code question
-//TODO -> Make submit and run button functional
+//TODO -> Make submit button functional
 //TODO -> Add like dislike button
 //TODO -> Add the discussion, submission and editorial section
-//TODO -> Add functionality to test cases
+//TODO -> get judge0 languauge ids mapped
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Loader2Icon,
 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { Badge } from "@/components/ui/badge";
@@ -119,8 +120,10 @@ const ProblemDetails = () => {
   const [answers, setAnswers] = useState(null);
   const [submittedBy, setSubmittedBy] = useState(null);
 
+  //! test case related states
   const [testCases, setTestCases] = useState(null);
   const [overallStatus, setOverallStatus] = useState(TestStatus.NOT_RUN);
+  const [loading, setLoading] = useState(false);
 
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [copied, setCopied] = useState(false);
@@ -184,6 +187,8 @@ const ProblemDetails = () => {
         const response = await axios.get(`${API_BASE_URL}/test-case/${id}`);
 
         const { testCases } = response?.data?.data || {};
+        testCases.map((ts) => (ts.passed = null));
+
         setTestCases(testCases);
       } catch (error) {
         console.error("Error while fetching test cases: ", error);
@@ -303,6 +308,55 @@ const ProblemDetails = () => {
       getOverallStatus();
     }
   }, [testCases]);
+
+  const runTestCases = async () => {
+    setLoading(true);
+    setRightTopHeight(60);
+    setOverallStatus(TestStatus.RUNNING);
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      toast.error("Login to run test cases.", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/submission/run`,
+        {
+          sourceCode: editorRef.current.getValue(),
+          language: selectedLanguage,
+          languageId: 1, //! update this
+          testCases,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const { results } = response?.data?.data || {};
+
+      for (const res of results) {
+        if (res?.passed === false) {
+          setOverallStatus(TestStatus.FAILED);
+          break;
+        } else {
+          setOverallStatus(TestStatus.PASSED);
+        }
+      }
+
+      setTestCases(results);
+    } catch (error) {
+      const errorMessage = error?.response?.message;
+      console.error("Error running test cases: " + errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
@@ -706,12 +760,19 @@ const ProblemDetails = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <div className="space-x-4">
+              <div className="flex space-x-4">
                 <button className="rounded-[0.5rem] border border-green-500 bg-green-500/20 px-4 py-1 text-green-200 hover:bg-emerald-800/30">
                   submit
                 </button>
-                <button className="rounded-[0.5rem] border border-red-500 bg-red-500/20 px-4 py-1 text-red-200 hover:bg-red-900/30">
-                  run
+                <button
+                  onClick={() => runTestCases()}
+                  className="rounded-[0.5rem] border border-red-500 bg-red-500/20 px-4 py-1 text-red-200 hover:bg-red-900/30"
+                >
+                  {loading ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "run"
+                  )}
                 </button>
               </div>
             </div>
@@ -746,7 +807,17 @@ const ProblemDetails = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <StatusBadge status={overallStatus} />
-                  <SquareChartGantt className="h-5 w-5 text-emerald-500" />
+                  <SquareChartGantt
+                    className={`h-5 w-5 ${
+                      overallStatus === "failed"
+                        ? "text-red-400"
+                        : overallStatus === "running"
+                          ? "text-blue-400"
+                          : overallStatus === "passed"
+                            ? "text-emerald-400"
+                            : "text-zinc-400"
+                    } `}
+                  />
                 </div>
               </div>
 
@@ -758,31 +829,22 @@ const ProblemDetails = () => {
                 ) : (
                   <Tabs defaultValue="case0" className="w-full">
                     <TabsList className="mb-4 w-full justify-start space-x-2 bg-zinc-900/50 p-1">
-                      {testCases.map((testCase, index) => {
-                        const getTabColor = (status) => {
-                          switch (status) {
-                            case TestStatus.PASSED:
-                              return "data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400";
-                            case TestStatus.FAILED:
-                              return "data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400";
-                            case TestStatus.RUNNING:
-                              return "data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400";
-                            default:
-                              return "data-[state=active]:bg-zinc-700/50 data-[state=active]:text-zinc-300";
-                          }
-                        };
-
-                        return (
-                          <TabsTrigger
-                            key={index}
-                            value={`case${index}`}
-                            className={`flex items-center space-x-2 ${getTabColor(testCase.status)}`}
-                          >
-                            <span>Case {index + 1}</span>
-                            <StatusIcon status={testCase.status} />
-                          </TabsTrigger>
-                        );
-                      })}
+                      {testCases.map((testCase, index) => (
+                        <TabsTrigger
+                          key={index}
+                          value={`case${index}`}
+                          className={`flex items-center space-x-2 data-[state=active]:bg-zinc-700/50 data-[state=active]:text-zinc-300`}
+                        >
+                          <span>Case {index + 1}</span>
+                          {testCase.passed === null ? (
+                            <Clock className="h-4 w-4 text-zinc-500" />
+                          ) : testCase.passed ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </TabsTrigger>
+                      ))}
                     </TabsList>
                     {testCases.map((testCase, index) => (
                       <TabsContent key={index} value={`case${index}`}>

@@ -9,10 +9,11 @@ import {
   getUsersSubmissions,
   testCasesRun,
 } from "../controllers/submissionController.js";
+import isAuthenticated from "../middlewares/isAuthenticated.js";
 const router = Router();
 
 router.post("/submit", createSubmission);
-router.post("/run", testCasesRun);
+router.post("/run", isAuthenticated, testCasesRun);
 router.get("/all", getAllSubmissions);
 router.get("/data/:id", getSubmission);
 router.get("/user/:userId", getUsersSubmissions);

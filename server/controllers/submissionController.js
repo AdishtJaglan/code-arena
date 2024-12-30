@@ -85,34 +85,22 @@ export const createSubmission = asyncHandler(async (req, res) => {
 });
 
 export const testCasesRun = asyncHandler(async (req, res) => {
-  const { sourceCode, language, languageId, user, question } = req.body;
+  const { _id: user } = req?.user;
+  const { sourceCode, language, languageId, testCases } = req.body;
 
-  if (!sourceCode || !language || !languageId || !user || !question) {
+  if (!sourceCode || !language || !languageId || !user || !testCases) {
     throw ApiError.BadRequest("All fields are mandatory.");
   }
 
-  const [userExists, questionExists] = await Promise.all([
-    User.exists({ _id: user }),
-    Question.exists({ _id: question }),
-  ]);
-
-  if (!userExists) throw ApiError.NotFound("User does not exist.");
-  if (!questionExists) throw ApiError.NotFound("Question does not exist.");
-
-  const questionTestCases = await Question.findById(question)
-    .populate({
-      path: "testCases",
-      match: { isHidden: false },
-      options: { limit: 3 },
-    })
-    .select("testCases")
-    .lean();
-
-  if (!questionTestCases || questionTestCases.testCases.length === 0) {
-    throw ApiError.NotFound("Test cases not found for this question.");
+  for (const testCase of testCases) {
+    if (!testCase.input || !testCase.output) {
+      throw ApiError.BadRequest("Each test case must have an input, output");
+    }
   }
 
-  const { testCases } = questionTestCases;
+  const userExists = await User.exists({ _id: user });
+
+  if (!userExists) throw ApiError.NotFound("User does not exist.");
 
   const results = await runTestCases({
     sourceCode,
