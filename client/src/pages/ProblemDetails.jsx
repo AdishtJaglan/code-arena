@@ -869,7 +869,13 @@ const ProblemDetails = () => {
                                   <code className="rounded bg-zinc-900 px-2 py-1 font-mono text-sm text-emerald-400">
                                     {testCase.output}
                                   </code>
-                                  <StatusIcon status={testCase.status} />
+                                  {testCase.passed === null ? (
+                                    <Clock className="h-4 w-4 text-zinc-500" />
+                                  ) : testCase.passed ? (
+                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                  ) : (
+                                    <XCircle className="h-4 w-4 text-red-500" />
+                                  )}
                                 </div>
                               </div>
                               {testCase.status === TestStatus.FAILED &&
