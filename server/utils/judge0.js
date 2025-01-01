@@ -5,10 +5,10 @@ export const submitCode = async ({ sourceCode, languageId, input, output }) => {
   try {
     const response = await axios.request({
       method: "POST",
-      url: `${JUDGE0_API_URL}/submissions`,
+      url: `${ENV.JUDGE0_API_URL}/submissions`,
       params: { fields: "*" },
       headers: {
-        "x-rapidapi-key": JUDGE0_API_KEY,
+        "x-rapidapi-key": ENV.JUDGE0_API_KEY,
         "Content-Type": "application/json",
       },
       data: {
@@ -30,10 +30,10 @@ export const verifyToken = async (token) => {
   try {
     const response = await axios.request({
       method: "GET",
-      url: `${JUDGE0_API_URL}/submissions/${token}`,
+      url: `${ENV.JUDGE0_API_URL}/submissions/${token}`,
       params: { base64_encoded: "true", fields: "*" },
       headers: {
-        "x-rapidapi-key": JUDGE0_API_KEY,
+        "x-rapidapi-key": ENV.JUDGE0_API_KEY,
       },
     });
 

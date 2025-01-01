@@ -9,7 +9,8 @@ import ApiResponse from "../utils/apiResponse.js";
 import { submitCode, verifyToken, runTestCases } from "../utils/judge0Dev.js"; //! for development
 
 export const createSubmission = asyncHandler(async (req, res) => {
-  const { sourceCode, language, languageId, user, question } = req.body;
+  const { _id: user } = req?.user;
+  const { sourceCode, language, languageId, question } = req.body;
 
   if (!sourceCode || !language || !languageId || !user || !question) {
     throw ApiError.BadRequest("All fields are mandatory.");
@@ -17,26 +18,24 @@ export const createSubmission = asyncHandler(async (req, res) => {
 
   const [userExists, questionExists] = await Promise.all([
     User.exists({ _id: user }),
-    Question.exists({ _id: question }),
+    Question.findOne({ question_id: question })
+      .populate("testCases")
+      .select("testCases")
+      .lean(),
   ]);
 
   if (!userExists) throw ApiError.NotFound("User does not exist.");
   if (!questionExists) throw ApiError.NotFound("Question does not exist.");
 
-  const questionTestCases = await Question.findById(question)
-    .populate("testCases")
-    .select("testCases")
-    .lean();
+  const { testCases } = questionExists;
 
-  if (!questionTestCases || questionTestCases.testCases.length === 0) {
-    throw ApiError.NotFound("Test cases not found for this question.");
+  if (!testCases || testCases.length === 0) {
+    throw ApiError.NotFound("No test cases found for this question.");
   }
-
-  const { testCases } = questionTestCases;
 
   const submissionTokens = await Promise.all(
     testCases.map(async (testCase) => {
-      submitCode({
+      return submitCode({
         languageId,
         sourceCode,
         input: testCase.input,
@@ -64,14 +63,14 @@ export const createSubmission = asyncHandler(async (req, res) => {
     languageId,
     status: allPassed ? "Accepted" : "Attempted",
     isSolved: allPassed,
-    question,
+    question: questionExists?._id,
     submittedBy: user,
   };
 
   await Promise.all([
     Submission.create(submissionData),
     Question.updateOne(
-      { _id: question },
+      { question_id: question },
       { $inc: { [allPassed ? "noOfSuccess" : "noOfFails"]: 1 } }
     ),
     allPassed &&

@@ -12,7 +12,7 @@ import {
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 const router = Router();
 
-router.post("/submit", createSubmission);
+router.post("/submit", isAuthenticated, createSubmission);
 router.post("/run", isAuthenticated, testCasesRun);
 router.get("/all", getAllSubmissions);
 router.get("/data/:id", getSubmission);
