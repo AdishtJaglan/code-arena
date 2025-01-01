@@ -74,7 +74,10 @@ export const createSubmission = asyncHandler(async (req, res) => {
       { $inc: { [allPassed ? "noOfSuccess" : "noOfFails"]: 1 } }
     ),
     allPassed &&
-      User.updateOne({ _id: user }, { $push: { questionsSolved: question } }),
+      User.updateOne(
+        { _id: user },
+        { $push: { questionsSolved: questionExists?._id } }
+      ),
   ]);
 
   return ApiResponse.Created("Submission processed.", {

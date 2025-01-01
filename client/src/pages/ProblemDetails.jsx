@@ -2,10 +2,10 @@
 /* eslint-disable no-unused-vars */
 
 //TODO -> Make the IDE use the code from code question
-//TODO -> Make submit button functional
 //TODO -> Add like dislike button
 //TODO -> Add the discussion, submission and editorial section
 //TODO -> get judge0 languauge ids mapped
+//TODO -> create submission animation, remove toasts
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
@@ -98,19 +98,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const StatusIcon = ({ status }) => {
-  switch (status) {
-    case TestStatus.PASSED:
-      return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
-    case TestStatus.FAILED:
-      return <XCircle className="h-4 w-4 text-red-500" />;
-    case TestStatus.RUNNING:
-      return <Clock className="h-4 w-4 text-blue-500" />;
-    default:
-      return <Clock className="h-4 w-4 text-zinc-500" />;
-  }
-};
-
 const ProblemDetails = () => {
   const { id } = useParams();
   const editorRef = useRef(null);
@@ -124,6 +111,10 @@ const ProblemDetails = () => {
   const [testCases, setTestCases] = useState(null);
   const [overallStatus, setOverallStatus] = useState(TestStatus.NOT_RUN);
   const [loading, setLoading] = useState(false);
+
+  //!submission related states
+  const [submitting, setSubmitting] = useState(false);
+  const [accepted, setAccepted] = useState(false);
 
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [copied, setCopied] = useState(false);
@@ -355,6 +346,63 @@ const ProblemDetails = () => {
       console.error("Error running test cases: " + errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitCode = async () => {
+    setSubmitting(true);
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      toast.error("Login to run your code!", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/submission/submit`,
+        {
+          sourceCode: editorRef.current.getValue(),
+          language: "JavaScript",
+          languageId: 1, //! update this
+          question: id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const { submission } = response?.data?.data || {};
+
+      if (submission.isSolved === false) {
+        setAccepted(false);
+        toast.error("Incorrect submission, please try again!", {
+          className: "border-rose-600 bg-rose-900 text-zinc-200",
+          duration: 2000,
+        });
+      } else {
+        setAccepted(true);
+        toast.success("Submission accepted, all test cases passed!", {
+          className: "border-zinc-800 bg-zinc-900 text-zinc-300",
+          duration: 2000,
+        });
+      }
+    } catch (error) {
+      const errorMessage = error?.response?.message || error?.message;
+      console.error("Unable to submit code: " + errorMessage);
+
+      toast.error("Unable to run your code, please try again!", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -761,8 +809,15 @@ const ProblemDetails = () => {
                 </Tooltip>
               </TooltipProvider>
               <div className="flex space-x-4">
-                <button className="rounded-[0.5rem] border border-green-500 bg-green-500/20 px-4 py-1 text-green-200 hover:bg-emerald-800/30">
-                  submit
+                <button
+                  onClick={() => submitCode()}
+                  className="flex w-20 items-center justify-center rounded-[0.5rem] border border-green-500 bg-green-500/20 px-4 py-1 text-green-200 hover:bg-emerald-800/30"
+                >
+                  {submitting ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "submit"
+                  )}
                 </button>
                 <button
                   onClick={() => runTestCases()}
