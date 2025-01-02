@@ -406,6 +406,8 @@ const ProblemDetails = () => {
     }
   };
 
+  console.log(question);
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
       <Navbar />
@@ -512,9 +514,14 @@ const ProblemDetails = () => {
                   <div className="mb-6 space-y-1 p-4">
                     <p className="font-bold text-neutral-200">Constraints:</p>
                     <ul className="list-disc pl-6">
-                      <li className="text-neutral-400">
-                        {question?.constraints}
-                      </li>
+                      {question?.constraints?.map((cnst, index) => (
+                        <li
+                          key={index}
+                          className="text-sm font-thin leading-7 text-neutral-400"
+                        >
+                          {cnst}
+                        </li>
+                      ))}
                     </ul>
                   </div>
 
