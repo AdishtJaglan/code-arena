@@ -80,10 +80,12 @@ const QuestionSchema = new mongoose.Schema(
         ref: "CodeQuestion",
       },
     ],
-    constraints: {
-      type: String,
-      required: true,
-    },
+    constraints: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
     // TODO -> think of logic
     timeLimit: {
       type: Number,

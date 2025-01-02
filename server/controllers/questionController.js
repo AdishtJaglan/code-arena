@@ -10,7 +10,13 @@ export const createQuestion = asyncHandler(async (req, res) => {
   const { _id: userId } = req?.user;
   const { title, constraints, tags, difficulty, explanation } = req.body;
 
-  if (!title || !constraints || !tags || !difficulty || !explanation) {
+  if (!constraints || constraints.length === 0 || !Array.isArray(constraints)) {
+    throw ApiError.BadRequest(
+      "Constraints must be an array of length greater than zero."
+    );
+  }
+
+  if (!title || !tags || !difficulty || !explanation) {
     throw ApiError.BadRequest("All fields mandatory.");
   }
 

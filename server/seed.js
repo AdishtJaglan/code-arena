@@ -147,6 +147,12 @@ async function seedUsers() {
 async function seedQuestions(users) {
   const questions = [];
   const difficulties = ["Easy", "Medium", "Hard"];
+  const generateConstraints = () => [
+    "0 <= nums.length <= 105",
+    "-109 <= nums[i] <= 109",
+    "nums is a non-decreasing array.",
+    "-109 <= target <= 109",
+  ];
   const usedIds = new Set();
 
   for (let i = 0; i < NUM_QUESTIONS; i++) {
@@ -169,7 +175,7 @@ async function seedQuestions(users) {
         TAGS
       )} problem: ${faker.lorem.sentence()} `,
       explanation: faker.lorem.paragraphs(3),
-      constraints: faker.lorem.sentence(),
+      constraints: generateConstraints(),
       tags: getRandomElements(TAGS, 1, 4),
       submittedBy: getRandomElement(users)._id,
       difficulty,
