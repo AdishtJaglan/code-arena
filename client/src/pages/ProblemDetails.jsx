@@ -410,7 +410,7 @@ const ProblemDetails = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
-      <Navbar />
+      <Navbar isQuestionDetail={true} />
       <Toaster position="bottom-left" theme="dark" />
 
       <div id="editorContainer" className="flex h-[90vh] w-full space-x-1">

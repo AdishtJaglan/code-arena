@@ -102,7 +102,7 @@ const EndPartnershipModal = ({ isOpen, onOpenChange, setPartnerData }) => {
   );
 };
 
-const Navbar = () => {
+const Navbar = ({ isQuestionDetail = false }) => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [partnerRequests, setPartnerRequests] = useState(null);
@@ -232,8 +232,12 @@ const Navbar = () => {
         pauseOnHover
         theme="dark"
       />
-      <nav className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-black/90 backdrop-blur-md">
-        <div className="container mx-auto grid grid-cols-12 items-center px-4 py-3">
+      <nav
+        className={`sticky ${isQuestionDetail ? "just flex items-center justify-center" : ""} top-0 z-50 w-full border-b border-zinc-800 bg-black/90 backdrop-blur-md`}
+      >
+        <div
+          className={`${isQuestionDetail ? "w-full" : "container mx-auto"} grid grid-cols-12 items-center px-4 py-3`}
+        >
           <div className="col-span-3 flex items-center space-x-2">
             <Link to="/" className="flex items-center space-x-2">
               <MessageCircleCode className="h-8 w-8 text-blue-500" />
