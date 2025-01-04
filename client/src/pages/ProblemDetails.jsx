@@ -3,7 +3,7 @@
 
 //TODO -> Make the IDE use the code from code question
 //TODO -> Add like dislike button
-//TODO -> Add the discussion, submission and editorial section
+//TODO -> Add the discussion, submission
 //TODO -> get judge0 languauge ids mapped
 //TODO -> create submission animation, remove toasts
 
@@ -28,6 +28,7 @@ import {
   XCircle,
   Clock,
   Loader2Icon,
+  Copy,
 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { Badge } from "@/components/ui/badge";
@@ -98,14 +99,30 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const getLanguage = (lang) => {
+  switch (lang) {
+    case "C++":
+      return "cpp";
+    case "C":
+      return "c";
+    default:
+      return lang.toLowerCase();
+  }
+};
+
 const ProblemDetails = () => {
   const { id } = useParams();
   const editorRef = useRef(null);
 
+  //! question related states
   const [examples, setExamples] = useState([]);
   const [question, setQuestion] = useState(null);
-  const [answers, setAnswers] = useState(null);
   const [submittedBy, setSubmittedBy] = useState(null);
+
+  //! answer related states
+  const [answers, setAnswers] = useState(null);
+  const [selectedLanguages, setSelectedLanguages] = useState({});
+  const [copiedStates, setCopiedStates] = useState({});
 
   //! test case related states
   const [testCases, setTestCases] = useState(null);
@@ -116,6 +133,7 @@ const ProblemDetails = () => {
   const [submitting, setSubmitting] = useState(false);
   const [accepted, setAccepted] = useState(false);
 
+  //! editor related states
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [copied, setCopied] = useState(false);
   const [cleared, setCleared] = useState(false);
@@ -155,39 +173,58 @@ const ProblemDetails = () => {
   );
 
   useEffect(() => {
-    const getQuestionDetails = async () => {
+    const getData = async () => {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/question/complete-question/${id}`,
+        const [questionResponse, testCaseResponse, answerResponse] =
+          await Promise.allSettled([
+            axios.get(`${API_BASE_URL}/question/complete-question/${id}`),
+            axios.get(`${API_BASE_URL}/test-case/${id}`),
+            axios.get(`${API_BASE_URL}/answer/complete/${id}`),
+          ]);
+
+        if (questionResponse.status === "fulfilled") {
+          const { submittedBy, examples, ...question } =
+            questionResponse.value.data.data.question;
+
+          setQuestion(question);
+          setSubmittedBy(submittedBy);
+          setExamples(examples);
+        } else {
+          console.error(
+            "Error while fetching question: ",
+            questionResponse?.reason?.message,
+          );
+        }
+
+        if (testCaseResponse.status === "fulfilled") {
+          const testCases = testCaseResponse.value?.data?.data?.testCases;
+          testCases.map((ts) => (ts.passed = null));
+
+          setTestCases(testCases);
+        } else {
+          console.error(
+            "Error while fetching test cases: ",
+            testCaseResponse?.reason?.message,
+          );
+        }
+
+        if (answerResponse.status === "fulfilled") {
+          setAnswers(answerResponse.value?.data?.data?.answer);
+        } else {
+          console.error(
+            "Error fetching the answer, please try again: " +
+              answerResponse?.reason?.message,
+          );
+        }
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || error?.message;
+        console.error(
+          "Error fetching question data, please try again: " + errorMessage,
         );
-
-        const { answer, submittedBy, examples, ...question } =
-          response.data.data.question;
-
-        setQuestion(question);
-        setAnswers(answer);
-        setSubmittedBy(submittedBy);
-        setExamples(examples);
-      } catch (error) {
-        console.error("Error while fetching question: ", error);
       }
     };
 
-    const getTestCases = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/test-case/${id}`);
-
-        const { testCases } = response?.data?.data || {};
-        testCases.map((ts) => (ts.passed = null));
-
-        setTestCases(testCases);
-      } catch (error) {
-        console.error("Error while fetching test cases: ", error);
-      }
-    };
-
-    getQuestionDetails();
-    getTestCases();
+    getData();
   }, [id]);
 
   const tabs = [
@@ -406,7 +443,22 @@ const ProblemDetails = () => {
     }
   };
 
-  console.log(question);
+  const handleCopyCode = (code, ansIndex) => {
+    navigator.clipboard.writeText(code);
+    setCopiedStates((prev) => ({ ...prev, [ansIndex]: true }));
+    setTimeout(() => {
+      setCopiedStates((prev) => ({ ...prev, [ansIndex]: false }));
+    }, 2000);
+  };
+
+  const initializeLanguage = (codeAnswers) => {
+    if (!selectedLanguages[codeAnswers.language]) {
+      setSelectedLanguages((prev) => ({
+        ...prev,
+        [codeAnswers.language]: codeAnswers.code,
+      }));
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
@@ -675,10 +727,156 @@ const ProblemDetails = () => {
               )}
             </TabsContent>
 
-            <TabsContent
-              value="editorial"
-              className="flex h-full flex-col p-4"
-            ></TabsContent>
+            <TabsContent value="editorial" className="mt-0 px-4">
+              {answers === null ? (
+                <div>loading...</div>
+              ) : (
+                <Tabs defaultValue={answers[0]?.type} className="w-full">
+                  <TabsList className="rounded-lg bg-zinc-900/40 p-1 backdrop-blur-sm">
+                    {answers?.map((ans, index) => (
+                      <TabsTrigger
+                        key={index}
+                        value={ans?.type}
+                        className="rounded-md px-4 py-2 transition-all data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+                      >
+                        {ans?.type}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+
+                  {answers?.map((ans, index) => (
+                    <TabsContent key={index} value={ans?.type} className="mt-6">
+                      <Card className="border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
+                        <CardContent className="p-6">
+                          <div className="space-y-4">
+                            <h3 className="text-3xl font-semibold tracking-tight text-white/90">
+                              {ans?.heading}
+                            </h3>
+
+                            <div className="py-3">
+                              <h4 className="mb-3 mt-6 text-xl font-bold text-white">
+                                Intuition:
+                              </h4>
+                              <p className="font-light leading-relaxed text-zinc-400">
+                                {ans?.intuition}
+                              </p>
+                            </div>
+
+                            {ans.codeAnswer?.length > 0 && (
+                              <div className="mt-8">
+                                <div className="mb-4 flex items-center justify-between">
+                                  <Select
+                                    value={selectedLanguages[index]}
+                                    onValueChange={(language) =>
+                                      setSelectedLanguages((prev) => ({
+                                        ...prev,
+                                        [index]: language,
+                                      }))
+                                    }
+                                  >
+                                    <SelectTrigger className="w-40 border-zinc-700/50 bg-zinc-800/50 text-white">
+                                      <SelectValue placeholder="View Answer" />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-zinc-700 bg-zinc-800">
+                                      {ans.codeAnswer.map((code, codeIndex) => {
+                                        initializeLanguage(code);
+
+                                        return (
+                                          <SelectItem
+                                            key={codeIndex}
+                                            value={code.language}
+                                            className="text-zinc-200 hover:bg-zinc-700/50"
+                                          >
+                                            {code.language}
+                                          </SelectItem>
+                                        );
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                {ans.codeAnswer
+                                  .filter(
+                                    (code) =>
+                                      code.language ===
+                                      selectedLanguages[index],
+                                  )
+                                  .map((code, codeIndex) => (
+                                    <div
+                                      key={codeIndex}
+                                      className="group relative"
+                                    >
+                                      <div className="relative h-fit overflow-hidden rounded-xl">
+                                        <div className="absolute right-2 top-2 z-50 h-8 w-8">
+                                          <button
+                                            onClick={() =>
+                                              handleCopyCode(
+                                                code.code,
+                                                `${index}-${codeIndex}`,
+                                              )
+                                            }
+                                            className="rounded-md bg-zinc-700/50 p-2 transition-colors hover:bg-zinc-700"
+                                          >
+                                            {copiedStates[
+                                              `${index}-${codeIndex}`
+                                            ] ? (
+                                              <Check className="h-4 w-4 text-green-400" />
+                                            ) : (
+                                              <Copy className="h-4 w-4 text-zinc-400" />
+                                            )}
+                                          </button>
+                                        </div>
+                                        <Editor
+                                          height="400px"
+                                          language={getLanguage(code.language)}
+                                          theme={"vs-dark"}
+                                          defaultValue={code.code}
+                                          value={code.code}
+                                          options={{
+                                            fontSize: 14,
+                                            minimap: { enabled: false },
+                                            scrollBeyondLastLine: false,
+                                            automaticLayout: true,
+                                            wordWrap: "on",
+                                            padding: { top: 16 },
+                                            lineNumbers: "on",
+                                            renderLineHighlight: "all",
+                                            smoothScrolling: true,
+                                            cursorBlinking: "smooth",
+                                            readOnly: true,
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+
+                            <div className="py-3">
+                              <h4 className="mb-3 mt-6 text-xl font-bold text-white">
+                                Approach:
+                              </h4>
+                              <p className="font-light leading-relaxed text-zinc-400">
+                                {ans?.approach}
+                              </p>
+                            </div>
+
+                            <div className="py-3">
+                              <h4 className="mb-3 mt-6 text-xl font-bold text-white">
+                                Complexity Analysis:
+                              </h4>
+                              <p className="font-light leading-relaxed text-zinc-400">
+                                {ans?.complexityAnalysis}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              )}
+            </TabsContent>
 
             <TabsContent
               value="discussion"

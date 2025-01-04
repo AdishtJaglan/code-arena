@@ -83,21 +83,94 @@ export const getCompleteAnswer = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (!id) {
-    throw ApiError.BadRequest("Answer ID is mandatory.");
+    throw ApiError.BadRequest("Question ID is mandatory");
   }
 
-  const answer = await Answer.findById(id)
-    .populate({
-      path: "solutions",
-      populate: {
-        path: "codeAnswer",
+  const answer = await Question.aggregate([
+    { $match: { question_id: id } },
+    {
+      $lookup: {
+        from: "answers",
+        localField: "answer",
+        foreignField: "_id",
+        as: "answer",
       },
-    })
-    .lean();
+    },
+    { $unwind: "$answer" },
+    {
+      $lookup: {
+        from: "solutions",
+        let: { solutionIds: "$answer.solutions" },
+        pipeline: [
+          { $match: { $expr: { $in: ["$_id", "$$solutionIds"] } } },
+          {
+            $lookup: {
+              from: "codeanswers",
+              let: { codeAnswerIds: "$codeAnswer" },
+              pipeline: [
+                { $match: { $expr: { $in: ["$_id", "$$codeAnswerIds"] } } },
+                {
+                  $project: {
+                    _id: 0,
+                    code: 1,
+                    language: 1,
+                    explanation: 1,
+                  },
+                },
+              ],
+              as: "codeAnswer",
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              let: { userId: "$contributedBy" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$_id", "$$userId"] } } },
+                {
+                  $project: {
+                    _id: 0,
+                    username: 1,
+                    profilePicture: 1,
+                    bio: 1,
+                    rating: 1,
+                  },
+                },
+              ],
+              as: "contributedBy",
+            },
+          },
+          { $unwind: "$contributedBy" },
+          {
+            $project: {
+              _id: 0,
+              type: 1,
+              heading: 1,
+              explanation: 1,
+              codeAnswer: 1,
+              contributedBy: 1,
+              intuition: 1,
+              approach: 1,
+              complexityAnalysis: 1,
+            },
+          },
+        ],
+        as: "solutions",
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        solutions: 1,
+      },
+    },
+  ]).exec();
 
-  if (!answer) {
-    throw ApiError.NotFound("No answer found for that ID.");
+  if (!answer?.[0]) {
+    throw ApiError.NotFound("No answer found for the given question.");
   }
 
-  return ApiResponse.Ok("Fetched complete answer.", { answer }).send(res);
+  return ApiResponse.Ok("Fetched complete answer.", {
+    answer: answer[0].solutions,
+  }).send(res);
 });

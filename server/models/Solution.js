@@ -17,9 +17,17 @@ const SolutionSchema = new mongoose.Schema(
         ref: "CodeAnswer",
       },
     ],
-    explanation: {
+    intuition: {
       type: String,
       required: true,
+    },
+    approach: {
+      type: String,
+      required: true,
+    },
+    complexityAnalysis: {
+      type: String,
+    required: true,
     },
     contributedBy: {
       type: mongoose.Types.ObjectId,

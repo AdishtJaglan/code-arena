@@ -38,7 +38,13 @@ export const createMultipleSolutions = asyncHandler(async (req, res) => {
   }
 
   for (const solution of solutions) {
-    if (!solution.type || !solution.heading || !solution.explanation) {
+    if (
+      !solution.type ||
+      !solution.heading ||
+      !solution.complexityAnalysis ||
+      !solution.intuition ||
+      !solution.approach
+    ) {
       throw ApiError.BadRequest(
         "Each solutions object must have: heading, type, explanation"
       );
@@ -67,7 +73,14 @@ export const createSolution = asyncHandler(async (req, res) => {
     throw ApiError.BadRequest("Answer ID is mandatory.");
   }
 
-  if (!type || !heading || !explanation || !contributedBy) {
+  if (
+    !type ||
+    !heading ||
+    !intuition ||
+    !approach ||
+    !complexityAnalysis ||
+    !contributedBy
+  ) {
     throw ApiError.BadRequest("All fields are mandatory.");
   }
 
@@ -87,7 +100,9 @@ export const createSolution = asyncHandler(async (req, res) => {
   const solution = await Solution.create({
     type,
     heading,
-    explanation,
+    intuition,
+    approach,
+    complexityAnalysis,
     contributedBy,
   });
 

@@ -176,17 +176,11 @@ export const getQuestionByQuestionId = asyncHandler(async (req, res) => {
   }
 
   const question = await Question.findOne({ question_id: question_id })
-    .select("-discussion -testCases")
+    .select("-discussion -testCases -answer")
     .populate("codeQuestion examples")
     .populate({
       path: "submittedBy",
       select: "username profilePicture rating bio",
-    })
-    .populate({
-      path: "answer",
-      populate: {
-        path: "solutions",
-      },
     })
     .lean();
 
