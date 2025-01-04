@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 
-//TODO -> Make the IDE use the code from code question
 //TODO -> Add like dislike button
 //TODO -> Add the discussion, submission
 //TODO -> get judge0 languauge ids mapped
@@ -103,8 +102,6 @@ const getLanguage = (lang) => {
   switch (lang) {
     case "C++":
       return "cpp";
-    case "C":
-      return "c";
     default:
       return lang.toLowerCase();
   }
@@ -135,6 +132,7 @@ const ProblemDetails = () => {
 
   //! editor related states
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const [initialCode, setInitialCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [cleared, setCleared] = useState(false);
   const config = LANGUAGE_CONFIGS[selectedLanguage];
@@ -186,6 +184,15 @@ const ProblemDetails = () => {
           const { submittedBy, examples, ...question } =
             questionResponse.value.data.data.question;
 
+          let langObj = {};
+
+          question?.codeQuestion.forEach((code) => {
+            if (code?.language) {
+              langObj[getLanguage(code.language)] = code?.code;
+            }
+          });
+
+          setInitialCode(langObj);
           setQuestion(question);
           setSubmittedBy(submittedBy);
           setExamples(examples);
@@ -458,6 +465,18 @@ const ProblemDetails = () => {
         [codeAnswers.language]: codeAnswers.code,
       }));
     }
+  };
+
+  const getCode = (lang) => {
+    const languageMap = {
+      cpp: initialCode["cpp"],
+      c: initialCode["c"],
+      javascript: initialCode["javascript"],
+      java: initialCode["java"],
+      python: initialCode["python"],
+    };
+
+    return languageMap[lang] || lang.toLowerCase();
   };
 
   return (
@@ -982,6 +1001,7 @@ const ProblemDetails = () => {
                 language={config.language}
                 theme={config.theme}
                 defaultValue={`// Start coding in ${config.language}`}
+                value={getCode(selectedLanguage)}
                 onMount={handleEditorDidMount}
                 options={{
                   fontSize: 14,

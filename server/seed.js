@@ -652,17 +652,87 @@ fn solve(arr: &[i32]) -> i32 {
 
 async function seedCodeQuestions(questions) {
   const codeQuestions = [];
+  const languageSpecificCode = {
+    "C++": `
+#include <iostream>
+using namespace std;
+
+int solve(vector<int> &arr) {
+    // Solution logic here
+    int result = 0;
+    for (int i = 0; i < arr.size(); i++) {
+        result += arr[i];
+    }
+    return result;
+}
+    `,
+    C: `
+#include <stdio.h>
+
+int solve(int arr[], int size) {
+    // Solution logic here
+    int result = 0;
+    for (int i = 0; i < size; i++) {
+        result += arr[i];
+    }
+    return result;
+}
+    `,
+    JavaScript: `
+function solve(arr) {
+    // Solution logic here
+    let result = 0;
+    for (let i = 0; i < arr.length; i++) {
+        result += arr[i];
+    }
+    return result;
+}
+    `,
+    Java: `
+import java.util.*;
+
+public class Solution {
+    public static int solve(int[] arr) {
+        // Solution logic here
+        int result = 0;
+        for (int i = 0; i < arr.length; i++) {
+            result += arr[i];
+        }
+        return result;
+    }
+}
+    `,
+    Python: `
+def solve(arr):
+    # Solution logic here
+    result = sum(arr)
+    return result
+    `,
+    Go: `
+package main
+
+func solve(arr []int) int {
+    // Solution logic here
+    result := 0
+    for _, val := range arr {
+        result += val
+    }
+    return result
+}
+    `,
+    Rust: `
+fn solve(arr: &[i32]) -> i32 {
+    // Solution logic here
+    arr.iter().sum()
+}
+    `,
+  };
 
   for (const question of questions) {
     for (const language of LANGUAGES) {
       const codeQuestion = new CodeQuestion({
         question: question._id,
-        code: `
-# ${language} Problem Statement
-def solve(arr):
-    ${faker.lorem.lines(5)}
-    return result
-`,
+        code: languageSpecificCode[language],
         language: language,
       });
       codeQuestions.push(codeQuestion);
