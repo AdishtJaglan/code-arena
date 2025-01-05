@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 
-//TODO -> Add like dislike button
 //TODO -> Add the discussion, submission
 //TODO -> get judge0 languauge ids mapped
 //TODO -> create submission animation, remove toasts
