@@ -241,3 +241,32 @@ export const getQuestionCountForDifficulty = asyncHandler(async (req, res) => {
     questionCount
   ).send(res);
 });
+
+export const reactToQuestion = asyncHandler(async (req, res) => {
+  const { _id: userId } = req.user;
+  const { like } = req.query;
+  const { id } = req.params;
+
+  if (!userId || like === undefined || !id) {
+    throw ApiError.BadRequest(
+      "Missing required parameters: userId, like, or questionId"
+    );
+  }
+
+  const isLike = like === "true";
+
+  const question = await Question.findOneAndUpdate(
+    { question_id: id },
+    {
+      $addToSet: { [isLike ? "likes" : "dislikes"]: userId },
+      $pull: { [isLike ? "dislikes" : "likes"]: userId },
+    },
+    { new: true }
+  );
+
+  if (!question) {
+    throw ApiError.NotFound("Question not found.");
+  }
+
+  return ApiResponse.Ok("Added reaction to question.", { question }).send(res);
+});

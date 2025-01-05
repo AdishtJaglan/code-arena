@@ -124,16 +124,18 @@ const QuestionSchema = new mongoose.Schema(
         ref: "Discussion",
       },
     ],
-    likes: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    dislikes: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
+    likes: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    dislikes: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     tags: {
       type: [String],
       required: true,

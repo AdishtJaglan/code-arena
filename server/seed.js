@@ -145,6 +145,7 @@ async function seedUsers() {
 }
 
 async function seedQuestions(users) {
+  const userIds = users.map((u) => u._id);
   const questions = [];
   const difficulties = ["Easy", "Medium", "Hard"];
   const generateConstraints = () => [
@@ -181,8 +182,8 @@ async function seedQuestions(users) {
       difficulty,
       noOfSuccess,
       noOfFails,
-      likes: faker.number.int({ min: 0, max: 500 }),
-      dislikes: faker.number.int({ min: 0, max: 100 }),
+      likes: getRandomElements(userIds, 1, 98),
+      dislikes: getRandomElements(userIds, 1, 98),
       question_id: questionId,
       examples: [],
       testCases: [],

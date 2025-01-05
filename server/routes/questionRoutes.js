@@ -9,11 +9,14 @@ import {
   getQuestionCountForDifficulty,
   getQuestionsByTag,
   getQuestionsByUser,
+  reactToQuestion,
 } from "../controllers/questionController.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 const router = Router();
 
 router.post("/create", isAuthenticated, createQuestion);
+router.post("/like/:id", isAuthenticated, reactToQuestion);
+
 router.get("/all", getAllQuestions);
 router.get("/data/:id", getQuestionbyId);
 router.get("/contribution/:id", getQuestionsByUser);
