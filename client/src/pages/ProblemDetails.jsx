@@ -502,7 +502,6 @@ const ProblemDetails = () => {
           },
         );
 
-        console.log(response?.data?.data);
         setIsDisLiked(response?.data?.data?.dislike);
         setIsLiked(response?.data?.data?.like);
       } catch (error) {
