@@ -602,14 +602,14 @@ const ProblemDetails = () => {
                       <div className="flex flex-col gap-1">
                         <span className="text-xs text-zinc-400">Likes</span>
                         <span className="text-lg font-medium text-zinc-100">
-                          {question?.likes}
+                          {question?.likes.length}
                         </span>
                       </div>
 
                       <div className="flex flex-col gap-1">
                         <span className="text-xs text-zinc-400">Dislikes</span>
                         <span className="text-lg font-medium text-zinc-100">
-                          {question?.dislikes}
+                          {question?.dislikes.length}
                         </span>
                       </div>
 
