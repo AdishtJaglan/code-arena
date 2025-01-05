@@ -270,3 +270,30 @@ export const reactToQuestion = asyncHandler(async (req, res) => {
 
   return ApiResponse.Ok("Added reaction to question.", { question }).send(res);
 });
+
+export const isQuestionReacted = asyncHandler(async (req, res) => {
+  const { _id: userId } = req?.user;
+  const { id } = req.params;
+
+  if (!id) {
+    throw ApiError.BadRequest("Question ID is mandatory.");
+  }
+
+  const question = await Question.findOne({ question_id: id }).lean();
+
+  if (!question) {
+    throw ApiError.NotFound("Question not found.");
+  }
+
+  const liked = question.likes.some(
+    (id) => id.toString() === userId.toString()
+  );
+  const disliked = question.dislikes.some(
+    (id) => id.toString() === userId.toString()
+  );
+
+  return ApiResponse.Ok("Fetched question reaction status.", {
+    like: liked,
+    dislike: disliked,
+  }).send(res);
+});

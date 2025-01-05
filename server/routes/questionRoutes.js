@@ -9,6 +9,7 @@ import {
   getQuestionCountForDifficulty,
   getQuestionsByTag,
   getQuestionsByUser,
+  isQuestionReacted,
   reactToQuestion,
 } from "../controllers/questionController.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
@@ -25,5 +26,6 @@ router.get("/count-tags", getNoOfQuestionForEachTag);
 router.get("/complete-question", getCompleteQuestions);
 router.get("/complete-question/:question_id", getQuestionByQuestionId);
 router.get("/difficulty-count", getQuestionCountForDifficulty);
+router.get("/like/:id", isAuthenticated, isQuestionReacted);
 
 export default router;

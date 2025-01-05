@@ -28,6 +28,10 @@ import {
   Loader2Icon,
   Copy,
 } from "lucide-react";
+import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt"; //! fill
+import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt"; //! outline
+import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt"; //! fill
+import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt"; //! outline
 import { Editor } from "@monaco-editor/react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -114,6 +118,8 @@ const ProblemDetails = () => {
   const [examples, setExamples] = useState([]);
   const [question, setQuestion] = useState(null);
   const [submittedBy, setSubmittedBy] = useState(null);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isDisLiked, setIsDisLiked] = useState(false);
 
   //! answer related states
   const [answers, setAnswers] = useState(null);
@@ -478,6 +484,83 @@ const ProblemDetails = () => {
     return languageMap[lang] || lang.toLowerCase();
   };
 
+  useEffect(() => {
+    const getReactionStatus = async () => {
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/question/like/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        console.log(response?.data?.data);
+        setIsDisLiked(response?.data?.data?.dislike);
+        setIsLiked(response?.data?.data?.like);
+      } catch (error) {
+        const errorMessage =
+          error?.response?.message || error?.message || error;
+        console.error("Error fetching reaction data: " + errorMessage);
+      }
+    };
+
+    getReactionStatus();
+  }, [id]);
+
+  const reactToQuestion = async (like) => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      toast.error("Must be logged in to react.", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/question/like/${id}?like=${like}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response?.data?.success === true) {
+        if (like === true) {
+          setIsLiked(true);
+          setIsDisLiked(false);
+        } else {
+          setIsLiked(false);
+          setIsDisLiked(true);
+        }
+        toast.success("Reaction added successfully.", {
+          className: "border-zinc-800 bg-zinc-900 text-zinc-300",
+          duration: 2000,
+        });
+      } else {
+        toast.error("Error occurred while adding reaction.", {
+          className: "border-rose-600 bg-rose-900 text-zinc-200",
+          duration: 2000,
+        });
+      }
+    } catch (error) {
+      const errorMessage = error?.response?.message || error?.message || error;
+      console.error("Error reacting to question: " + errorMessage);
+    }
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-neutral-200">
       <Navbar isQuestionDetail={true} />
@@ -523,24 +606,52 @@ const ProblemDetails = () => {
                   </div>
 
                   {/* tags */}
-                  <div className="mb-6 flex flex-wrap items-center gap-3 overflow-hidden">
-                    <Badge
-                      variant="outline"
-                      className={`px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${getDifficultyStyle(question?.difficulty)}`}
-                    >
-                      {question?.difficulty?.toLowerCase()}
-                    </Badge>
+                  <div className="mb-6 flex flex-wrap items-center justify-between gap-3 overflow-hidden">
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant="outline"
+                        className={`px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${getDifficultyStyle(question?.difficulty)}`}
+                      >
+                        {question?.difficulty?.toLowerCase()}
+                      </Badge>
 
-                    <div className="flex flex-wrap gap-2 overflow-clip">
-                      {question?.tags?.map((tag, index) => (
-                        <Badge
-                          key={tag}
-                          variant="outline"
-                          className="cursor-pointer border-zinc-700 bg-zinc-800/50 px-3 py-1 text-xs font-normal tracking-wide text-zinc-200 backdrop-blur-sm transition-all hover:border-zinc-500 hover:bg-zinc-700/50"
-                        >
-                          {tag.toLowerCase()}
-                        </Badge>
-                      ))}
+                      <div className="flex flex-wrap gap-2 overflow-clip">
+                        {question?.tags?.map((tag, index) => (
+                          <Badge
+                            key={tag}
+                            variant="outline"
+                            className="cursor-pointer border-zinc-700 bg-zinc-800/50 px-3 py-1 text-xs font-normal tracking-wide text-zinc-200 backdrop-blur-sm transition-all hover:border-zinc-500 hover:bg-zinc-700/50"
+                          >
+                            {tag.toLowerCase()}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-x-4">
+                      {isLiked ? (
+                        <ThumbUpAltIcon
+                          className="cursor-pointer"
+                          onClick={() => reactToQuestion(true)}
+                        />
+                      ) : (
+                        <ThumbUpOffAltIcon
+                          className="cursor-pointer"
+                          onClick={() => reactToQuestion(true)}
+                        />
+                      )}
+
+                      {isDisLiked ? (
+                        <ThumbDownAltIcon
+                          className="cursor-pointer"
+                          onClick={() => reactToQuestion(false)}
+                        />
+                      ) : (
+                        <ThumbDownOffAltIcon
+                          className="cursor-pointer"
+                          onClick={() => reactToQuestion(false)}
+                        />
+                      )}
                     </div>
                   </div>
 
