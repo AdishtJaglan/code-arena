@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
 
 //TODO -> Add the discussion, submission
 //TODO -> get judge0 languauge ids mapped
@@ -151,7 +150,7 @@ const ProblemDetails = () => {
   const [rightTopHeight, setRightTopHeight] = useState(80);
 
   const handleMouseDown = useCallback(
-    (e, direction) => {
+    (e) => {
       e.preventDefault();
       const startY = e.clientY;
       const startHeight = rightTopHeight;
@@ -615,7 +614,7 @@ const ProblemDetails = () => {
                       </Badge>
 
                       <div className="flex flex-wrap gap-2 overflow-clip">
-                        {question?.tags?.map((tag, index) => (
+                        {question?.tags?.map((tag) => (
                           <Badge
                             key={tag}
                             variant="outline"
