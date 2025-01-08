@@ -97,24 +97,43 @@ export const getAllDiscussions = asyncHandler(async (req, res) => {
 
 export const getDiscussionsByQuestion = asyncHandler(async (req, res) => {
   const { questionId } = req.params;
-  const question = await Question.exists({ _id: questionId });
 
-  if (!question) {
-    throw ApiError.NotFound("Question does not exist.");
+  if (!questionId) {
+    throw ApiError.BadRequest("Question ID is mandatory.");
   }
 
-  const questions = await Discussion.find({
-    question: questionId,
-    parentDiscussion: null,
+  const questionExists = await Question.exists({
+    question_id: questionId,
   }).lean();
 
-  if (!questions || questions.length === 0) {
-    throw ApiError.NotFound("No discussions for this question.");
+  if (!questionExists) {
+    throw ApiError.NotFound("Question not found.");
   }
 
-  return ApiResponse.Ok("Fetched discussions for the question.", {
-    count: questions.length,
-    questions,
+  const [result] = await Discussion.aggregate([
+    {
+      $match: {
+        question: questionExists?._id,
+        parentDiscussion: null,
+      },
+    },
+    {
+      $facet: {
+        discussions: [{ $limit: 300 }],
+        count: [{ $count: "total" }],
+      },
+    },
+  ]);
+
+  const count = result.count[0]?.total || 0;
+
+  if (count === 0) {
+    throw ApiError.NotFound("No discussions found for this question.");
+  }
+
+  return ApiResponse.Ok("Fetched discussions.", {
+    count,
+    discussion: result.discussions,
   }).send(res);
 });
 
