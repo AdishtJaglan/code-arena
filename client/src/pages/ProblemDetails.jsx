@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 
 //TODO -> Add the discussion, submission
-//TODO -> get judge0 languauge ids mapped
 //TODO -> create submission animation, remove toasts
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
@@ -104,6 +103,36 @@ const getLanguage = (lang) => {
   switch (lang) {
     case "C++":
       return "cpp";
+    default:
+      return lang.toLowerCase();
+  }
+};
+
+const getLanguageId = (lang) => {
+  switch (lang) {
+    case "cpp":
+      return 105;
+    case "javascript":
+      return 102;
+    case "java":
+      return 91;
+    case "python":
+      return 71;
+    default:
+      return 0;
+  }
+};
+
+const updateLanguageNames = (lang) => {
+  switch (lang) {
+    case "cpp":
+      return "C++";
+    case "javascript":
+      return "JavaScript";
+    case "java":
+      return "Java";
+    case "python":
+      return "Python";
     default:
       return lang.toLowerCase();
   }
@@ -366,8 +395,8 @@ const ProblemDetails = () => {
         `${API_BASE_URL}/submission/run`,
         {
           sourceCode: editorRef.current.getValue(),
-          language: selectedLanguage,
-          languageId: 1, //! update this
+          language: updateLanguageNames(selectedLanguage),
+          languageId: getLanguageId(selectedLanguage),
           testCases,
         },
         {
@@ -415,8 +444,8 @@ const ProblemDetails = () => {
         `${API_BASE_URL}/submission/submit`,
         {
           sourceCode: editorRef.current.getValue(),
-          language: "JavaScript",
-          languageId: 1, //! update this
+          language: updateLanguageNames(selectedLanguage),
+          languageId: getLanguageId(selectedLanguage),
           question: id,
         },
         {
