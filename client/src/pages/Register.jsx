@@ -21,6 +21,7 @@ import StepProfile from "../components/register/StepProfile";
 import StepConnections from "../components/register/StepConnections";
 import StepRequest from "../components/register/StepRequest";
 import "react-toastify/dist/ReactToastify.css";
+import { Loader2 } from "lucide-react";
 
 const steps = [
   {
@@ -174,6 +175,7 @@ const Timeline = ({ currentStep }) => {
 const Register = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [partnerInfo, setPartnerInfo] = useState(null);
   const [isRequestSent, setIsRequestSent] = useState(false);
@@ -241,6 +243,7 @@ const Register = () => {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       const formDataToSend = new FormData();
 
       formDataToSend.append("username", formData?.username);
@@ -283,6 +286,8 @@ const Register = () => {
     } catch (error) {
       console.error("Error creating user:" + error);
       toast.error("Unable to create user. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -476,8 +481,14 @@ const Register = () => {
 
                 {currentStep === 3 && (
                   <Button onClick={handleSubmit}>
-                    Create Account
-                    <NavigateNext />
+                    {loading ? (
+                      <Loader2 className="w-36 animate-spin" />
+                    ) : (
+                      <>
+                        Create Account
+                        <NavigateNext />
+                      </>
+                    )}
                   </Button>
                 )}
                 {currentStep < 3 && (
