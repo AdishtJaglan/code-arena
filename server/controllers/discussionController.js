@@ -118,6 +118,27 @@ export const getDiscussionsByQuestion = asyncHandler(async (req, res) => {
       },
     },
     {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              profilePicture: 1,
+              rating: 1,
+              _id: 1,
+            },
+          },
+        ],
+        as: "user",
+      },
+    },
+    {
+      $unwind: "$user",
+    },
+    {
       $facet: {
         discussions: [{ $limit: 300 }],
         count: [{ $count: "total" }],

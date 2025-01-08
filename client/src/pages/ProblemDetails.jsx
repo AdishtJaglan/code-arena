@@ -63,6 +63,7 @@ import { Button } from "@/components/ui/button";
 
 import axios from "axios";
 import Navbar from "../components/Navbar";
+import Discussion from "@/components/Discussion";
 import LANGUAGE_CONFIGS from "@/configs/language-config";
 
 const TestStatus = {
@@ -163,6 +164,9 @@ const ProblemDetails = () => {
   const [submitting, setSubmitting] = useState(false);
   const [accepted, setAccepted] = useState(false);
 
+  //! discussion related states
+  const [discussions, setDiscussions] = useState(null);
+
   //! editor related states
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [initialCode, setInitialCode] = useState("");
@@ -206,12 +210,17 @@ const ProblemDetails = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const [questionResponse, testCaseResponse, answerResponse] =
-          await Promise.allSettled([
-            axios.get(`${API_BASE_URL}/question/complete-question/${id}`),
-            axios.get(`${API_BASE_URL}/test-case/${id}`),
-            axios.get(`${API_BASE_URL}/answer/complete/${id}`),
-          ]);
+        const [
+          questionResponse,
+          testCaseResponse,
+          answerResponse,
+          discussionResponse,
+        ] = await Promise.allSettled([
+          axios.get(`${API_BASE_URL}/question/complete-question/${id}`),
+          axios.get(`${API_BASE_URL}/test-case/${id}`),
+          axios.get(`${API_BASE_URL}/answer/complete/${id}`),
+          axios.get(`${API_BASE_URL}/discussion/question/${id}`),
+        ]);
 
         if (questionResponse.status === "fulfilled") {
           const { submittedBy, examples, ...question } =
@@ -254,6 +263,16 @@ const ProblemDetails = () => {
           console.error(
             "Error fetching the answer, please try again: " +
               answerResponse?.reason?.message,
+          );
+        }
+
+        if (discussionResponse.status === "fulfilled") {
+          setDiscussions(discussionResponse?.value?.data?.data?.discussion);
+          console.log(discussionResponse?.value?.data?.data?.discussion);
+        } else {
+          console.error(
+            "Error fetching discussions: " +
+              discussionResponse?.reason?.message,
           );
         }
       } catch (error) {
@@ -1037,7 +1056,34 @@ const ProblemDetails = () => {
             <TabsContent
               value="discussion"
               className="flex h-full flex-col p-4"
-            ></TabsContent>
+            >
+              {discussions === null ? (
+                <div className="space-y-8">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="mb-4 h-4 w-3/4 rounded bg-neutral-800"></div>
+                      <div className="mb-6 h-4 w-1/2 rounded bg-neutral-800"></div>
+                      <div className="flex items-center space-x-3">
+                        <div className="h-8 w-8 rounded-full bg-neutral-800"></div>
+                        <div className="h-3 w-24 rounded bg-neutral-800"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-black">
+                  <div className="divide-y divide-neutral-800/50">
+                    {discussions.map((disc, index) => (
+                      <Discussion
+                        key={index}
+                        disc={disc}
+                        onReply={(text) => console.log("Reply:", text)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
 
             <TabsContent
               value="submissions"
