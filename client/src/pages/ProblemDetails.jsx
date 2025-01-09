@@ -167,6 +167,7 @@ const ProblemDetails = () => {
 
   //! discussion related states
   const [discussions, setDiscussions] = useState(null);
+  const [commentLoading, setCommentLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
 
   //! editor related states
@@ -608,24 +609,49 @@ const ProblemDetails = () => {
     }
   };
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
+  const handleAddComment = async () => {
+    setCommentLoading(true);
+    if (!newComment.trim()) {
+      toast.error("Please add a comment.", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+      return;
+    }
 
-    const comment = {
-      id: Date.now(),
-      user: {
-        username: "Current User",
-        profilePicture: "/api/placeholder/32/32",
-        rating: "Member",
-      },
-      comment: newComment,
-      createdAt: new Date().toISOString(),
-      reactions: { likes: [], dislikes: [] },
-      replies: [],
-    };
+    const token = localStorage.getItem("accessToken");
 
-    setDiscussions([comment, ...discussions]);
-    setNewComment("");
+    if (!token) {
+      toast.error("Please login to add a comment.", {
+        className: "border-rose-600 bg-rose-900 text-zinc-200",
+        duration: 2000,
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/discussion/create`,
+        {
+          comment: newComment,
+          question: id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const comment = response?.data?.data?.discussion;
+      setDiscussions([comment, ...discussions]);
+      setNewComment("");
+    } catch (error) {
+      const errorMessage = error?.response?.message || error?.message || error;
+      console.error("Unable to add comment, please try again: " + errorMessage);
+    } finally {
+      setCommentLoading(false);
+    }
   };
 
   return (
@@ -1122,7 +1148,11 @@ const ProblemDetails = () => {
                     className="p-2 text-zinc-400 hover:text-blue-400 disabled:opacity-50"
                     disabled={!newComment.trim()}
                   >
-                    <Send className="h-5 w-5" />
+                    {commentLoading ? (
+                      <Loader2Icon className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
