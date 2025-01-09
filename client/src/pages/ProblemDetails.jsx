@@ -25,6 +25,7 @@ import {
   Clock,
   Loader2Icon,
   Copy,
+  Send,
 } from "lucide-react";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt"; //! fill
 import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt"; //! outline
@@ -166,6 +167,7 @@ const ProblemDetails = () => {
 
   //! discussion related states
   const [discussions, setDiscussions] = useState(null);
+  const [newComment, setNewComment] = useState("");
 
   //! editor related states
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
@@ -268,7 +270,6 @@ const ProblemDetails = () => {
 
         if (discussionResponse.status === "fulfilled") {
           setDiscussions(discussionResponse?.value?.data?.data?.discussion);
-          console.log(discussionResponse?.value?.data?.data?.discussion);
         } else {
           console.error(
             "Error fetching discussions: " +
@@ -605,6 +606,26 @@ const ProblemDetails = () => {
       const errorMessage = error?.response?.message || error?.message || error;
       console.error("Error reacting to question: " + errorMessage);
     }
+  };
+
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
+
+    const comment = {
+      id: Date.now(),
+      user: {
+        username: "Current User",
+        profilePicture: "/api/placeholder/32/32",
+        rating: "Member",
+      },
+      comment: newComment,
+      createdAt: new Date().toISOString(),
+      reactions: { likes: [], dislikes: [] },
+      replies: [],
+    };
+
+    setDiscussions([comment, ...discussions]);
+    setNewComment("");
   };
 
   return (
@@ -1055,34 +1076,56 @@ const ProblemDetails = () => {
 
             <TabsContent
               value="discussion"
-              className="flex h-full flex-col p-4"
+              className="relative h-full -translate-y-8"
             >
-              {discussions === null ? (
-                <div className="space-y-8">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="mb-4 h-4 w-3/4 rounded bg-neutral-800"></div>
-                      <div className="mb-6 h-4 w-1/2 rounded bg-neutral-800"></div>
-                      <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 rounded-full bg-neutral-800"></div>
-                        <div className="h-3 w-24 rounded bg-neutral-800"></div>
+              <div className="p-6 backdrop-blur">
+                <h2 className="text-xl font-semibold text-zinc-100">
+                  Community Discussion
+                </h2>
+                <p className="text-sm text-zinc-400">
+                  Join the conversation and share your thoughts about this
+                  content.
+                </p>
+              </div>
+
+              <div className="h-[calc(100%-8rem)] space-y-6 overflow-y-auto p-6 pt-0">
+                {discussions === null ? (
+                  <div className="space-y-8">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="mb-4 h-4 w-3/4 rounded bg-zinc-800"></div>
+                        <div className="mb-6 h-4 w-1/2 rounded bg-zinc-800"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="h-8 w-8 rounded-full bg-zinc-800"></div>
+                          <div className="h-3 w-24 rounded bg-zinc-800"></div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-black">
-                  <div className="divide-y divide-neutral-800/50">
-                    {discussions.map((disc, index) => (
-                      <Discussion
-                        key={index}
-                        disc={disc}
-                        onReply={(text) => console.log("Reply:", text)}
-                      />
                     ))}
                   </div>
+                ) : (
+                  discussions.map((disc, index) => (
+                    <Discussion key={index} disc={disc} />
+                  ))
+                )}
+              </div>
+
+              <div className="sticky -bottom-8 left-0 right-0 border-t border-zinc-800/40 bg-zinc-950/50 p-4 backdrop-blur">
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Share your thoughts..."
+                    className="flex-1 border-zinc-800 bg-zinc-900"
+                  />
+                  <button
+                    onClick={handleAddComment}
+                    className="p-2 text-zinc-400 hover:text-blue-400 disabled:opacity-50"
+                    disabled={!newComment.trim()}
+                  >
+                    <Send className="h-5 w-5" />
+                  </button>
                 </div>
-              )}
+              </div>
             </TabsContent>
 
             <TabsContent
