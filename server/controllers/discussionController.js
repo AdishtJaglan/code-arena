@@ -6,15 +6,16 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 
 export const createDiscussions = asyncHandler(async (req, res) => {
-  const { question, user, comment } = req.body;
+  const { _id: user } = req?.user;
+  const { question, comment } = req.body;
 
   if (!question || !user || !comment) {
     throw ApiError.BadRequest("Invalid request, all fields mandatory.");
   }
 
   const [userCheck, questionCheck] = await Promise.all([
-    Question.exists({ _id: question }),
     User.exists({ _id: user }),
+    Question.findOne({ question_id: question }).select("discussion"),
   ]);
 
   if (!userCheck) {
@@ -25,13 +26,15 @@ export const createDiscussions = asyncHandler(async (req, res) => {
     throw ApiError.NotFound("Question not found.");
   }
 
-  const discussion = await Discussion.create(req.body);
+  const discussion = await Discussion.create({
+    comment,
+    question: questionCheck?._id,
+    user,
+  });
+  questionCheck.discussion.push(discussion?._id);
 
   await Promise.all([
-    Question.updateOne(
-      { _id: question },
-      { $push: { discussion: discussion._id } }
-    ),
+    questionCheck.save(),
     User.updateOne({ _id: user }, { $push: { comments: discussion._id } }),
   ]);
 

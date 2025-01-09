@@ -9,9 +9,10 @@ import {
   reactToDiscussion,
   replyToDiscussion,
 } from "../controllers/discussionController.js";
+import isAuthenticated from "../middlewares/isAuthenticated.js";
 const router = Router();
 
-router.post("/create", createDiscussions);
+router.post("/create", isAuthenticated, createDiscussions);
 router.post("/reply/:discussionId", replyToDiscussion);
 router.get("/all", getAllDiscussions);
 router.get("/question/:questionId", getDiscussionsByQuestion);
