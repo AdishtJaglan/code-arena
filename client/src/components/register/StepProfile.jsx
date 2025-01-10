@@ -107,13 +107,13 @@ const StepProfile = ({
         </AnimatePresence>
       </div>
 
-      <div className="relative">
+      <div className="relative px-1">
         <textarea
           name="bio"
           value={formData.bio}
           onChange={handleInputChange}
           placeholder="Tell us about yourself..."
-          className="min-h-[120px] w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-gray-100 placeholder-gray-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+          className="min-h-[120px] w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <Description className="absolute right-3 top-3 text-gray-400" />
       </div>
