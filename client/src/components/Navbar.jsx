@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable no-unsafe-optional-chaining */
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -124,7 +123,7 @@ const Navbar = ({ isQuestionDetail = false }) => {
         });
 
         const { email, username, profilePicture, rating, user_id } =
-          response?.data?.data?.user;
+          response?.data?.data?.user || {};
         setUserData({ email, username, profilePicture, rating, user_id });
       } catch (error) {
         console.error("Error fetching user data: " + error);
