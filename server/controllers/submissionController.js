@@ -33,6 +33,29 @@ export const createSubmission = asyncHandler(async (req, res) => {
     throw ApiError.NotFound("No test cases found for this question.");
   }
 
+  /*
+  if (!testCases || testCases.length === 0) {
+    ! for development
+    testCases = [
+      {
+        input: "2 3\n",
+        output: "5\n",
+        explanation: "Sum of two numbers.",
+      },
+      {
+        input: "4 7\n",
+        output: "11\n",
+        explanation: "Sum of two numbers.",
+      },
+      {
+        input: "0 0\n",
+        output: "0\n",
+        explanation: "Sum of two zeros.",
+      },
+    ];
+  }
+*/
+
   const submissionTokens = await Promise.all(
     testCases.map(async (testCase) => {
       return submitCode({

@@ -5,7 +5,7 @@ export const submitCode = async ({ sourceCode, languageId, input, output }) => {
   try {
     const response = await axios.request({
       method: "POST",
-      url: `${ENV.JUDGE0_API_URL}/submissions`,
+      url: `https://${ENV.JUDGE0_API_URL}/submissions`,
       params: { fields: "*" },
       headers: {
         "x-rapidapi-key": ENV.JUDGE0_API_KEY,
@@ -30,14 +30,14 @@ export const verifyToken = async (token) => {
   try {
     const response = await axios.request({
       method: "GET",
-      url: `${ENV.JUDGE0_API_URL}/submissions/${token}`,
+      url: `https://${ENV.JUDGE0_API_URL}/submissions/${token}`,
       params: { base64_encoded: "true", fields: "*" },
       headers: {
         "x-rapidapi-key": ENV.JUDGE0_API_KEY,
       },
     });
 
-    const { status } = response.data;
+    const { status } = response.data || {};
 
     return status;
   } catch (error) {
